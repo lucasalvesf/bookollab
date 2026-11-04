@@ -21,4 +21,6 @@ O que muda, ganhos, custos e riscos.
 ```
 
 ## Índice
-_Nenhuma decisão registrada ainda._
+| Nº | Decisão | Status |
+|---|---|---|
+| [0001](0001-escolha-da-stack.md) | Escolha da stack | aceita |

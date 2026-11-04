@@ -5,7 +5,8 @@
 ## Visão geral
 Bookollab (nome provisório) é um criador de histórias colaborativas no estilo RPG de texto. Os jogadores jogam por meio de Cenas e de POVs (pontos de vista) que eles mesmos escrevem, construindo juntos um jogo de atuação vivo e em tempo real, dentro de comunidades que a staff personaliza para o estilo de jogo que quer.
 
-- Plataforma: web e app mobile. "App" = o produto inteiro (mobile + site).
+- Plataforma: web e app mobile. "App" = o produto inteiro (mobile + site). Web primeiro; app mobile nativo na fase 2.
+- Cenas ao vivo: POVs aparecem na hora para todos, com presença (quem está online) e indicador de "digitando".
 - Objetivo: projeto pessoal/portfólio bem documentado e produto para lançar com usuários reais. Pode virar TCC.
 - Público: quem gosta de RPG e sente falta dos RPGs de texto do Amino e WhatsApp, ou joga só pelo Discord.
 
@@ -31,4 +32,4 @@ O sistema deve incentivar a escrita com notificações que engajem os jogadores 
 - [ ] Cena: turnos ou escrita livre? Quem abre e encerra?
 - [ ] O que a staff pode personalizar na comunidade?
 - [ ] Quais gatilhos geram notificações?
-- [ ] Stack (ainda não decidida)
+- [x] Stack: ver [ADR 0001](decisoes/0001-escolha-da-stack.md)
