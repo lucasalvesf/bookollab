@@ -2,14 +2,13 @@
 
 Código do sistema Bookollab.
 
-Layout planejado (criado quando a stack for decidida):
+Layout planejado (criado no scaffold):
 
 ```
 src/
 ├── apps/
-│   ├── web/      # frontend web
-│   └── mobile/   # app mobile
-└── backend/      # API
+│   └── app/      # app universal Expo: site + Android + iOS
+└── backend/      # API ASP.NET Core + SignalR
 ```
 
-Regras de código: ver `src/CLAUDE.md`.
+Regras de código: ver `src/CLAUDE.md`. Stack: ver `docs/decisoes/0001-escolha-da-stack.md`.
