@@ -56,6 +56,7 @@ A staff escolhe como a comunidade recebe membros:
   - *Pública*: qualquer membro da comunidade entra.
   - *Por convite*: só personagens chamados participam.
   - *Com pedido de entrada*: quem abriu aprova os pedidos.
+- **Edição de ações:** o autor pode editar e apagar as próprias ações, como nos Capítulos. A ação fica marcada como "editada", e a staff vê o histórico.
 - Cenas podem ser organizadas em **Locais** definidos pela staff.
 - **Depois de encerrada**, a cena vira um registro somente leitura. Quem abriu escolhe se ele fica visível para a comunidade toda ou só para os participantes. A staff sempre vê.
 

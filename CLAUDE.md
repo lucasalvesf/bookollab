@@ -17,13 +17,14 @@ Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, par
 ## Segmentação
 - Código do sistema existe **somente** em `src/`. Nada de código de produto na raiz, em `docs/` ou em `docs-aux/`.
 - `src/` não depende de nada fora dele (nem de scripts, nem de arquivos da raiz).
+- Única exceção: `.github/workflows/` (CI) fica na raiz porque o GitHub exige; os workflows só executam coisas dentro de `src/`.
 - Decisões oficiais (produto, arquitetura, stack) vivem só em `docs/`.
 - `docs-aux/` nunca é fonte de regra de negócio. Se algo de lá virar decisão, mova para `docs/`.
 
 ## Fluxo de trabalho
 - Conversa e documentação em português; código, nomes de arquivos de código, identificadores e commits em inglês.
 - Commits seguem Conventional Commits: `docs:`, `feat:`, `fix:`, `refactor:`, `chore:`, `test:`.
-- Por ora, commits direto na `main`. Quando o código começar, o modelo de branches/PRs será definido em ADR.
+- Código: branch (`feat/…`, `fix/…`, `chore/…` etc.) → Pull Request com CI → squash merge na `main`. Docs pequenos podem ir direto na `main`. Ver [ADR 0003](docs/decisoes/0003-fluxo-git.md).
 - Quando uma decisão de produto ou arquitetura mudar, atualize o arquivo em `docs/` **no mesmo commit**.
 - Não invente regra de negócio: se não está em `docs/`, pergunte.
 

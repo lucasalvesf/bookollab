@@ -25,3 +25,4 @@ O que muda, ganhos, custos e riscos.
 |---|---|---|
 | [0001](0001-escolha-da-stack.md) | Escolha da stack | aceita |
 | [0002](0002-nome-capitulo.md) | Nome "Capítulo" no lugar de "POV" | aceita |
+| [0003](0003-fluxo-git.md) | Fluxo de trabalho no Git | aceita |

@@ -9,7 +9,8 @@
 - Os apps Android/iOS saem do mesmo código (ver [ADR 0001](decisoes/0001-escolha-da-stack.md)). A publicação nas lojas acontece quando o produto estiver estável, a partir do lançamento.
 
 ## Marco 1 — Base jogável
-- Contas (cadastro com data de nascimento, idade mínima 13 anos; login) e perfil global
+- Contas (cadastro por e-mail e senha com data de nascimento, idade mínima 13 anos; confirmação de e-mail; recuperação de senha) e perfil global
+- Avatares de usuário e de personagem (upload de imagem)
 - Papel de Staff Global (administrador da plataforma) definido desde o início
 - Comunidades: criar, entrar (aberta, com pedido ou por convite)
 - Os 4 cargos base (Dono, Staff, Narrador, Jogador) com flags padrão
