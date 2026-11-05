@@ -20,6 +20,15 @@ Bookollab (nome provisório) é um criador de histórias colaborativas no estilo
 
 Cena e Capítulo são coisas distintas: a Cena é o jogo ao vivo; o Capítulo é o registro escrito da história.
 
+### Contextos: Global × Comunidade, OnGame × OffGame
+Toda ação no app acontece em um contexto, e a interface deve deixar isso **bem destacado**:
+- **Global:** fora de qualquer comunidade (perfil global, seguir usuários, mensagens privadas entre quaisquer usuários).
+- **Comunidade/História:** dentro de uma comunidade, sujeito às regras e à moderação dela.
+
+E, em cada um, se é jogo ou não:
+- **OnGame:** role-playing, ou seja, o jogador age **como o personagem** (ações em cena, Capítulos).
+- **OffGame:** fora do personagem, o jogador fala **como ele mesmo** (comentários, conversas entre jogadores, avisos).
+
 ## Cargos e permissões
 Sistema de cargos e permissões focado em RPG, no estilo do Discord.
 
@@ -46,6 +55,7 @@ A staff escolhe como a comunidade recebe membros:
   - *Por convite*: só personagens chamados participam.
   - *Com pedido de entrada*: quem abriu aprova os pedidos.
 - Cenas podem ser organizadas em **Locais** definidos pela staff.
+- **Depois de encerrada**, a cena vira um registro somente leitura. Quem abriu escolhe se ele fica visível para a comunidade toda ou só para os participantes. A staff sempre vê.
 
 ## Capítulos
 - **Solo:** o jogador escreve para avançar a história do próprio personagem.
@@ -70,10 +80,37 @@ Tudo disponível desde o lançamento:
 - **Mundo/Wiki:** páginas de lore (regras, locais, facções, história do mundo).
 - **Locais de cena:** categorias de lugares do mundo (ex.: Taverna, Floresta) para organizar as cenas.
 - **Terminologia:** a staff pode renomear os termos exibidos na comunidade (ex.: mostrar "POV" em vez de "Capítulo"), assim como já renomeia cargos.
-- **Regras próprias:** limites de personagens, inatividade, aprovação, entrada, pontos e notificações.
+- **Mecânicas de RPG:** cada uma pode ser ligada ou desligada, para a comunidade ser mais baseada em regras ou mais livre e literária (ver Mecânicas de RPG).
+- **Regras próprias:** limites de personagens, inatividade, aprovação, entrada, usos dos pontos e notificações.
+
+## Mecânicas de RPG
+Todas opcionais, ligadas ou desligadas pela staff de cada comunidade:
+- **Rolagem de dados:** comando dentro da cena (ex.: `/rolar 1d20+3`). O resultado é gerado pelo servidor, fica visível para todos e não pode ser forjado.
+- **Atributos na ficha:** campos numéricos definidos pela staff (ex.: força, vida), que podem ser usados nas rolagens.
+- **Inventário:** itens do personagem, que a staff pode dar ou tirar.
+
+## Interações sociais
+- **Reações** (curtidas/emojis) em Capítulos e ações.
+- **Comentários** em Capítulos (OffGame).
+- **Seguir** jogadores e personagens, para ser avisado quando publicarem.
+- **Mensagens privadas** entre jogadores.
+
+Seguir e mensagens privadas existem tanto no contexto **Global** quanto dentro da **Comunidade**. Reações e comentários acontecem dentro das comunidades. A interface sempre deixa claro o contexto (Global/Comunidade e OnGame/OffGame).
+
+## Moderação
+Ferramentas da staff disponíveis desde o lançamento:
+- **Denúncias:** membros denunciam Capítulos, ações, comentários ou perfis; a staff analisa numa fila.
+- **Silenciar/suspender:** impedir um membro de postar por um tempo, sem expulsá-lo.
+- **Expulsar/banir:** remover da comunidade, com opção de impedir que volte.
+- **Registro de moderação:** histórico das ações da staff (quem fez o quê, quando e por quê).
 
 ## Pontos de engajamento
 Sistema de pontos que recompensa atividades que aumentam o movimento geral da comunidade. Exemplos: responder cartas/Capítulos em que foi marcado, participar de cenas com outros jogadores, tempo online lendo e curtindo posts.
+
+- **Valores fixos pela plataforma:** a tabela de quanto vale cada atividade é a mesma em todas as comunidades, o que permite comparar níveis entre comunidades. A staff decide os usos (loja, desbloqueios), não os valores.
+- **Anti-farm:**
+  - limite diário de pontos por atividade (ex.: tempo online rende pontos só até um teto por dia);
+  - tempo online só conta com atividade real (leitura, rolagem, interação), não com aba parada.
 
 Usos dos pontos:
 - **Ranking** de membros mais ativos (semanal, mensal, geral).
@@ -110,8 +147,14 @@ Não existe notificação obrigatória: o jogador sempre pode desligar tudo, inc
 - [x] Entrada na comunidade: aberta, com pedido ou só por convite (escolha da staff)
 - [x] Nome: "Capítulo" (renomeável pela staff)
 - [ ] IA para montar Capítulo a partir da cena: viabilidade e custo
-- [ ] Pontos: quanto vale cada atividade? A staff ajusta os valores? Como evitar farm (ex.: ficar online sem fazer nada)?
-- [ ] Interações sociais: curtidas, comentários, seguir jogadores/personagens?
-- [ ] Moderação: denúncias, banimento, silenciar membro
-- [ ] Recursos de RPG: dados/rolagens, atributos, inventário?
-- [ ] Cenas: ficam salvas para leitura depois de encerradas? Quem pode ler (só participantes ou a comunidade)?
+- [x] Pontos: valores fixos pela plataforma; anti-farm com limite diário e online só com atividade
+- [x] Interações sociais: reações, comentários, seguir e mensagens privadas (Global e Comunidade)
+- [x] Moderação: denúncias, silenciar/suspender, expulsar/banir, registro
+- [x] Mecânicas de RPG: dados, atributos e inventário, todas opcionais por comunidade
+- [x] Cenas encerradas: registro somente leitura; quem abriu escolhe a visibilidade
+- [ ] Tabela de pontos: valores de cada atividade e limites diários
+- [ ] Níveis: quantos níveis, quantos pontos por nível, quem define os títulos?
+- [ ] Mensagens privadas OnGame: personagens podem conversar em privado "como personagens"?
+- [ ] Moderação global: a plataforma também modera (contas banidas do Bookollab inteiro, conteúdo ilegal)?
+- [ ] Conteúdo adulto/sensível: comunidades podem ser marcadas como +18? Há filtros?
+- [ ] MVP: o que entra na primeira versão e o que fica para depois?
