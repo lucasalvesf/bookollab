@@ -3,7 +3,10 @@ using System.Text.Json.Serialization;
 using Bookollab.Api.Domain.Users;
 using Bookollab.Api.Features.Auth;
 using Bookollab.Api.Features.Chapters;
+using Bookollab.Api.Features.Profile;
 using Bookollab.Api.Features.Scenes;
+using Bookollab.Api.Features.Uploads;
+using Bookollab.Api.Infrastructure.Storage;
 using Bookollab.Api.Features.Characters;
 using Bookollab.Api.Features.Common;
 using Bookollab.Api.Features.Communities;
@@ -53,6 +56,8 @@ builder.Services.AddOptions<SmtpOptions>().BindConfiguration(SmtpOptions.Section
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PermissionService>();
 builder.Services.AddSingleton<ScenePresence>();
+builder.Services.AddOptions<StorageOptions>().BindConfiguration(StorageOptions.Section);
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddSignalR()
     .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
@@ -119,6 +124,8 @@ app.MapCommunityEndpoints();
 app.MapCharacterEndpoints();
 app.MapSceneEndpoints();
 app.MapChapterEndpoints();
+app.MapUploadEndpoints();
+app.MapProfileEndpoints();
 app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();

@@ -25,7 +25,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Chapters.Chapter", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -93,7 +92,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Chapters.ChapterRevision", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -127,7 +125,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Characters.Character", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -187,7 +184,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Communities.Community", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -244,7 +240,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Communities.CommunityRole", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -329,7 +324,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Communities.JoinRequest", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -406,9 +400,13 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.Scene", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("Background")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("background");
 
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone")
@@ -464,9 +462,13 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneAction", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("AttachmentKey")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("attachment_key");
 
                     b.Property<Guid>("AuthorUserId")
                         .HasColumnType("uuid")
@@ -516,7 +518,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneActionRevision", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -565,10 +566,43 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.ToTable("scene_participants", (string)null);
                 });
 
+            modelBuilder.Entity("Bookollab.Api.Domain.Uploads.Upload", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("key");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size");
+
+                    b.HasKey("Key")
+                        .HasName("pk_uploads");
+
+                    b.HasIndex("OwnerUserId")
+                        .HasDatabaseName("ix_uploads_owner_user_id");
+
+                    b.ToTable("uploads", (string)null);
+                });
+
             modelBuilder.Entity("Bookollab.Api.Domain.Users.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1139,6 +1173,16 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_scene_participants_scenes_scene_id");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Uploads.Upload", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_uploads_users_owner_user_id");
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Users.RefreshToken", b =>

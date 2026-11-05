@@ -149,7 +149,7 @@ public static partial class CommunityEndpoints
         var list = await db.Memberships
             .Where(m => m.CommunityId == access!.Community.Id)
             .OrderBy(m => m.Role.Position).ThenBy(m => m.User.DisplayName)
-            .Select(m => new MemberDto(m.UserId, m.User.UserName!, m.User.DisplayName, m.Role.Name, m.Role.BaseKind, m.JoinedAt))
+            .Select(m => new MemberDto(m.UserId, m.User.UserName!, m.User.DisplayName, m.User.AvatarKey, m.Role.Name, m.Role.BaseKind, m.JoinedAt))
             .ToListAsync(ct);
         return TypedResults.Ok(list);
     }

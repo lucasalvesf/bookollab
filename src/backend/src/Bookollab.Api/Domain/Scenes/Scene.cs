@@ -24,6 +24,9 @@ public sealed class Scene
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? ClosedAt { get; set; }
 
+    /// <summary>Chat background chosen by the opener or the staff: "preset:&lt;name&gt;" or "image:&lt;upload key&gt;". Null = default.</summary>
+    public string? Background { get; set; }
+
     public List<SceneParticipant> Participants { get; init; } = [];
 }
 
@@ -41,7 +44,12 @@ public sealed class SceneAction
     public Guid SceneId { get; set; }
     public Guid CharacterId { get; set; }
     public Guid AuthorUserId { get; set; }
+    /// <summary>Text of the action. May be empty when the action is only an image.</summary>
     public required string Content { get; set; }
+
+    /// <summary>Optional image attached to the action (upload key).</summary>
+    public string? AttachmentKey { get; init; }
+
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? EditedAt { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }

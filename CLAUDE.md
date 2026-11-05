@@ -9,7 +9,7 @@ Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, par
 | Pasta | Papel |
 |---|---|
 | `CLAUDE.md` | Este arquivo: regras gerais do projeto |
-| `docs/` | Documentação **oficial**: visão do produto, roadmap (`docs/roadmap.md`), arquitetura, ADRs (`docs/decisoes/`). Fonte da verdade. |
+| `docs/` | Documentação **oficial**: visão do produto, roadmap (`docs/roadmap.md`), backlog de pedidos (`docs/backlog.md`), arquitetura, ADRs (`docs/decisoes/`). Fonte da verdade. |
 | `docs-aux/` | Material de **apoio** ao desenvolvimento: guias de ferramentas, referências, checklists. Não é produto. |
 | `src/` | **Código do sistema**, isolado. Tem o próprio `src/CLAUDE.md`. |
 | `.claude/agents/` | Agentes do Claude Code específicos do projeto (criada junto com o primeiro agente). |
@@ -27,6 +27,7 @@ Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, par
 - Código: branch (`feat/…`, `fix/…`, `chore/…` etc.) → Pull Request com CI → squash merge na `main`. Docs pequenos podem ir direto na `main`. Ver [ADR 0003](docs/decisoes/0003-fluxo-git.md).
 - Quando uma decisão de produto ou arquitetura mudar, atualize o arquivo em `docs/` **no mesmo commit**.
 - Não invente regra de negócio: se não está em `docs/`, pergunte.
+- Todo pedido do usuário que não for construído na hora vai para `docs/backlog.md` (com data e, se houver, o marco previsto). Nada pedido pode se perder.
 
 ## Decisões (ADRs)
 Decisões técnicas relevantes viram ADRs curtos em `docs/decisoes/NNNN-titulo.md` (contexto, decisão, consequências). Modelo e índice em `docs/decisoes/README.md`.

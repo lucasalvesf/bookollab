@@ -25,6 +25,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<SceneActionRevision> SceneActionRevisions => Set<SceneActionRevision>();
     public DbSet<Chapter> Chapters => Set<Chapter>();
     public DbSet<ChapterRevision> ChapterRevisions => Set<ChapterRevision>();
+    public DbSet<Domain.Uploads.Upload> Uploads => Set<Domain.Uploads.Upload>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configuration)
     {

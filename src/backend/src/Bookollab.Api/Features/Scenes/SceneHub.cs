@@ -16,6 +16,7 @@ public static class SceneEvents
     public const string ActionDeleted = "ActionDeleted";
     public const string ParticipantJoined = "ParticipantJoined";
     public const string SceneClosed = "SceneClosed";
+    public const string SceneUpdated = "SceneUpdated";
     public const string Presence = "Presence";
     public const string Typing = "Typing";
 
@@ -65,10 +66,10 @@ public sealed class SceneHub(AppDbContext db, PermissionService perms, ScenePres
     public async Task JoinScene(Guid sceneId)
     {
         var scene = await db.Scenes.AsNoTracking().SingleOrDefaultAsync(s => s.Id == sceneId)
-            ?? throw new HubException("Cena não encontrada.");
+            ?? throw new HubException("Cena nÃ£o encontrada.");
         var userId = Context.User!.UserId();
         if (await perms.GetAccessAsync(scene.CommunityId, userId, Context.ConnectionAborted) is null)
-            throw new HubException("Você não é membro desta comunidade.");
+            throw new HubException("VocÃª nÃ£o Ã© membro desta comunidade.");
 
         await Groups.AddToGroupAsync(Context.ConnectionId, SceneEvents.Group(sceneId));
         var online = presence.Join(sceneId, Context.ConnectionId, new PresenceDto(userId, Context.User!.Identity!.Name!));

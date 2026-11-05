@@ -155,7 +155,7 @@ public static partial class AuthEndpoints
         var user = await users.GetUserAsync(principal);
         if (user is null) return TypedResults.Unauthorized();
         var roles = await users.GetRolesAsync(user);
-        return TypedResults.Ok(new MeResponse(user.Id, user.UserName!, user.Email!, user.DisplayName, user.BirthDate, user.Bio, [.. roles]));
+        return TypedResults.Ok(new MeResponse(user.Id, user.UserName!, user.Email!, user.DisplayName, user.BirthDate, user.Bio, user.AvatarKey, [.. roles]));
     }
 
     // ------------------------------------------------------------------ helpers

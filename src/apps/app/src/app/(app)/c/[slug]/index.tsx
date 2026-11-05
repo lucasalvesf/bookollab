@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
+import { Avatar } from '@/components/avatar';
 import { Empty, Loadable, Page, Row, Section, Tag } from '@/components/layout';
 import { Button, colors, Notice } from '@/components/ui';
 
@@ -93,6 +94,7 @@ export default function CommunityScreen() {
                             key={ch.id}
                             title={ch.name}
                             subtitle={`de @${ch.ownerUserName}`}
+                            left={<Avatar name={ch.name} imageKey={ch.avatarKey} size={40} />}
                             onPress={() => router.push({ pathname: '/personagens/[id]', params: { id: ch.id } })}
                           />
                         ))
@@ -103,7 +105,7 @@ export default function CommunityScreen() {
 
                 <Section title="Membros">
                   <Loadable query={members}>
-                    {(list) => list.map((m) => <Row key={m.userId} title={m.displayName} subtitle={`@${m.userName}`} right={<Tag label={m.roleName} />} />)}
+                    {(list) => list.map((m) => <Row key={m.userId} title={m.displayName} subtitle={`@${m.userName}`} left={<Avatar name={m.displayName} imageKey={m.avatarKey} size={40} />} right={<Tag label={m.roleName} />} />)}
                   </Loadable>
                 </Section>
 

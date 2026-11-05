@@ -27,6 +27,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("App:BaseUrl", "http://app.test");
         builder.UseSetting("Smtp:Host", "localhost");
         builder.UseSetting("Smtp:From", "test@bookollab.dev");
+        builder.UseSetting("Storage:LocalPath", Path.Combine(Path.GetTempPath(), "bookollab-tests", Guid.NewGuid().ToString("N")));
         builder.ConfigureTestServices(services => services.AddSingleton<IEmailSender>(Emails));
     }
 

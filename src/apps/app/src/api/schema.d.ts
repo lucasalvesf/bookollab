@@ -28,7 +28,7 @@ export interface paths {
             cookie?: never;
         };
         get: operations["GetMe"];
-        put?: never;
+        put: operations["UpdateMe"];
         post?: never;
         delete?: never;
         options?: never;
@@ -46,6 +46,22 @@ export interface paths {
         get: operations["MyCommunities"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UploadImage"];
         delete?: never;
         options?: never;
         head?: never;
@@ -452,6 +468,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/scenes/{id}/background": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateSceneBackground"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/scenes/{id}/actions": {
         parameters: {
             query?: never;
@@ -716,6 +748,8 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        /** Format: binary */
+        IFormFile: string;
         InviteDto: {
             code: string;
             /** Format: date-time */
@@ -761,6 +795,7 @@ export interface components {
             userId: string;
             userName: string;
             displayName: string;
+            avatarKey: null | string;
             roleName: string;
             baseKind: components["schemas"]["BaseRoleKind"];
             /** Format: date-time */
@@ -775,6 +810,7 @@ export interface components {
             /** Format: date */
             birthDate: string;
             bio: null | string;
+            avatarKey: null | string;
             roles: string[];
         };
         MyAccess: {
@@ -808,6 +844,7 @@ export interface components {
             sheet: null | components["schemas"]["SheetValueDto"][];
             showOnGlobalProfile: boolean;
             showCommunityOnProfile: boolean;
+            avatarKey?: null | string;
         };
         SceneActionDto: {
             /** Format: uuid */
@@ -817,9 +854,11 @@ export interface components {
             /** Format: uuid */
             characterId: string;
             characterName: string;
+            characterAvatarKey: null | string;
             /** Format: uuid */
             authorUserId: string;
             content: null | string;
+            attachmentKey: null | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -843,16 +882,19 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             closedAt: null | string;
+            background: null | string;
             participants: components["schemas"]["SceneParticipantDto"][];
             canJoin: boolean;
             canClose: boolean;
             canModerate: boolean;
             canViewRevisions: boolean;
+            canEditBackground: boolean;
         };
         SceneParticipantDto: {
             /** Format: uuid */
             characterId: string;
             characterName: string;
+            characterAvatarKey: null | string;
             /** Format: uuid */
             ownerUserId: string;
             ownerUserName: string;
@@ -879,7 +921,8 @@ export interface components {
         SendActionRequest: {
             /** Format: uuid */
             characterId: string;
-            content: string;
+            content: null | string;
+            attachmentKey?: null | string;
         };
         SheetFieldDto: {
             key: string;
@@ -902,6 +945,20 @@ export interface components {
         UpdateChapterRequest: {
             title: string;
             content: string;
+        };
+        UpdateProfileRequest: {
+            displayName: string;
+            bio: null | string;
+            avatarKey: null | string;
+        };
+        UpdateSceneBackgroundRequest: {
+            background: null | string;
+        };
+        UploadResponse: {
+            key: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number | string;
         };
     };
     responses: never;
@@ -952,6 +1009,30 @@ export interface operations {
             };
         };
     };
+    UpdateMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
     MyCommunities: {
         parameters: {
             query?: never;
@@ -968,6 +1049,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommunitySummary"][];
+                };
+            };
+        };
+    };
+    UploadImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResponse"];
                 };
             };
         };
@@ -1677,6 +1784,32 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    UpdateSceneBackground: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSceneBackgroundRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

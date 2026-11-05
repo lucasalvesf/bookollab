@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
+import { Avatar } from '@/components/avatar';
 import { CharacterForm } from '@/components/character-form';
 import { Loadable, Page, Row, Section } from '@/components/layout';
 import { Button, colors, Notice } from '@/components/ui';
@@ -38,13 +39,14 @@ export default function CharacterScreen() {
               </View>
             ) : undefined
           }>
+          {!editing ? <Avatar name={ch.name} imageKey={ch.avatarKey} size={96} /> : null}
           {saved ? <Notice kind="success">Personagem salvo.</Notice> : null}
           <Loadable query={community}>
             {(c) =>
               editing ? (
                 <CharacterForm
                   fields={c.sheetFields}
-                  initial={{ name: ch.name, sheet: ch.sheet, showOnGlobalProfile: ch.showOnGlobalProfile, showCommunityOnProfile: ch.showCommunityOnProfile }}
+                  initial={{ name: ch.name, sheet: ch.sheet, showOnGlobalProfile: ch.showOnGlobalProfile, showCommunityOnProfile: ch.showCommunityOnProfile, avatarKey: ch.avatarKey }}
                   submitLabel="Salvar"
                   onSubmit={async (input) => {
                     const { data, error } = await api.PUT('/characters/{id}', { params: { path: { id } }, body: input });

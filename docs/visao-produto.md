@@ -75,6 +75,9 @@ A staff escolhe como a comunidade recebe membros:
   - *Por convite*: só personagens chamados participam.
   - *Com pedido de entrada*: quem abriu aprova os pedidos.
 - **Edição de ações:** o autor pode editar e apagar as próprias ações, como nos Capítulos. A ação fica marcada como "editada", e a staff vê o histórico.
+- **Formato de chat** (no estilo do Amino): a cena ocupa a tela inteira, com uma barra lateral (~1/3) com informações da cena, participantes (avatar e nome, lista que expande) e opções, e o chat (~2/3) com as ações em balões. No celular, a barra lateral vira um painel que abre por cima.
+- **Ação com imagem:** uma ação pode ter texto, uma imagem anexada, ou os dois. O campo de escrita tem anexo e emojis.
+- **Fundo do chat:** cores prontas ou uma imagem, definido por quem abriu a cena ou pela staff. Todos os participantes veem o mesmo fundo.
 - Cenas podem ser organizadas em **Locais** definidos pela staff.
 - **Depois de encerrada**, a cena vira um registro somente leitura. Quem abriu escolhe se ele fica visível para a comunidade toda ou só para os participantes. A staff sempre vê.
 

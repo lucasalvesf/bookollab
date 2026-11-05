@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
 import { useSession } from '@/auth/session';
+import { Avatar } from '@/components/avatar';
 import { Empty, Loadable, Page, Row, Section } from '@/components/layout';
 import { Button } from '@/components/ui';
 
@@ -19,8 +20,13 @@ export default function HomeScreen() {
       title={me.data ? `Olá, ${me.data.displayName}!` : 'Bookollab'}
       subtitle={me.data ? `@${me.data.userName}` : undefined}
       actions={
-        <View style={styles.signOut}>
-          <Button title="Sair" variant="secondary" onPress={signOut} />
+        <View style={styles.headerActions}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Meu perfil" onPress={() => router.push('/perfil')}>
+            {me.data ? <Avatar name={me.data.displayName} imageKey={me.data.avatarKey} size={44} /> : null}
+          </Pressable>
+          <View style={styles.signOut}>
+            <Button title="Sair" variant="secondary" onPress={signOut} />
+          </View>
         </View>
       }>
       <View style={styles.actions}>
@@ -54,6 +60,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   signOut: { width: 100 },
   actions: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
   action: { flexGrow: 1, minWidth: 200 },

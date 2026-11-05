@@ -1,6 +1,6 @@
 # Bookollab — Roadmap do MVP
 
-> Documento vivo. Define a ordem de construção do MVP. O que cada funcionalidade faz está em [`visao-produto.md`](visao-produto.md).
+> Documento vivo. Define a ordem de construção do MVP. O que cada funcionalidade faz está em [`visao-produto.md`](visao-produto.md). Pedidos ainda sem marco definido ficam no [`backlog.md`](backlog.md).
 
 ## Decisão
 - **Escopo do MVP:** todas as funcionalidades descritas em `visao-produto.md` (jogo, staff, social e engajamento).
@@ -11,7 +11,8 @@
 ## Marco 1 — Base jogável
 - [x] Contas (cadastro por e-mail e senha com data de nascimento, idade mínima 13 anos; confirmação de e-mail; recuperação de senha)
 - [ ] Perfil global (página pública do usuário com a vitrine de personagens)
-- [ ] Avatares de usuário e de personagem (upload de imagem)
+- [x] Avatares de usuário e de personagem (upload de imagem)
+- [x] Cena em formato de chat (tela cheia, barra lateral, fundo, anexos de imagem, emojis)
 - [x] Papel de Staff Global (`GlobalAdmin`) definido no modelo
 - [x] Comunidades: criar, entrar (aberta, com pedido ou por convite)
 - [x] Os 4 cargos base (Dono, Staff, Narrador, Jogador) com flags padrão

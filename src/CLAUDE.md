@@ -67,6 +67,13 @@ Rotas tipadas do Expo Router: os tipos (`.expo/types/router.d.ts`) são gerados 
 - O token JWT chega ao hub pela query `access_token` (navegadores não mandam header em WebSocket).
 - App: `src/realtime/use-scene-realtime.ts` (reconecta e reassina sozinho).
 
+## Uploads
+- `POST /uploads` (multipart, campo `file`): só imagens (JPG, PNG, WEBP, GIF), até 5 MB. O tipo é validado pelos bytes do arquivo, não pelo que o cliente declara.
+- `GET /files/{key}`: público pela chave (impossível de adivinhar), com cache longo.
+- Toda chave anexada a algo (avatar, anexo de ação, fundo de cena) precisa ter sido enviada pelo próprio usuário (`UploadEndpoints.OwnsAsync`).
+- Armazenamento: `IFileStorage`. Em dev, disco local (`backend/src/Bookollab.Api/.data/uploads`, no `.gitignore`). Produção: Cloudflare R2 (pendente, ver backlog).
+- App: `src/lib/files.ts` (`pickAndUploadImage`, `fileUrl`).
+
 ## Persistência
 - Entidades do domínio geram o próprio `Guid` (`Guid.CreateVersion7`); o `AppDbContext` marca essas chaves como não geradas pelo banco, para que filhos adicionados por navegação (ex.: revisões) sejam inseridos.
 - Remoção de Ações e Capítulos é lógica (`DeletedAt`), com revisões preservadas para auditoria da staff.
