@@ -110,7 +110,7 @@ Ferramentas da staff disponíveis desde o lançamento:
 
 ### Classificação de conteúdo
 - A staff classifica a comunidade como **Livre**, **+16** ou **+18**.
-- Comunidades +18 exigem idade confirmada e ficam ocultas para menores.
+- Comunidades +18 ficam ocultas para menores. Para entrar, vale a data de nascimento do cadastro (que não pode ser editada livremente), mais uma declaração de maioridade na entrada. Verificação com documento pode ser adotada no futuro, se necessário.
 - Conteúdo sexual explícito é proibido em toda a plataforma.
 
 ## Pontos de engajamento
@@ -120,13 +120,13 @@ Sistema de pontos que recompensa atividades que aumentam o movimento geral da co
 - **Anti-farm:**
   - limite diário de pontos por atividade;
   - tempo online só conta com atividade real (leitura, rolagem, interação), não com aba parada;
-  - ações e Capítulos muito curtos não pontuam (mínimo de palavras a calibrar).
+  - ações e Capítulos muito curtos não pontuam: mínimo de **30 palavras por ação** e **500 por Capítulo** (editável pela Staff Global).
 
 **Tabela inicial** (ponto de partida, a recalibrar com dados do beta):
 
 | Atividade | Pontos | Limite/dia |
 |---|---|---|
-| Publicar Capítulo (≥ 300 palavras) | 20 | 100 |
+| Publicar Capítulo (≥ 500 palavras) | 20 | 100 |
 | Responder carta em que foi marcado | 25 | sem limite (1 resposta por carta) |
 | Ação em cena com outra pessoa | 2 | 60 |
 | Concluir cena (participante) | 10 | 50 |
@@ -138,6 +138,8 @@ Sistema de pontos que recompensa atividades que aumentam o movimento geral da co
 **Escopo:** pontos, ranking e nível são **por comunidade**. A soma de todas as comunidades forma um **nível global**, exibido no perfil global.
 
 **Níveis:** a Staff Global define a curva (pontos necessários por nível) no painel global. A staff de cada comunidade dá nome aos títulos por faixa de nível, para combinar com o tema (ex.: níveis 1–5 "Aprendiz", 6–10 "Escudeiro").
+
+**Curva inicial (moderada):** passar do nível *n* para o *n+1* custa 100 × *n* pontos, sem nível máximo. Total acumulado para chegar ao nível *n*: 50 × *n* × (*n* − 1). Exemplos: nível 2 = 100, nível 5 = 1.000, nível 10 = 4.500, nível 20 = 19.000. Um jogador ativo (~100 pontos/dia) chega ao nível 10 em cerca de 1,5 mês. Editável pela Staff Global.
 
 Usos dos pontos:
 - **Ranking** de membros mais ativos (semanal, mensal, geral).
@@ -193,7 +195,7 @@ Não existe notificação obrigatória: o jogador sempre pode desligar tudo, inc
 - [x] Mensagens privadas: sempre OffGame; OnGame privado = Cena por convite
 - [x] Moderação global: camada mínima da Staff Global
 - [x] Conteúdo: classificação Livre/+16/+18 por comunidade; sexual explícito proibido; idade mínima 13 anos
-- [ ] Curva de níveis: valores iniciais (pontos por nível)
-- [ ] Mínimo de palavras para ações/Capítulos pontuarem
-- [ ] Como confirmar a idade para comunidades +18?
+- [x] Curva de níveis: moderada (100 × nível), editável pela Staff Global
+- [x] Mínimo de palavras para pontuar: 30 por ação, 500 por Capítulo
+- [x] Idade para +18: data de nascimento + declaração
 - [x] MVP: produto completo, construído em 4 marcos com beta fechado no Marco 2 (ver [roadmap](roadmap.md))
