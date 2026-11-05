@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Bookollab (local)",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "bookollab",
+      "Username": "bookollab",
+      "SSLMode": "prefer"
+    }
+  }
+}

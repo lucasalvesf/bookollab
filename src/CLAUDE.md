@@ -34,7 +34,7 @@ Executar a partir de `src/` (ou da pasta indicada).
 
 | O quê | Comando |
 |---|---|
-| Subir Postgres + Mailpit | `docker compose up -d` (e-mails de dev em http://localhost:8025) |
+| Subir Postgres + Mailpit + pgAdmin | `docker compose up -d` (e-mails de dev em http://localhost:8025; banco no pgAdmin em http://localhost:5050, senha do servidor `bookollab`) |
 | Rodar a API | `dotnet run --project backend/src/Bookollab.Api` (http://localhost:5087) |
 | Testes da API | `dotnet test backend` (precisa do Docker rodando: Testcontainers) |
 | Nova migration | `dotnet ef migrations add <Nome> --project backend/src/Bookollab.Api --output-dir Infrastructure/Migrations` |

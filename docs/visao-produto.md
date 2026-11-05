@@ -40,6 +40,24 @@ Sistema de cargos e permissões focado em RPG, no estilo do Discord.
 - Como são muitas permissões, elas ficam **organizadas por categoria**, com Cenas e Capítulos bem separados. Categorias iniciais: Comunidade, Personagens, Cenas, Capítulos, Moderação.
 - Exemplos de flags (lista inicial, a validar): abrir cena; capítulo precisa de aprovação; narrador pode editar capítulo de outros; cena com turnos obrigatórios.
 
+**Permissões padrão dos cargos base** (Marco 1; a staff poderá ajustar a partir do Marco 3; a validar):
+
+| Permissão | Jogador | Narrador | Staff | Dono |
+|---|:-:|:-:|:-:|:-:|
+| Criar personagens | ✓ | ✓ | ✓ | ✓ |
+| Entrar em cenas | ✓ | ✓ | ✓ | ✓ |
+| Escrever Capítulos | ✓ | ✓ | ✓ | ✓ |
+| Abrir cenas | | ✓ | ✓ | ✓ |
+| Encerrar qualquer cena | | ✓ | ✓ | ✓ |
+| Editar configurações da comunidade (ficha etc.) | | | ✓ | ✓ |
+| Gerenciar membros (aprovar pedidos) | | | ✓ | ✓ |
+| Criar convites | | | ✓ | ✓ |
+| Gerenciar personagens de outros | | | ✓ | ✓ |
+| Moderar conteúdo | | | ✓ | ✓ |
+| Ver histórico de edições | | | ✓ | ✓ |
+| Gerenciar cargos | | | | ✓ |
+| Editar Capítulo de outros | | | | ✓ |
+
 ## Entrada na comunidade
 A staff escolhe como a comunidade recebe membros:
 - *Aberta:* qualquer pessoa entra direto. Comunidades abertas aparecem numa busca/listagem.
