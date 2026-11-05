@@ -26,6 +26,16 @@ export default function CommunityScreen() {
     enabled: isMember,
     queryFn: () => unwrap(api.GET('/communities/{slug}/members', { params: { path: { slug } } })),
   });
+  const scenes = useQuery({
+    queryKey: ['scenes', slug],
+    enabled: isMember,
+    queryFn: () => unwrap(api.GET('/communities/{slug}/scenes', { params: { path: { slug } } })),
+  });
+  const chapters = useQuery({
+    queryKey: ['chapters', slug],
+    enabled: isMember,
+    queryFn: () => unwrap(api.GET('/communities/{slug}/chapters', { params: { path: { slug }, query: {} } })),
+  });
   const join = useMutation({
     mutationFn: () => unwrap(api.POST('/communities/{slug}/join', { params: { path: { slug } } })),
     onSuccess: () => {
@@ -97,7 +107,61 @@ export default function CommunityScreen() {
                   </Loadable>
                 </Section>
 
-                <Text style={styles.soon}>Em breve aqui: Cenas ao vivo e Capítulos.</Text>
+                <Section
+                  title="Cenas"
+                  right={
+                    perms.has('OpenScenes') ? (
+                      <View style={styles.smallButton}>
+                        <Button title="+ Abrir" onPress={() => router.push({ pathname: '/c/[slug]/cenas/nova', params: { slug } })} />
+                      </View>
+                    ) : undefined
+                  }>
+                  <Loadable query={scenes}>
+                    {(list) =>
+                      list.length === 0 ? (
+                        <Empty>Nenhuma cena ainda.</Empty>
+                      ) : (
+                        list.map((s) => (
+                          <Row
+                            key={s.id}
+                            title={s.title}
+                            subtitle={`${s.participantCount} ${s.participantCount === 1 ? 'personagem' : 'personagens'} · aberta por @${s.openedByUserName}`}
+                            right={<Tag label={s.status === 'Open' ? 'Ao vivo' : 'Encerrada'} />}
+                            onPress={() => router.push({ pathname: '/cenas/[id]', params: { id: s.id } })}
+                          />
+                        ))
+                      )
+                    }
+                  </Loadable>
+                </Section>
+
+                <Section
+                  title="Capítulos"
+                  right={
+                    perms.has('WriteChapters') ? (
+                      <View style={styles.smallButton}>
+                        <Button title="+ Escrever" onPress={() => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug } })} />
+                      </View>
+                    ) : undefined
+                  }>
+                  <Loadable query={chapters}>
+                    {(list) =>
+                      list.length === 0 ? (
+                        <Empty>Nenhum capítulo ainda.</Empty>
+                      ) : (
+                        list.map((ch) => (
+                          <Row
+                            key={ch.id}
+                            title={ch.title}
+                            subtitle={`${ch.characterName} · ${ch.excerpt}`}
+                            right={ch.status === 'Draft' ? <Tag label="Rascunho" /> : undefined}
+                            onPress={() => router.push({ pathname: '/capitulos/[id]', params: { id: ch.id } })}
+                          />
+                        ))
+                      )
+                    }
+                  </Loadable>
+                </Section>
               </>
             )}
           </Page>
@@ -110,6 +174,5 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
   description: { fontSize: 15, color: colors.text, lineHeight: 22 },
   joinBox: { gap: 12 },
-  smallButton: { width: 100 },
-  soon: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  smallButton: { width: 110 },
 });

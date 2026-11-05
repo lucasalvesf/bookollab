@@ -2,6 +2,8 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 using Bookollab.Api.Domain.Users;
 using Bookollab.Api.Features.Auth;
+using Bookollab.Api.Features.Chapters;
+using Bookollab.Api.Features.Scenes;
 using Bookollab.Api.Features.Characters;
 using Bookollab.Api.Features.Common;
 using Bookollab.Api.Features.Communities;
@@ -50,6 +52,9 @@ builder.Services.AddOptions<AppLinkOptions>().BindConfiguration(AppLinkOptions.S
 builder.Services.AddOptions<SmtpOptions>().BindConfiguration(SmtpOptions.Section);
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PermissionService>();
+builder.Services.AddSingleton<ScenePresence>();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
@@ -67,6 +72,17 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
             NameClaimType = JwtRegisteredClaimNames.UniqueName,
             RoleClaimType = ClaimTypes.Role,
             ClockSkew = TimeSpan.FromSeconds(30),
+        };
+        // Browsers cannot send headers on WebSocket connections: SignalR passes the token in the query string.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(token) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    context.Token = token;
+                return Task.CompletedTask;
+            },
         };
     });
 builder.Services.AddAuthorization();
@@ -101,6 +117,9 @@ app.MapGet("/health", async Task<Results<Ok<HealthResponse>, ProblemHttpResult>>
 app.MapAuthEndpoints();
 app.MapCommunityEndpoints();
 app.MapCharacterEndpoints();
+app.MapSceneEndpoints();
+app.MapChapterEndpoints();
+app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();
 
