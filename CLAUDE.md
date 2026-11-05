@@ -9,7 +9,7 @@ Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, par
 | Pasta | Papel |
 |---|---|
 | `CLAUDE.md` | Este arquivo: regras gerais do projeto |
-| `docs/` | Documentação **oficial**: visão do produto, arquitetura, ADRs (`docs/decisoes/`). Fonte da verdade. |
+| `docs/` | Documentação **oficial**: visão do produto, roadmap (`docs/roadmap.md`), arquitetura, ADRs (`docs/decisoes/`). Fonte da verdade. |
 | `docs-aux/` | Material de **apoio** ao desenvolvimento: guias de ferramentas, referências, checklists. Não é produto. |
 | `src/` | **Código do sistema**, isolado. Tem o próprio `src/CLAUDE.md`. |
 | `.claude/agents/` | Agentes do Claude Code específicos do projeto (criada junto com o primeiro agente). |

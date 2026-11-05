@@ -157,4 +157,4 @@ Não existe notificação obrigatória: o jogador sempre pode desligar tudo, inc
 - [ ] Mensagens privadas OnGame: personagens podem conversar em privado "como personagens"?
 - [ ] Moderação global: a plataforma também modera (contas banidas do Bookollab inteiro, conteúdo ilegal)?
 - [ ] Conteúdo adulto/sensível: comunidades podem ser marcadas como +18? Há filtros?
-- [ ] MVP: o que entra na primeira versão e o que fica para depois?
+- [x] MVP: produto completo, construído em 4 marcos com beta fechado no Marco 2 (ver [roadmap](roadmap.md))
