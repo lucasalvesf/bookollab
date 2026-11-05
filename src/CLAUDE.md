@@ -45,6 +45,15 @@ Executar a partir de `src/` (ou da pasta indicada).
 
 `dotnet ef` exige a ferramenta global: `dotnet tool install --global dotnet-ef`.
 
+Rotas tipadas do Expo Router: os tipos (`.expo/types/router.d.ts`) são gerados quando `npx expo start` roda. Ao criar uma tela nova, reinicie o servidor antes do `tsc`.
+
+## Organização do app
+- `src/app/`: rotas (Expo Router). `(app)/` = área logada (protegida em `_layout.tsx` com `Stack.Protected`); telas de conta na raiz.
+- `src/api/`: `client.ts` (cliente tipado + renovação de token), `schema.d.ts` (gerado, não editar), `hooks.ts` (`unwrap`, rótulos de enums).
+- `src/auth/`: sessão (`SessionProvider`, `tokenStore`, storage seguro).
+- `src/components/`: `ui.tsx` (campos, botões, avisos), `layout.tsx` (página, seções, linhas), formulários reutilizáveis.
+- Textos de interface em português; rotas em português (`/entrar`, `/c/[slug]`, `/personagens/[id]`).
+
 ## Organização do backend
 - `Features/<Feature>/`: vertical slices, cada uma com seus endpoints, DTOs e lógica.
 - `Domain/`: entidades e enums.
