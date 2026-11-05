@@ -5,6 +5,8 @@ Regras gerais do projeto inteiro: produto, documentação, fluxo de trabalho e o
 ## O projeto
 Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, para web e mobile: Cenas (chat ao vivo), Capítulos (textos assíncronos) e comunidades personalizáveis com cargos e flags de permissão. Leia `docs/visao-produto.md` antes de qualquer tarefa: é a fonte oficial das decisões de produto.
 
+**Para retomar o trabalho**, comece por `docs/estado-do-projeto.md` (o que está pronto, arquitetura e próximos passos). Computador novo: `docs-aux/ambiente-de-desenvolvimento.md`.
+
 ## Mapa do repositório
 | Pasta | Papel |
 |---|---|
