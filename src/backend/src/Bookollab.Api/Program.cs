@@ -1,6 +1,10 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Bookollab.Api.Domain.Users;
 using Bookollab.Api.Features.Auth;
+using Bookollab.Api.Features.Characters;
+using Bookollab.Api.Features.Common;
+using Bookollab.Api.Features.Communities;
 using Bookollab.Api.Infrastructure;
 using Bookollab.Api.Infrastructure.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -45,6 +49,7 @@ builder.Services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.Section)
 builder.Services.AddOptions<AppLinkOptions>().BindConfiguration(AppLinkOptions.Section).ValidateOnStart();
 builder.Services.AddOptions<SmtpOptions>().BindConfiguration(SmtpOptions.Section);
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<PermissionService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
@@ -66,6 +71,8 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
     });
 builder.Services.AddAuthorization();
 
+// Enums travel as readable text ("InviteOnly"), matching how they are stored.
+builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 
@@ -92,6 +99,8 @@ app.MapGet("/health", async Task<Results<Ok<HealthResponse>, ProblemHttpResult>>
     .WithName("GetHealth");
 
 app.MapAuthEndpoints();
+app.MapCommunityEndpoints();
+app.MapCharacterEndpoints();
 
 app.Run();
 

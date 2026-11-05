@@ -36,6 +36,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/communities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["MyCommunities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/register": {
         parameters: {
             query?: never;
@@ -164,14 +180,283 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverCommunities"];
+        put?: never;
+        post: operations["CreateCommunity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCommunity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["JoinCommunity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/join-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListJoinRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/join-requests/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApproveJoinRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/join-requests/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RejectJoinRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListInvites"];
+        put?: never;
+        post: operations["CreateInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/sheet-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateSheetFields"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invites/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PreviewInvite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invites/{code}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AcceptInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/characters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListCharacters"];
+        put?: never;
+        post: operations["CreateCharacter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/characters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCharacter"];
+        put: operations["UpdateCharacter"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {unknown} */
+        BaseRoleKind: "Owner" | "Staff" | "Narrator" | "Player" | "Custom";
+        CharacterDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            communityId: string;
+            communitySlug: string;
+            /** Format: uuid */
+            ownerUserId: string;
+            ownerUserName: string;
+            name: string;
+            avatarKey: null | string;
+            sheet: components["schemas"]["SheetValueDto"][];
+            showOnGlobalProfile: boolean;
+            showCommunityOnProfile: boolean;
+            status: components["schemas"]["CharacterStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            canEdit: boolean;
+        };
+        /** @enum {unknown} */
+        CharacterStatus: "Active" | "Archived";
+        CommunityDetail: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description: null | string;
+            joinPolicy: components["schemas"]["JoinPolicy"];
+            contentRating: components["schemas"]["ContentRating"];
+            /** Format: int32 */
+            memberCount: number | string;
+            sheetFields: components["schemas"]["SheetFieldDto"][];
+            me: null | components["schemas"]["MyAccess"];
+            hasPendingRequest: boolean;
+        };
+        CommunitySummary: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description: null | string;
+            joinPolicy: components["schemas"]["JoinPolicy"];
+            /** Format: int32 */
+            memberCount: number | string;
+        };
         ConfirmEmailRequest: {
             /** Format: uuid */
             userId: string;
             token: string;
+        };
+        /** @enum {unknown} */
+        ContentRating: "Free" | "Sixteen" | "Eighteen";
+        CreateCommunityRequest: {
+            name: string;
+            slug: null | string;
+            description: null | string;
+            joinPolicy: components["schemas"]["JoinPolicy"];
+        };
+        CreateInviteRequest: {
+            /** Format: int32 */
+            expiresInDays: null | number | string;
+            /** Format: int32 */
+            maxUses: null | number | string;
         };
         EmailRequest: {
             email: string;
@@ -190,9 +475,51 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        InviteDto: {
+            code: string;
+            /** Format: date-time */
+            expiresAt: null | string;
+            /** Format: int32 */
+            maxUses: null | number | string;
+            /** Format: int32 */
+            uses: number | string;
+        };
+        InvitePreview: {
+            code: string;
+            communitySlug: string;
+            communityName: string;
+            communityDescription: null | string;
+            usable: boolean;
+            alreadyMember: boolean;
+        };
+        /** @enum {unknown} */
+        JoinPolicy: "Open" | "Request" | "InviteOnly";
+        JoinRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            displayName: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        JoinResponse: {
+            status: string;
+        };
         LoginRequest: {
             email: string;
             password: string;
+        };
+        MemberDto: {
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            displayName: string;
+            roleName: string;
+            baseKind: components["schemas"]["BaseRoleKind"];
+            /** Format: date-time */
+            joinedAt: string;
         };
         MeResponse: {
             /** Format: uuid */
@@ -204,6 +531,11 @@ export interface components {
             birthDate: string;
             bio: null | string;
             roles: string[];
+        };
+        MyAccess: {
+            roleName: string;
+            baseKind: components["schemas"]["BaseRoleKind"];
+            permissions: string[];
         };
         RefreshRequest: {
             refreshToken: string;
@@ -220,6 +552,24 @@ export interface components {
             email: string;
             token: string;
             newPassword: string;
+        };
+        SaveCharacterRequest: {
+            name: string;
+            sheet: null | components["schemas"]["SheetValueDto"][];
+            showOnGlobalProfile: boolean;
+            showCommunityOnProfile: boolean;
+        };
+        SheetFieldDto: {
+            key: string;
+            label: string;
+            type: components["schemas"]["SheetFieldType"];
+            required: boolean;
+        };
+        /** @enum {unknown} */
+        SheetFieldType: "Text" | "LongText" | "Number";
+        SheetValueDto: {
+            key: string;
+            value: null | string;
         };
         TokenResponse: {
             accessToken: string;
@@ -272,6 +622,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
+    MyCommunities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunitySummary"][];
                 };
             };
         };
@@ -479,6 +849,398 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    DiscoverCommunities: {
+        parameters: {
+            query?: {
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunitySummary"][];
+                };
+            };
+        };
+    };
+    CreateCommunity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCommunityRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityDetail"];
+                };
+            };
+        };
+    };
+    GetCommunity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityDetail"];
+                };
+            };
+        };
+    };
+    JoinCommunity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinResponse"];
+                };
+            };
+        };
+    };
+    ListMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberDto"][];
+                };
+            };
+        };
+    };
+    ListJoinRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinRequestDto"][];
+                };
+            };
+        };
+    };
+    ApproveJoinRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RejectJoinRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListInvites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteDto"][];
+                };
+            };
+        };
+    };
+    CreateInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateInviteRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteDto"];
+                };
+            };
+        };
+    };
+    UpdateSheetFields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SheetFieldDto"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SheetFieldDto"][];
+                };
+            };
+        };
+    };
+    PreviewInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitePreview"];
+                };
+            };
+        };
+    };
+    AcceptInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinResponse"];
+                };
+            };
+        };
+    };
+    ListCharacters: {
+        parameters: {
+            query?: {
+                mine?: boolean;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CharacterDto"][];
+                };
+            };
+        };
+    };
+    CreateCharacter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCharacterRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CharacterDto"];
+                };
+            };
+        };
+    };
+    GetCharacter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CharacterDto"];
+                };
+            };
+        };
+    };
+    UpdateCharacter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCharacterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CharacterDto"];
                 };
             };
         };

@@ -1,47 +1,60 @@
 import { useQuery } from '@tanstack/react-query';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 
 import { api } from '@/api/client';
+import { labels, unwrap } from '@/api/hooks';
 import { useSession } from '@/auth/session';
-import { Button, colors, Notice } from '@/components/ui';
+import { Empty, Loadable, Page, Row, Section } from '@/components/layout';
+import { Button } from '@/components/ui';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { signOut } = useSession();
-  const me = useQuery({
-    queryKey: ['me'],
-    queryFn: async () => {
-      const { data, error } = await api.GET('/me');
-      if (error || !data) throw new Error('Não foi possível carregar seu perfil.');
-      return data;
-    },
-  });
+  const me = useQuery({ queryKey: ['me'], queryFn: () => unwrap(api.GET('/me')) });
+  const mine = useQuery({ queryKey: ['my-communities'], queryFn: () => unwrap(api.GET('/me/communities')) });
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.brand}>Bookollab</Text>
-      {me.isPending ? (
-        <ActivityIndicator color={colors.brand} />
-      ) : me.isError ? (
-        <Notice kind="error">{me.error.message}</Notice>
-      ) : (
-        <>
-          <Text style={styles.hello}>Olá, {me.data.displayName}!</Text>
-          <Text style={styles.handle}>@{me.data.userName}</Text>
-          <Text style={styles.muted}>Em breve: suas comunidades, personagens e cenas.</Text>
-        </>
-      )}
+    <Page
+      title={me.data ? `Olá, ${me.data.displayName}!` : 'Bookollab'}
+      subtitle={me.data ? `@${me.data.userName}` : undefined}
+      actions={
+        <View style={styles.signOut}>
+          <Button title="Sair" variant="secondary" onPress={signOut} />
+        </View>
+      }>
       <View style={styles.actions}>
-        <Button title="Sair" variant="secondary" onPress={signOut} />
+        <View style={styles.action}>
+          <Button title="Criar comunidade" onPress={() => router.push('/comunidades/nova')} />
+        </View>
+        <View style={styles.action}>
+          <Button title="Descobrir comunidades" variant="secondary" onPress={() => router.push('/descobrir')} />
+        </View>
       </View>
-    </View>
+      <Section title="Minhas comunidades">
+        <Loadable query={mine}>
+          {(list) =>
+            list.length === 0 ? (
+              <Empty>Você ainda não participa de nenhuma comunidade. Crie a sua ou descubra uma aberta.</Empty>
+            ) : (
+              list.map((c) => (
+                <Row
+                  key={c.id}
+                  title={c.name}
+                  subtitle={`${c.memberCount} ${c.memberCount === 1 ? 'membro' : 'membros'} · ${labels.joinPolicy[c.joinPolicy]}`}
+                  onPress={() => router.push({ pathname: '/c/[slug]', params: { slug: c.slug } })}
+                />
+              ))
+            )
+          }
+        </Loadable>
+      </Section>
+    </Page>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24, backgroundColor: colors.background },
-  brand: { fontSize: 28, fontWeight: '700', color: colors.brand, marginBottom: 16 },
-  hello: { fontSize: 24, fontWeight: '700', color: colors.text },
-  handle: { fontSize: 16, color: colors.textMuted },
-  muted: { fontSize: 15, color: colors.textMuted, marginTop: 12, textAlign: 'center' },
-  actions: { marginTop: 24, width: '100%', maxWidth: 240 },
+  signOut: { width: 100 },
+  actions: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
+  action: { flexGrow: 1, minWidth: 200 },
 });
