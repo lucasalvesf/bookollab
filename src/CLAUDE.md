@@ -49,7 +49,14 @@ Executar a partir de `src/` (ou da pasta indicada).
 - `Features/<Feature>/`: vertical slices, cada uma com seus endpoints, DTOs e lógica.
 - `Domain/`: entidades e enums.
 - `Infrastructure/`: `AppDbContext`, configurações do EF, migrations, storage, e-mail.
-- Testes de integração usam `ApiFactory` (Postgres real via Testcontainers).
+- Testes de integração usam `ApiFactory` (Postgres real via Testcontainers); e-mails ficam em `factory.Emails` (`FakeEmailSender`).
+
+## Autenticação
+- `Features/Auth`: cadastro (13+), confirmação de e-mail, login (JWT de 15 min + refresh token de 30 dias com rotação), logout, recuperação de senha e `GET /me`.
+- Bloqueio após 5 senhas erradas (5 min). Redefinir a senha encerra todas as sessões.
+- Configuração: `Jwt` (Issuer, Audience, **SigningKey**), `App:BaseUrl` (links dos e-mails), `Smtp` (Mailpit em dev).
+- **Nunca** commitar uma `Jwt:SigningKey` de produção: em produção ela vem de variável de ambiente (`Jwt__SigningKey`). A chave em `appsettings.Development.json` é só para dev.
+- Mensagens de erro para o usuário em português (`PortugueseIdentityErrorDescriber`).
 
 ## Convenções de código
 A detalhar no scaffold. Desde já: código, identificadores e mensagens de commit em inglês.
