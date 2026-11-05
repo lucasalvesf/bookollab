@@ -3,6 +3,7 @@ using Bookollab.Api.Domain.Characters;
 using Bookollab.Api.Domain.Communities;
 using Bookollab.Api.Features.Common;
 using Bookollab.Api.Features.Communities;
+using Bookollab.Api.Features.Uploads;
 using Bookollab.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,7 @@ namespace Bookollab.Api.Features.Characters;
 
 public sealed record SheetValueDto(string Key, string? Value);
 
-public sealed record SaveCharacterRequest(string Name, List<SheetValueDto>? Sheet, bool ShowOnGlobalProfile, bool ShowCommunityOnProfile);
+public sealed record SaveCharacterRequest(string Name, List<SheetValueDto>? Sheet, bool ShowOnGlobalProfile, bool ShowCommunityOnProfile, string? AvatarKey = null);
 
 public sealed record CharacterDto(
     Guid Id, Guid CommunityId, string CommunitySlug, Guid OwnerUserId, string OwnerUserName, string Name, string? AvatarKey,
@@ -49,12 +50,16 @@ public static class CharacterEndpoints
         if (error is not null) return error;
         var (sheet, validation) = Validate(req, access!.Community);
         if (validation is not null) return validation;
+        var avatar = string.IsNullOrWhiteSpace(req.AvatarKey) ? null : req.AvatarKey;
+        if (avatar is not null && !await UploadEndpoints.OwnsAsync(db, avatar, user.UserId(), ct))
+            return Problems.Validation("avatarKey", "Imagem inválida. Envie novamente.");
 
         var character = new Character
         {
             CommunityId = access.Community.Id,
             OwnerUserId = user.UserId(),
             Name = req.Name.Trim(),
+            AvatarKey = avatar,
             Sheet = sheet,
             ShowOnGlobalProfile = req.ShowOnGlobalProfile,
             ShowCommunityOnProfile = req.ShowCommunityOnProfile,
@@ -84,6 +89,10 @@ public static class CharacterEndpoints
 
         var (sheet, validation) = Validate(req, access.Community);
         if (validation is not null) return validation;
+        var avatar = string.IsNullOrWhiteSpace(req.AvatarKey) ? null : req.AvatarKey;
+        if (avatar is not null && avatar != character.AvatarKey && !await UploadEndpoints.OwnsAsync(db, avatar, userId, ct))
+            return Problems.Validation("avatarKey", "Imagem inválida. Envie novamente.");
+        character.AvatarKey = avatar;
         character.Name = req.Name.Trim();
         character.Sheet = sheet;
         character.ShowOnGlobalProfile = req.ShowOnGlobalProfile;

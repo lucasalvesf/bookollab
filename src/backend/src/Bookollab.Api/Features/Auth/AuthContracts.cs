@@ -14,4 +14,4 @@ public sealed record ResetPasswordRequest(string Email, string Token, string New
 
 public sealed record TokenResponse(string AccessToken, DateTimeOffset AccessTokenExpiresAt, string RefreshToken);
 
-public sealed record MeResponse(Guid Id, string UserName, string Email, string DisplayName, DateOnly BirthDate, string? Bio, IReadOnlyList<string> Roles);
+public sealed record MeResponse(Guid Id, string UserName, string Email, string DisplayName, DateOnly BirthDate, string? Bio, string? AvatarKey, IReadOnlyList<string> Roles);

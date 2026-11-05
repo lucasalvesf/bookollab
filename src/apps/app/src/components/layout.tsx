@@ -40,9 +40,10 @@ export function Section({ title, right, children }: PropsWithChildren<{ title: s
   );
 }
 
-export function Row({ title, subtitle, right, onPress }: { title: string; subtitle?: string; right?: ReactNode; onPress?: () => void }) {
+export function Row({ title, subtitle, left, right, onPress }: { title: string; subtitle?: string; left?: ReactNode; right?: ReactNode; onPress?: () => void }) {
   const content = (
     <View style={styles.row}>
+      {left}
       <View style={styles.rowText}>
         <Text style={styles.rowTitle}>{title}</Text>
         {subtitle ? <Text style={styles.rowSubtitle}>{subtitle}</Text> : null}

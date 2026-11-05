@@ -4,13 +4,14 @@ using Bookollab.Api.Domain.Communities;
 using Bookollab.Api.Domain.Scenes;
 using Bookollab.Api.Features.Common;
 using Bookollab.Api.Features.Communities;
+using Bookollab.Api.Features.Uploads;
 using Bookollab.Api.Infrastructure;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bookollab.Api.Features.Scenes;
 
-public static class SceneEndpoints
+public static partial class SceneEndpoints
 {
     public const int MaxActionLength = 20_000;
 
@@ -24,6 +25,7 @@ public static class SceneEndpoints
         scenes.MapGet("/{id:guid}", Get).WithName("GetScene").Produces<SceneDetail>();
         scenes.MapPost("/{id:guid}/join", Join).WithName("JoinScene").Produces<SceneDetail>();
         scenes.MapPost("/{id:guid}/close", Close).WithName("CloseScene").Produces<SceneDetail>();
+        scenes.MapPut("/{id:guid}/background", UpdateBackground).WithName("UpdateSceneBackground").Produces<SceneDetail>();
         scenes.MapGet("/{id:guid}/actions", ListActions).WithName("ListSceneActions").Produces<List<SceneActionDto>>();
         scenes.MapPost("/{id:guid}/actions", SendAction).WithName("SendSceneAction").Produces<SceneActionDto>(StatusCodes.Status201Created);
 
@@ -57,8 +59,8 @@ public static class SceneEndpoints
         var (access, error) = await CommunityEndpoints.RequireAsync(slug, CommunityPermission.OpenScenes, user, perms, ct);
         if (error is not null) return error;
         var title = req.Title?.Trim() ?? "";
-        if (title.Length is < 1 or > 150) return Problems.Validation("title", "O título precisa ter de 1 a 150 caracteres.");
-        if (req.Description?.Length > 2000) return Problems.Validation("description", "A descrição pode ter até 2.000 caracteres.");
+        if (title.Length is < 1 or > 150) return Problems.Validation("title", "O tÃ­tulo precisa ter de 1 a 150 caracteres.");
+        if (req.Description?.Length > 2000) return Problems.Validation("description", "A descriÃ§Ã£o pode ter atÃ© 2.000 caracteres.");
 
         var scene = new Scene
         {
@@ -84,7 +86,7 @@ public static class SceneEndpoints
         var (scene, access, error) = await LoadAsync(id, user, db, perms, ct);
         if (error is not null) return error;
         if (!access!.Has(CommunityPermission.JoinScenes)) return Problems.Forbidden();
-        if (scene!.Status != SceneStatus.Open) return Problems.Conflict("Esta cena já foi encerrada.", "scene_closed");
+        if (scene!.Status != SceneStatus.Open) return Problems.Conflict("Esta cena jÃ¡ foi encerrada.", "scene_closed");
 
         var userId = user.UserId();
         var character = await db.Characters.SingleOrDefaultAsync(
@@ -96,7 +98,7 @@ public static class SceneEndpoints
             db.SceneParticipants.Add(new SceneParticipant { SceneId = id, CharacterId = character.Id });
             await db.SaveChangesAsync(ct);
             await hub.Clients.Group(SceneEvents.Group(id)).SendAsync(SceneEvents.ParticipantJoined,
-                new SceneParticipantDto(character.Id, character.Name, userId, user.Identity!.Name!), ct);
+                new SceneParticipantDto(character.Id, character.Name, character.AvatarKey, userId, user.Identity!.Name!), ct);
         }
         return TypedResults.Ok(await DetailAsync(db, scene, access, userId, ct));
     }
@@ -116,6 +118,36 @@ public static class SceneEndpoints
         return TypedResults.Ok(await DetailAsync(db, scene, access!, user.UserId(), ct));
     }
 
+    private static async Task<IResult> UpdateBackground(Guid id, UpdateSceneBackgroundRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, IHubContext<SceneHub> hub, CancellationToken ct)
+    {
+        var (scene, access, error) = await LoadAsync(id, user, db, perms, ct);
+        if (error is not null) return error;
+        var userId = user.UserId();
+        if (!CanEditBackground(scene!, access!, userId)) return Problems.Forbidden("SÃ³ quem abriu a cena ou a staff muda o fundo.");
+
+        var background = string.IsNullOrWhiteSpace(req.Background) ? null : req.Background.Trim();
+        if (background is not null)
+        {
+            if (background.StartsWith("preset:", StringComparison.Ordinal))
+            {
+                if (!BackgroundPresetRegex().IsMatch(background[7..])) return Problems.Validation("background", "Fundo invÃ¡lido.");
+            }
+            else if (background.StartsWith("image:", StringComparison.Ordinal))
+            {
+                if (!await UploadEndpoints.OwnsAsync(db, background[6..], userId, ct)) return Problems.Validation("background", "Imagem invÃ¡lida. Envie novamente.");
+            }
+            else return Problems.Validation("background", "Fundo invÃ¡lido.");
+        }
+
+        scene!.Background = background;
+        await db.SaveChangesAsync(ct);
+        await hub.Clients.Group(SceneEvents.Group(id)).SendAsync(SceneEvents.SceneUpdated, id, ct);
+        return TypedResults.Ok(await DetailAsync(db, scene, access!, userId, ct));
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex("^[a-z0-9-]{1,32}$")]
+    private static partial System.Text.RegularExpressions.Regex BackgroundPresetRegex();
+
     // ------------------------------------------------------------------ actions
 
     private static async Task<IResult> ListActions(Guid id, DateTimeOffset? before, int? limit, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
@@ -127,32 +159,36 @@ public static class SceneEndpoints
         if (before is not null) query = query.Where(a => a.CreatedAt < before);
         // Latest page, returned in chronological order.
         var page = await query.OrderByDescending(a => a.CreatedAt).Take(take)
-            .Join(db.Characters, a => a.CharacterId, c => c.Id, (a, c) => new { a, c.Name })
+            .Join(db.Characters, a => a.CharacterId, c => c.Id, (a, c) => new { a, c.Name, c.AvatarKey })
             .ToListAsync(ct);
-        return TypedResults.Ok(page.OrderBy(x => x.a.CreatedAt).Select(x => ToDto(x.a, x.Name)).ToList());
+        return TypedResults.Ok(page.OrderBy(x => x.a.CreatedAt).Select(x => ToDto(x.a, x.Name, x.AvatarKey)).ToList());
     }
 
     private static async Task<IResult> SendAction(Guid id, SendActionRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, IHubContext<SceneHub> hub, TimeProvider clock, CancellationToken ct)
     {
         var (scene, _, error) = await LoadAsync(id, user, db, perms, ct);
         if (error is not null) return error;
-        if (scene!.Status != SceneStatus.Open) return Problems.Conflict("Esta cena já foi encerrada.", "scene_closed");
+        if (scene!.Status != SceneStatus.Open) return Problems.Conflict("Esta cena jÃ¡ foi encerrada.", "scene_closed");
         var content = req.Content?.Trim() ?? "";
-        if (content.Length is < 1 or > MaxActionLength) return Problems.Validation("content", "A ação precisa ter de 1 a 20.000 caracteres.");
+        var attachment = string.IsNullOrWhiteSpace(req.AttachmentKey) ? null : req.AttachmentKey;
+        if (content.Length > MaxActionLength || (content.Length == 0 && attachment is null))
+            return Problems.Validation("content", "Escreva a aÃ§Ã£o (atÃ© 20.000 caracteres) ou anexe uma imagem.");
 
         var userId = user.UserId();
+        if (attachment is not null && !await UploadEndpoints.OwnsAsync(db, attachment, userId, ct))
+            return Problems.Validation("attachmentKey", "Anexo invÃ¡lido. Envie a imagem novamente.");
         var character = await db.SceneParticipants
             .Where(p => p.SceneId == id && p.CharacterId == req.CharacterId)
             .Join(db.Characters.Where(c => c.OwnerUserId == userId), p => p.CharacterId, c => c.Id, (p, c) => c)
             .SingleOrDefaultAsync(ct);
-        if (character is null) return Problems.Forbidden("Entre na cena com este personagem antes de enviar ações.");
+        if (character is null) return Problems.Forbidden("Entre na cena com este personagem antes de enviar aÃ§Ãµes.");
 
-        var action = new SceneAction { SceneId = id, CharacterId = character.Id, AuthorUserId = userId, Content = content };
+        var action = new SceneAction { SceneId = id, CharacterId = character.Id, AuthorUserId = userId, Content = content, AttachmentKey = attachment };
         character.LastActivityAt = clock.GetUtcNow();
         db.SceneActions.Add(action);
         await db.SaveChangesAsync(ct);
 
-        var dto = ToDto(action, character.Name);
+        var dto = ToDto(action, character.Name, character.AvatarKey);
         await hub.Clients.Group(SceneEvents.Group(id)).SendAsync(SceneEvents.ActionCreated, dto, ct);
         return TypedResults.Created($"/actions/{action.Id}", dto);
     }
@@ -160,17 +196,19 @@ public static class SceneEndpoints
     private static async Task<IResult> EditAction(Guid id, EditActionRequest req, ClaimsPrincipal user, AppDbContext db, IHubContext<SceneHub> hub, TimeProvider clock, CancellationToken ct)
     {
         var action = await db.SceneActions.SingleOrDefaultAsync(a => a.Id == id && a.DeletedAt == null, ct);
-        if (action is null) return Problems.NotFound("Ação não encontrada.");
-        if (action.AuthorUserId != user.UserId()) return Problems.Forbidden("Só o autor pode editar a ação.");
+        if (action is null) return Problems.NotFound("AÃ§Ã£o nÃ£o encontrada.");
+        if (action.AuthorUserId != user.UserId()) return Problems.Forbidden("SÃ³ o autor pode editar a aÃ§Ã£o.");
         if (await db.Scenes.AnyAsync(s => s.Id == action.SceneId && s.Status != SceneStatus.Open, ct))
-            return Problems.Conflict("Esta cena já foi encerrada.", "scene_closed");
+            return Problems.Conflict("Esta cena jÃ¡ foi encerrada.", "scene_closed");
         var content = req.Content?.Trim() ?? "";
-        if (content.Length is < 1 or > MaxActionLength) return Problems.Validation("content", "A ação precisa ter de 1 a 20.000 caracteres.");
-        if (content == action.Content) return TypedResults.Ok(ToDto(action, await CharacterName(db, action.CharacterId, ct)));
+        if (content.Length > MaxActionLength || (content.Length == 0 && action.AttachmentKey is null))
+            return Problems.Validation("content", "A aÃ§Ã£o precisa ter de 1 a 20.000 caracteres.");
+        var (name, avatar) = await CharacterInfo(db, action.CharacterId, ct);
+        if (content == action.Content) return TypedResults.Ok(ToDto(action, name, avatar));
 
         action.Edit(content, clock.GetUtcNow());
         await db.SaveChangesAsync(ct);
-        var dto = ToDto(action, await CharacterName(db, action.CharacterId, ct));
+        var dto = ToDto(action, name, avatar);
         await hub.Clients.Group(SceneEvents.Group(action.SceneId)).SendAsync(SceneEvents.ActionUpdated, dto, ct);
         return TypedResults.Ok(dto);
     }
@@ -178,7 +216,7 @@ public static class SceneEndpoints
     private static async Task<IResult> DeleteAction(Guid id, ClaimsPrincipal user, AppDbContext db, PermissionService perms, IHubContext<SceneHub> hub, TimeProvider clock, CancellationToken ct)
     {
         var action = await db.SceneActions.SingleOrDefaultAsync(a => a.Id == id && a.DeletedAt == null, ct);
-        if (action is null) return Problems.NotFound("Ação não encontrada.");
+        if (action is null) return Problems.NotFound("AÃ§Ã£o nÃ£o encontrada.");
         var userId = user.UserId();
         if (action.AuthorUserId != userId)
         {
@@ -196,7 +234,7 @@ public static class SceneEndpoints
     private static async Task<IResult> ActionRevisions(Guid id, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
     {
         var action = await db.SceneActions.Include(a => a.Revisions).SingleOrDefaultAsync(a => a.Id == id, ct);
-        if (action is null) return Problems.NotFound("Ação não encontrada.");
+        if (action is null) return Problems.NotFound("AÃ§Ã£o nÃ£o encontrada.");
         var scene = await db.Scenes.SingleAsync(s => s.Id == action.SceneId, ct);
         var access = await perms.GetAccessAsync(scene.CommunityId, user.UserId(), ct);
         if (access is null || !access.Has(CommunityPermission.ViewRevisionHistory)) return Problems.Forbidden();
@@ -211,9 +249,9 @@ public static class SceneEndpoints
     private static async Task<(Scene? Scene, MemberAccess? Access, IResult? Error)> LoadAsync(Guid id, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
     {
         var scene = await db.Scenes.SingleOrDefaultAsync(s => s.Id == id, ct);
-        if (scene is null) return (null, null, Problems.NotFound("Cena não encontrada."));
+        if (scene is null) return (null, null, Problems.NotFound("Cena nÃ£o encontrada."));
         var access = await perms.GetAccessAsync(scene.CommunityId, user.UserId(), ct);
-        return access is null ? (null, null, Problems.Forbidden("Você não é membro desta comunidade.")) : (scene, access, null);
+        return access is null ? (null, null, Problems.Forbidden("VocÃª nÃ£o Ã© membro desta comunidade.")) : (scene, access, null);
     }
 
     private static bool CanClose(Scene scene, MemberAccess access, Guid userId) =>
@@ -225,21 +263,30 @@ public static class SceneEndpoints
             .Where(p => p.SceneId == scene.Id)
             .OrderBy(p => p.JoinedAt)
             .Join(db.Characters, p => p.CharacterId, c => c.Id, (p, c) => c)
-            .Join(db.Users, c => c.OwnerUserId, u => u.Id, (c, u) => new SceneParticipantDto(c.Id, c.Name, u.Id, u.UserName!))
+            .Join(db.Users, c => c.OwnerUserId, u => u.Id, (c, u) => new SceneParticipantDto(c.Id, c.Name, c.AvatarKey, u.Id, u.UserName!))
             .ToListAsync(ct);
         return new SceneDetail(
             scene.Id, scene.CommunityId, access.Community.Slug, access.Community.Name, scene.Title, scene.Description,
-            scene.Status, scene.WritingMode, scene.OpenedByUserId, scene.CreatedAt, scene.ClosedAt, participants,
+            scene.Status, scene.WritingMode, scene.OpenedByUserId, scene.CreatedAt, scene.ClosedAt, scene.Background, participants,
             CanJoin: scene.Status == SceneStatus.Open && access.Has(CommunityPermission.JoinScenes),
             CanClose: scene.Status == SceneStatus.Open && CanClose(scene, access, userId),
             CanModerate: access.Has(CommunityPermission.ModerateContent),
-            CanViewRevisions: access.Has(CommunityPermission.ViewRevisionHistory));
+            CanViewRevisions: access.Has(CommunityPermission.ViewRevisionHistory),
+            CanEditBackground: CanEditBackground(scene, access, userId));
     }
 
-    private static Task<string> CharacterName(AppDbContext db, Guid characterId, CancellationToken ct) =>
-        db.Characters.Where(c => c.Id == characterId).Select(c => c.Name).SingleAsync(ct);
+    /// <summary>The scene background is set by whoever opened the scene, or by the community staff.</summary>
+    private static bool CanEditBackground(Scene scene, MemberAccess access, Guid userId) =>
+        scene.OpenedByUserId == userId || access.Has(CommunityPermission.ManageCommunity);
 
-    private static SceneActionDto ToDto(SceneAction a, string characterName) => new(
-        a.Id, a.SceneId, a.CharacterId, characterName, a.AuthorUserId,
-        a.DeletedAt is null ? a.Content : null, a.CreatedAt, a.EditedAt, a.DeletedAt is not null);
+    private static async Task<(string Name, string? AvatarKey)> CharacterInfo(AppDbContext db, Guid characterId, CancellationToken ct)
+    {
+        var c = await db.Characters.Where(x => x.Id == characterId).Select(x => new { x.Name, x.AvatarKey }).SingleAsync(ct);
+        return (c.Name, c.AvatarKey);
+    }
+
+    private static SceneActionDto ToDto(SceneAction a, string characterName, string? characterAvatarKey) => new(
+        a.Id, a.SceneId, a.CharacterId, characterName, characterAvatarKey, a.AuthorUserId,
+        a.DeletedAt is null ? a.Content : null, a.DeletedAt is null ? a.AttachmentKey : null,
+        a.CreatedAt, a.EditedAt, a.DeletedAt is not null);
 }

@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { problemMessage } from '@/api/client';
 import type { components } from '@/api/schema';
 
+import { AvatarPicker } from './avatar-picker';
 import { ToggleRow } from './layout';
 import { Button, Field, Notice } from './ui';
 
@@ -28,6 +29,7 @@ export function CharacterForm({
   );
   const [showOnGlobalProfile, setShowOnGlobalProfile] = useState(initial?.showOnGlobalProfile ?? false);
   const [showCommunityOnProfile, setShowCommunityOnProfile] = useState(initial?.showCommunityOnProfile ?? true);
+  const [avatarKey, setAvatarKey] = useState<string | null>(initial?.avatarKey ?? null);
   const [loading, setLoading] = useState(false);
   const [problem, setProblem] = useState<unknown>();
 
@@ -40,6 +42,7 @@ export function CharacterForm({
         sheet: fields.map((f) => ({ key: f.key, value: sheet[f.key] ?? '' })),
         showOnGlobalProfile,
         showCommunityOnProfile,
+        avatarKey,
       });
       if (!result.ok) setProblem(result.problem ?? { detail: 'Não foi possível salvar.' });
     } catch {
@@ -54,6 +57,7 @@ export function CharacterForm({
   return (
     <View style={{ gap: 14 }}>
       {problem && !fieldErrorsShown ? <Notice kind="error">{problemMessage(problem) ?? 'Não foi possível salvar.'}</Notice> : null}
+      <AvatarPicker name={name || '?'} imageKey={avatarKey} onChange={setAvatarKey} />
       <Field label="Nome do personagem" value={name} onChangeText={setName} error={problemMessage(problem, 'name')} />
       {fields.map((f) => (
         <Field

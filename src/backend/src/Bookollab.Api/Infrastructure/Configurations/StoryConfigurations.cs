@@ -31,6 +31,7 @@ internal sealed class SceneConfiguration : IEntityTypeConfiguration<Scene>
     {
         b.Property(s => s.Title).HasMaxLength(150);
         b.Property(s => s.Description).HasMaxLength(2000);
+        b.Property(s => s.Background).HasMaxLength(300);
         b.HasIndex(s => new { s.CommunityId, s.Status });
         b.HasOne<Community>().WithMany().HasForeignKey(s => s.CommunityId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne<User>().WithMany().HasForeignKey(s => s.OpenedByUserId).OnDelete(DeleteBehavior.Restrict);
@@ -52,6 +53,7 @@ internal sealed class SceneActionConfiguration : IEntityTypeConfiguration<SceneA
     public void Configure(EntityTypeBuilder<SceneAction> b)
     {
         b.Property(a => a.Content).HasMaxLength(20_000);
+        b.Property(a => a.AttachmentKey).HasMaxLength(256);
         b.HasIndex(a => new { a.SceneId, a.CreatedAt });
         b.HasOne<Scene>().WithMany().HasForeignKey(a => a.SceneId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne<Character>().WithMany().HasForeignKey(a => a.CharacterId).OnDelete(DeleteBehavior.Restrict);

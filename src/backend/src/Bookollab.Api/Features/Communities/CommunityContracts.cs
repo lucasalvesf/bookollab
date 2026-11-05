@@ -16,7 +16,7 @@ public sealed record SheetFieldDto(string Key, string Label, SheetFieldType Type
 
 public sealed record JoinResponse(string Status);
 
-public sealed record MemberDto(Guid UserId, string UserName, string DisplayName, string RoleName, BaseRoleKind BaseKind, DateTimeOffset JoinedAt);
+public sealed record MemberDto(Guid UserId, string UserName, string DisplayName, string? AvatarKey, string RoleName, BaseRoleKind BaseKind, DateTimeOffset JoinedAt);
 
 public sealed record JoinRequestDto(Guid Id, Guid UserId, string UserName, string DisplayName, DateTimeOffset CreatedAt);
 

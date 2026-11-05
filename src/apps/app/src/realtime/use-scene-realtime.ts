@@ -16,6 +16,7 @@ export type SceneRealtimeHandlers = {
   onActionDeleted: (actionId: string) => void;
   onParticipantJoined: (participant: Participant) => void;
   onSceneClosed: () => void;
+  onSceneUpdated: () => void;
 };
 
 const TYPING_VISIBLE_MS = 4000;
@@ -57,6 +58,7 @@ export function useSceneRealtime(sceneId: string | undefined, handlers: SceneRea
     connection.on('ActionDeleted', (id: string) => handlersRef.current.onActionDeleted(id));
     connection.on('ParticipantJoined', (p: Participant) => handlersRef.current.onParticipantJoined(p));
     connection.on('SceneClosed', () => handlersRef.current.onSceneClosed());
+    connection.on('SceneUpdated', () => handlersRef.current.onSceneUpdated());
     connection.on('Presence', (_scene: string, list: Presence[]) => setOnline(list));
     connection.on('Typing', (t: Typing) =>
       setTyping((current) => ({ ...current, [t.userId]: { name: t.characterName, until: Date.now() + TYPING_VISIBLE_MS } })),
