@@ -1,0 +1,27 @@
+# Local development services. Run from src/: docker compose up -d
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: bookollab
+      POSTGRES_USER: bookollab
+      POSTGRES_PASSWORD: bookollab
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookollab -d bookollab"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Fake SMTP server: emails sent by the API show up at http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  postgres-data:

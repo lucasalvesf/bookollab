@@ -30,7 +30,26 @@ Decisão completa: [`docs/decisoes/0001-escolha-da-stack.md`](../docs/decisoes/0
 - **Infra local:** docker compose (Postgres)
 
 ## Comandos
-A definir no scaffold (build, testes, lint, migrations, geração do cliente da API).
+Executar a partir de `src/` (ou da pasta indicada).
+
+| O quê | Comando |
+|---|---|
+| Subir Postgres + Mailpit | `docker compose up -d` (e-mails de dev em http://localhost:8025) |
+| Rodar a API | `dotnet run --project backend/src/Bookollab.Api` (http://localhost:5087) |
+| Testes da API | `dotnet test backend` (precisa do Docker rodando: Testcontainers) |
+| Nova migration | `dotnet ef migrations add <Nome> --project backend/src/Bookollab.Api --output-dir Infrastructure/Migrations` |
+| Aplicar migrations | `dotnet ef database update --project backend/src/Bookollab.Api` |
+| Rodar o app (web) | em `apps/app`: `npx expo start --web` (http://localhost:8081) |
+| Typecheck / lint do app | em `apps/app`: `npx tsc --noEmit` / `npm run lint` |
+| Gerar cliente da API | em `apps/app`: `npm run api:gen` (com a API rodando) |
+
+`dotnet ef` exige a ferramenta global: `dotnet tool install --global dotnet-ef`.
+
+## Organização do backend
+- `Features/<Feature>/`: vertical slices, cada uma com seus endpoints, DTOs e lógica.
+- `Domain/`: entidades e enums.
+- `Infrastructure/`: `AppDbContext`, configurações do EF, migrations, storage, e-mail.
+- Testes de integração usam `ApiFactory` (Postgres real via Testcontainers).
 
 ## Convenções de código
 A detalhar no scaffold. Desde já: código, identificadores e mensagens de commit em inglês.
