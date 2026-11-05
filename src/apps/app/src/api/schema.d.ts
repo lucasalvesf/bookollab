@@ -388,12 +388,239 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/scenes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListScenes"];
+        put?: never;
+        post: operations["CreateScene"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetScene"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["JoinScene"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CloseScene"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListSceneActions"];
+        put?: never;
+        post: operations["SendSceneAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/actions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["EditSceneAction"];
+        post?: never;
+        delete: operations["DeleteSceneAction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/actions/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListSceneActionRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/chapters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListChapters"];
+        put?: never;
+        post: operations["CreateChapter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chapters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetChapter"];
+        put: operations["UpdateChapter"];
+        post?: never;
+        delete: operations["DeleteChapter"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chapters/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublishChapter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chapters/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListChapterRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {unknown} */
         BaseRoleKind: "Owner" | "Staff" | "Narrator" | "Player" | "Custom";
+        ChapterDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            communityId: string;
+            communitySlug: string;
+            communityName: string;
+            /** Format: uuid */
+            characterId: string;
+            characterName: string;
+            /** Format: uuid */
+            authorUserId: string;
+            authorUserName: string;
+            title: string;
+            content: string;
+            status: components["schemas"]["ChapterStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            publishedAt: null | string;
+            /** Format: date-time */
+            editedAt: null | string;
+            canEdit: boolean;
+            canDelete: boolean;
+            canViewRevisions: boolean;
+        };
+        ChapterRevisionDto: {
+            title: string;
+            content: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        ChapterStatus: "Draft" | "Published";
+        ChapterSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: uuid */
+            characterId: string;
+            characterName: string;
+            authorUserName: string;
+            status: components["schemas"]["ChapterStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            publishedAt: null | string;
+            /** Format: date-time */
+            editedAt: null | string;
+            excerpt: string;
+        };
         CharacterDto: {
             /** Format: uuid */
             id: string;
@@ -446,6 +673,13 @@ export interface components {
         };
         /** @enum {unknown} */
         ContentRating: "Free" | "Sixteen" | "Eighteen";
+        CreateChapterRequest: {
+            /** Format: uuid */
+            characterId: string;
+            title: string;
+            content: string;
+            publish: boolean;
+        };
         CreateCommunityRequest: {
             name: string;
             slug: null | string;
@@ -457,6 +691,13 @@ export interface components {
             expiresInDays: null | number | string;
             /** Format: int32 */
             maxUses: null | number | string;
+        };
+        CreateSceneRequest: {
+            title: string;
+            description: null | string;
+        };
+        EditActionRequest: {
+            content: string;
         };
         EmailRequest: {
             email: string;
@@ -507,6 +748,10 @@ export interface components {
         JoinResponse: {
             status: string;
         };
+        JoinSceneRequest: {
+            /** Format: uuid */
+            characterId: string;
+        };
         LoginRequest: {
             email: string;
             password: string;
@@ -553,11 +798,88 @@ export interface components {
             token: string;
             newPassword: string;
         };
+        RevisionDto: {
+            content: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         SaveCharacterRequest: {
             name: string;
             sheet: null | components["schemas"]["SheetValueDto"][];
             showOnGlobalProfile: boolean;
             showCommunityOnProfile: boolean;
+        };
+        SceneActionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sceneId: string;
+            /** Format: uuid */
+            characterId: string;
+            characterName: string;
+            /** Format: uuid */
+            authorUserId: string;
+            content: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            editedAt: null | string;
+            deleted: boolean;
+        };
+        SceneDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            communityId: string;
+            communitySlug: string;
+            communityName: string;
+            title: string;
+            description: null | string;
+            status: components["schemas"]["SceneStatus"];
+            writingMode: components["schemas"]["SceneWritingMode"];
+            /** Format: uuid */
+            openedByUserId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            closedAt: null | string;
+            participants: components["schemas"]["SceneParticipantDto"][];
+            canJoin: boolean;
+            canClose: boolean;
+            canModerate: boolean;
+            canViewRevisions: boolean;
+        };
+        SceneParticipantDto: {
+            /** Format: uuid */
+            characterId: string;
+            characterName: string;
+            /** Format: uuid */
+            ownerUserId: string;
+            ownerUserName: string;
+        };
+        /** @enum {unknown} */
+        SceneStatus: "Open" | "Closed";
+        SceneSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            description: null | string;
+            status: components["schemas"]["SceneStatus"];
+            writingMode: components["schemas"]["SceneWritingMode"];
+            openedByUserName: string;
+            /** Format: int32 */
+            participantCount: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastActionAt: null | string;
+        };
+        /** @enum {unknown} */
+        SceneWritingMode: "Free" | "Turns";
+        SendActionRequest: {
+            /** Format: uuid */
+            characterId: string;
+            content: string;
         };
         SheetFieldDto: {
             key: string;
@@ -576,6 +898,10 @@ export interface components {
             /** Format: date-time */
             accessTokenExpiresAt: string;
             refreshToken: string;
+        };
+        UpdateChapterRequest: {
+            title: string;
+            content: string;
         };
     };
     responses: never;
@@ -1241,6 +1567,405 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CharacterDto"];
+                };
+            };
+        };
+    };
+    ListScenes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneSummary"][];
+                };
+            };
+        };
+    };
+    CreateScene: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSceneRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    GetScene: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    JoinScene: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinSceneRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    CloseScene: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    ListSceneActions: {
+        parameters: {
+            query?: {
+                before?: string;
+                limit?: number | string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneActionDto"][];
+                };
+            };
+        };
+    };
+    SendSceneAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneActionDto"];
+                };
+            };
+        };
+    };
+    EditSceneAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditActionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneActionDto"];
+                };
+            };
+        };
+    };
+    DeleteSceneAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListSceneActionRevisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionDto"][];
+                };
+            };
+        };
+    };
+    ListChapters: {
+        parameters: {
+            query?: {
+                characterId?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterSummary"][];
+                };
+            };
+        };
+    };
+    CreateChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateChapterRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterDetail"];
+                };
+            };
+        };
+    };
+    GetChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterDetail"];
+                };
+            };
+        };
+    };
+    UpdateChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateChapterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterDetail"];
+                };
+            };
+        };
+    };
+    DeleteChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublishChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterDetail"];
+                };
+            };
+        };
+    };
+    ListChapterRevisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterRevisionDto"][];
                 };
             };
         };

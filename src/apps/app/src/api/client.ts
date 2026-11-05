@@ -25,7 +25,8 @@ async function refreshTokens(refreshToken: string): Promise<Tokens | null> {
   return tokens;
 }
 
-async function validAccessToken(): Promise<string | null> {
+/** Current access token, refreshed first if it is about to expire. Also used by the realtime connection. */
+export async function validAccessToken(): Promise<string | null> {
   const tokens = tokenStore.get();
   if (!tokens) return null;
   if (new Date(tokens.accessTokenExpiresAt).getTime() - Date.now() > REFRESH_MARGIN_MS) return tokens.accessToken;

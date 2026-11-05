@@ -60,6 +60,17 @@ Rotas tipadas do Expo Router: os tipos (`.expo/types/router.d.ts`) são gerados 
 - `Infrastructure/`: `AppDbContext`, configurações do EF, migrations, storage, e-mail.
 - Testes de integração usam `ApiFactory` (Postgres real via Testcontainers); e-mails ficam em `factory.Emails` (`FakeEmailSender`).
 
+## Tempo real (Cenas)
+- Enviar, editar e apagar ações passa pelos endpoints REST (`/scenes/{id}/actions`, `/actions/{id}`). Eles validam, gravam e transmitem pelo SignalR (`IHubContext<SceneHub>`).
+- O `SceneHub` (`/hubs/scenes`) só cuida de: assinar a cena (`JoinScene`, só membros), presença e "digitando". Eventos: `ActionCreated`, `ActionUpdated`, `ActionDeleted`, `ParticipantJoined`, `SceneClosed`, `Presence`, `Typing`.
+- Presença em memória (`ScenePresence`): vale para uma instância da API. Para escalar, adicionar backplane Redis (ADR futuro).
+- O token JWT chega ao hub pela query `access_token` (navegadores não mandam header em WebSocket).
+- App: `src/realtime/use-scene-realtime.ts` (reconecta e reassina sozinho).
+
+## Persistência
+- Entidades do domínio geram o próprio `Guid` (`Guid.CreateVersion7`); o `AppDbContext` marca essas chaves como não geradas pelo banco, para que filhos adicionados por navegação (ex.: revisões) sejam inseridos.
+- Remoção de Ações e Capítulos é lógica (`DeletedAt`), com revisões preservadas para auditoria da staff.
+
 ## Autenticação
 - `Features/Auth`: cadastro (13+), confirmação de e-mail, login (JWT de 15 min + refresh token de 30 dias com rotação), logout, recuperação de senha e `GET /me`.
 - Bloqueio após 5 senhas erradas (5 min). Redefinir a senha encerra todas as sessões.
