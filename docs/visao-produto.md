@@ -7,11 +7,13 @@ Bookollab (nome provisório) é um criador de histórias colaborativas no estilo
 
 - Plataforma: web e app mobile. "App" = o produto inteiro (mobile + site). Um único app gera o site e os apps Android/iOS, com experiência personalizável por plataforma. O site é lançado primeiro; os apps vão para as lojas depois.
 - Objetivo: projeto pessoal/portfólio bem documentado e produto para lançar com usuários reais. Pode virar TCC.
-- Público: quem gosta de RPG e sente falta dos RPGs de texto do Amino e WhatsApp, ou joga só pelo Discord.
+- Público: quem gosta de RPG e sente falta dos RPGs de texto do Amino e WhatsApp, ou joga só pelo Discord. Idade mínima para criar conta: **13 anos** (data de nascimento no cadastro, com os cuidados da LGPD para menores).
+- **Pilar do produto: personalização.** Quase tudo é configurável: a staff de cada comunidade ajusta regras, cargos, termos e mecânicas, e a Staff Global ajusta os parâmetros da plataforma. Na dúvida entre fixar um comportamento ou torná-lo configurável, a tendência é torná-lo configurável.
 
 ## Conceitos centrais
 - **Comunidade:** espaço de jogo personalizado para ser o mais imersivo possível. **Cada comunidade tem as próprias regras**, configuradas pela staff.
 - **Staff:** administra a comunidade e define o estilo de jogo. Neste documento, "staff" sempre inclui o Dono.
+- **Staff Global:** administradores da plataforma Bookollab inteira (ver Staff Global). Não confundir com a staff de uma comunidade.
 - **Jogador:** membro que joga com seus personagens.
 - **Personagem:** pertence a uma comunidade; é com ele que o jogador participa de Cenas e Capítulos.
 - **Cena:** sessão de interpretação **colaborativa e em tempo real**, no formato de chat. Quase sempre envolve mais de um jogador.
@@ -93,7 +95,7 @@ Todas opcionais, ligadas ou desligadas pela staff de cada comunidade:
 - **Reações** (curtidas/emojis) em Capítulos e ações.
 - **Comentários** em Capítulos (OffGame).
 - **Seguir** jogadores e personagens, para ser avisado quando publicarem.
-- **Mensagens privadas** entre jogadores.
+- **Mensagens privadas** entre jogadores, sempre **OffGame**. Conversa privada entre personagens (OnGame) acontece numa Cena por convite.
 
 Seguir e mensagens privadas existem tanto no contexto **Global** quanto dentro da **Comunidade**. Reações e comentários acontecem dentro das comunidades. A interface sempre deixa claro o contexto (Global/Comunidade e OnGame/OffGame).
 
@@ -104,19 +106,53 @@ Ferramentas da staff disponíveis desde o lançamento:
 - **Expulsar/banir:** remover da comunidade, com opção de impedir que volte.
 - **Registro de moderação:** histórico das ações da staff (quem fez o quê, quando e por quê).
 
+**Camada global mínima:** o dia a dia é da staff de cada comunidade, mas a Staff Global recebe denúncias de conteúdo ilegal ou abuso, pode banir contas da plataforma inteira e remover comunidades que violem os termos de uso.
+
+### Classificação de conteúdo
+- A staff classifica a comunidade como **Livre**, **+16** ou **+18**.
+- Comunidades +18 exigem idade confirmada e ficam ocultas para menores.
+- Conteúdo sexual explícito é proibido em toda a plataforma.
+
 ## Pontos de engajamento
 Sistema de pontos que recompensa atividades que aumentam o movimento geral da comunidade. Exemplos: responder cartas/Capítulos em que foi marcado, participar de cenas com outros jogadores, tempo online lendo e curtindo posts.
 
-- **Valores fixos pela plataforma:** a tabela de quanto vale cada atividade é a mesma em todas as comunidades, o que permite comparar níveis entre comunidades. A staff decide os usos (loja, desbloqueios), não os valores.
+- **Tabela única da plataforma:** o valor de cada atividade é o mesmo em todas as comunidades, o que permite comparar níveis entre elas. A **Staff Global** edita valores e limites no painel global. A staff de cada comunidade decide os usos (loja, desbloqueios), não os valores.
 - **Anti-farm:**
-  - limite diário de pontos por atividade (ex.: tempo online rende pontos só até um teto por dia);
-  - tempo online só conta com atividade real (leitura, rolagem, interação), não com aba parada.
+  - limite diário de pontos por atividade;
+  - tempo online só conta com atividade real (leitura, rolagem, interação), não com aba parada;
+  - ações e Capítulos muito curtos não pontuam (mínimo de palavras a calibrar).
+
+**Tabela inicial** (ponto de partida, a recalibrar com dados do beta):
+
+| Atividade | Pontos | Limite/dia |
+|---|---|---|
+| Publicar Capítulo (≥ 300 palavras) | 20 | 100 |
+| Responder carta em que foi marcado | 25 | sem limite (1 resposta por carta) |
+| Ação em cena com outra pessoa | 2 | 60 |
+| Concluir cena (participante) | 10 | 50 |
+| Reação/comentário dado | 1 | 20 |
+| Reação/comentário recebido | 1 | 30 |
+| Tempo online ativo (por 10 min) | 1 | 12 (2h) |
+| Primeiro login do dia | 5 | 5 |
+
+**Escopo:** pontos, ranking e nível são **por comunidade**. A soma de todas as comunidades forma um **nível global**, exibido no perfil global.
+
+**Níveis:** a Staff Global define a curva (pontos necessários por nível) no painel global. A staff de cada comunidade dá nome aos títulos por faixa de nível, para combinar com o tema (ex.: níveis 1–5 "Aprendiz", 6–10 "Escudeiro").
 
 Usos dos pontos:
 - **Ranking** de membros mais ativos (semanal, mensal, geral).
 - **Níveis e títulos:** o jogador sobe de nível e ganha títulos/selos no perfil.
 - **Moeda/loja:** pontos podem ser trocados por recompensas definidas pela staff (ex.: vaga extra de personagem, cor no nome).
 - **Desbloqueios:** a staff pode condicionar permissões a uma pontuação mínima (ex.: abrir cena a partir de 500 pontos).
+
+## Staff Global
+Seção do app (painel de administração) para os administradores da plataforma. Controla:
+- **Pontos e níveis:** valores, limites diários e curva de níveis.
+- **Moderação global:** denúncias de conteúdo ilegal/abuso, banimento de contas da plataforma, remoção de comunidades.
+- **Padrões de comunidade nova:** cargos base, flags padrão, ficha e terminologia com que toda comunidade nasce.
+- **Destaques e descoberta:** comunidades em destaque na busca/vitrine.
+- **Métricas, relatórios e mapeamento de atividades:** usuários ativos, comunidades, cenas e Capítulos por período, além de relatórios detalhados da atividade na plataforma.
+- **Cargos da Staff Global:** adicionar outros administradores/moderadores globais, com permissões diferentes.
 
 ## Engajamento e notificações
 O sistema deve incentivar a escrita com notificações que engajem os jogadores a continuar suas histórias e manter o jogo vivo.
@@ -152,9 +188,12 @@ Não existe notificação obrigatória: o jogador sempre pode desligar tudo, inc
 - [x] Moderação: denúncias, silenciar/suspender, expulsar/banir, registro
 - [x] Mecânicas de RPG: dados, atributos e inventário, todas opcionais por comunidade
 - [x] Cenas encerradas: registro somente leitura; quem abriu escolhe a visibilidade
-- [ ] Tabela de pontos: valores de cada atividade e limites diários
-- [ ] Níveis: quantos níveis, quantos pontos por nível, quem define os títulos?
-- [ ] Mensagens privadas OnGame: personagens podem conversar em privado "como personagens"?
-- [ ] Moderação global: a plataforma também modera (contas banidas do Bookollab inteiro, conteúdo ilegal)?
-- [ ] Conteúdo adulto/sensível: comunidades podem ser marcadas como +18? Há filtros?
+- [x] Tabela de pontos: tabela inicial definida, editável pela Staff Global
+- [x] Níveis: curva da Staff Global + títulos da staff; por comunidade + nível global
+- [x] Mensagens privadas: sempre OffGame; OnGame privado = Cena por convite
+- [x] Moderação global: camada mínima da Staff Global
+- [x] Conteúdo: classificação Livre/+16/+18 por comunidade; sexual explícito proibido; idade mínima 13 anos
+- [ ] Curva de níveis: valores iniciais (pontos por nível)
+- [ ] Mínimo de palavras para ações/Capítulos pontuarem
+- [ ] Como confirmar a idade para comunidades +18?
 - [x] MVP: produto completo, construído em 4 marcos com beta fechado no Marco 2 (ver [roadmap](roadmap.md))

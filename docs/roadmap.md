@@ -9,7 +9,8 @@
 - Os apps Android/iOS saem do mesmo código (ver [ADR 0001](decisoes/0001-escolha-da-stack.md)). A publicação nas lojas acontece quando o produto estiver estável, a partir do lançamento.
 
 ## Marco 1 — Base jogável
-- Contas (cadastro, login) e perfil global
+- Contas (cadastro com data de nascimento, idade mínima 13 anos; login) e perfil global
+- Papel de Staff Global (administrador da plataforma) definido desde o início
 - Comunidades: criar, entrar (aberta, com pedido ou por convite)
 - Os 4 cargos base (Dono, Staff, Narrador, Jogador) com flags padrão
 - Personagens com ficha (campos definidos pela staff)
@@ -31,13 +32,16 @@
 - Personalização completa: visual, wiki/mundo, locais de cena, terminologia
 - Regras de personagem: limites e inatividade com consequência escolhida pela staff
 - Moderação completa: denúncias, silenciar/suspender, banir, registro de moderação
+- Classificação de conteúdo da comunidade (Livre/+16/+18)
+- Painel da Staff Global, parte 1: moderação global, padrões de comunidade nova, cargos da Staff Global
 
 ## Marco 4 — Social e engajamento → **lançamento público**
 - Notificações push (Web Push), com configuração em duas camadas (staff e jogador)
 - Reações e comentários
 - Seguir jogadores/personagens e mensagens privadas (Global e Comunidade)
-- Pontos, ranking e níveis
+- Pontos, ranking e níveis (por comunidade + nível global)
 - Loja de pontos e desbloqueios por pontuação
+- Painel da Staff Global, parte 2: tabela de pontos e curva de níveis, destaques e descoberta, métricas, relatórios e mapeamento de atividades
 
 ## Depois do lançamento
 - Publicação dos apps nas lojas (Android/iOS)
