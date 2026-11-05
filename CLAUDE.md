@@ -3,7 +3,7 @@
 Regras gerais do projeto inteiro: produto, documentação, fluxo de trabalho e organização. As regras específicas de código ficam em `src/CLAUDE.md`.
 
 ## O projeto
-Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, para web e mobile: Cenas (chat ao vivo), POVs (capítulos assíncronos) e comunidades personalizáveis com cargos e flags de permissão. Leia `docs/visao-produto.md` antes de qualquer tarefa: é a fonte oficial das decisões de produto.
+Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, para web e mobile: Cenas (chat ao vivo), Capítulos (textos assíncronos) e comunidades personalizáveis com cargos e flags de permissão. Leia `docs/visao-produto.md` antes de qualquer tarefa: é a fonte oficial das decisões de produto.
 
 ## Mapa do repositório
 | Pasta | Papel |

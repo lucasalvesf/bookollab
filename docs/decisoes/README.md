@@ -24,3 +24,4 @@ O que muda, ganhos, custos e riscos.
 | Nº | Decisão | Status |
 |---|---|---|
 | [0001](0001-escolha-da-stack.md) | Escolha da stack | aceita |
+| [0002](0002-nome-capitulo.md) | Nome "Capítulo" no lugar de "POV" | aceita |

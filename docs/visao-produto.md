@@ -3,7 +3,7 @@
 > Documento vivo. Fonte oficial das decisões de produto.
 
 ## Visão geral
-Bookollab (nome provisório) é um criador de histórias colaborativas no estilo RPG de texto. Os jogadores constroem a história de duas formas: em **Cenas**, interpretando juntos ao vivo, e em **POVs** (capítulos escritos com calma, sozinhos ou em colaboração assíncrona). Tudo acontece dentro de comunidades que a staff personaliza para o estilo de jogo que quer.
+Bookollab (nome provisório) é um criador de histórias colaborativas no estilo RPG de texto. Os jogadores constroem a história de duas formas: em **Cenas**, interpretando juntos ao vivo, e em **Capítulos** (textos escritos com calma, sozinhos ou em colaboração assíncrona). Tudo acontece dentro de comunidades que a staff personaliza para o estilo de jogo que quer.
 
 - Plataforma: web e app mobile. "App" = o produto inteiro (mobile + site). Um único app gera o site e os apps Android/iOS, com experiência personalizável por plataforma. O site é lançado primeiro; os apps vão para as lojas depois.
 - Objetivo: projeto pessoal/portfólio bem documentado e produto para lançar com usuários reais. Pode virar TCC.
@@ -13,12 +13,12 @@ Bookollab (nome provisório) é um criador de histórias colaborativas no estilo
 - **Comunidade:** espaço de jogo personalizado para ser o mais imersivo possível. **Cada comunidade tem as próprias regras**, configuradas pela staff.
 - **Staff:** administra a comunidade e define o estilo de jogo. Neste documento, "staff" sempre inclui o Dono.
 - **Jogador:** membro que joga com seus personagens.
-- **Personagem:** pertence a uma comunidade; é com ele que o jogador participa de Cenas e POVs.
+- **Personagem:** pertence a uma comunidade; é com ele que o jogador participa de Cenas e Capítulos.
 - **Cena:** sessão de interpretação **colaborativa e em tempo real**, no formato de chat. Quase sempre envolve mais de um jogador.
 - **Ação:** cada mensagem que um jogador envia dentro de uma Cena.
-- **POV** (nome provisório; alternativa em estudo: "Capítulo"): texto narrativo publicado, do ponto de vista de um personagem. Pode ser **solo** (só avança a história do personagem) ou **colaborativo assíncrono** (ex.: uma carta que marca outro personagem para responder). Pode nascer de uma Cena, mas não precisa.
+- **Capítulo:** texto narrativo publicado, do ponto de vista de um personagem. Pode ser **solo** (só avança a história do personagem) ou **colaborativo assíncrono** (ex.: uma carta que marca outro personagem para responder). Pode nascer de uma Cena, mas não precisa. Antes chamado de POV, termo comum no Amino e no WhatsApp.
 
-Cena e POV são coisas distintas: a Cena é o jogo ao vivo; o POV é o registro escrito da história.
+Cena e Capítulo são coisas distintas: a Cena é o jogo ao vivo; o Capítulo é o registro escrito da história.
 
 ## Cargos e permissões
 Sistema de cargos e permissões focado em RPG, no estilo do Discord.
@@ -26,8 +26,8 @@ Sistema de cargos e permissões focado em RPG, no estilo do Discord.
 - Toda comunidade nasce com cargos base: **Dono, Staff, Narrador, Jogador**. A staff pode renomear e ajustar as flags de cada um, e também criar cargos novos com as flags que quiser.
 - Só o **Dono** é fixo e tem todas as permissões.
 - **Permissões por membro:** além do cargo, a staff pode ajustar flags específicas de um jogador (ex.: para moderação, liberar ou restringir algo só para ele).
-- Como são muitas permissões, elas ficam **organizadas por categoria**, com Cenas e POVs bem separados. Categorias iniciais: Comunidade, Personagens, Cenas, POVs, Moderação.
-- Exemplos de flags (lista inicial, a validar): abrir cena; POV precisa de aprovação; narrador pode editar POV de outros; cena com turnos obrigatórios.
+- Como são muitas permissões, elas ficam **organizadas por categoria**, com Cenas e Capítulos bem separados. Categorias iniciais: Comunidade, Personagens, Cenas, Capítulos, Moderação.
+- Exemplos de flags (lista inicial, a validar): abrir cena; capítulo precisa de aprovação; narrador pode editar capítulo de outros; cena com turnos obrigatórios.
 
 ## Entrada na comunidade
 A staff escolhe como a comunidade recebe membros:
@@ -47,21 +47,21 @@ A staff escolhe como a comunidade recebe membros:
   - *Com pedido de entrada*: quem abriu aprova os pedidos.
 - Cenas podem ser organizadas em **Locais** definidos pela staff.
 
-## POVs
+## Capítulos
 - **Solo:** o jogador escreve para avançar a história do próprio personagem.
-- **Colaborativo assíncrono:** o POV pode marcar personagens ou jogadores com `@` (ex.: uma carta "Para @John Blackwood"). O marcado é notificado de que deve responder para a história avançar.
+- **Colaborativo assíncrono:** o Capítulo pode marcar personagens ou jogadores com `@` (ex.: uma carta "Para @John Blackwood"). O marcado é notificado de que deve responder para a história avançar.
 - **A partir de uma Cena:** ao final de uma cena, um participante pode:
   1. gerar um **rascunho automático** que junta as ações da cena, editar e publicar, marcando os coautores; ou
-  2. escrever o POV **do zero**, apenas vinculando a cena de origem.
-  - *Em estudo:* uma **IA** que monta o POV a partir da cena para o jogador revisar (avaliar custo e viabilidade).
-- **Edição:** o autor pode editar e apagar os próprios POVs. O POV fica marcado como "editado", e a staff vê o histórico de versões. Narrador editar POV de outros depende de flag.
-- **Aprovação** (quando ligada por flag; pode valer para a comunidade toda, para cargos ou para jogadores específicos): o POV entra numa fila da staff e **fica oculto até ser aprovado**. Se for recusado, o autor recebe o motivo e pode editar e reenviar.
+  2. escrever o Capítulo **do zero**, apenas vinculando a cena de origem.
+  - *Em estudo:* uma **IA** que monta o Capítulo a partir da cena para o jogador revisar (avaliar custo e viabilidade).
+- **Edição:** o autor pode editar e apagar os próprios Capítulos. O Capítulo fica marcado como "editado", e a staff vê o histórico de versões. Narrador editar Capítulo de outros depende de flag.
+- **Aprovação** (quando ligada por flag; pode valer para a comunidade toda, para cargos ou para jogadores específicos): o Capítulo entra numa fila da staff e **fica oculto até ser aprovado**. Se for recusado, o autor recebe o motivo e pode editar e reenviar.
 
 ## Personagens
 - Cada personagem pertence a **uma** comunidade.
 - O jogador tem um **perfil global** e pode exibir lá os personagens que quiser. Para cada personagem exibido, escolhe se mostra ou esconde a comunidade de origem.
 - **Limites definidos pela staff de cada comunidade**, por exemplo: ilimitado, até N personagens, ou até N personagens desde que nenhum fique inativo por mais de X dias.
-- **Inatividade:** um personagem fica inativo quando passa X dias sem uso (sem cena, POV, ação ou interação com ele). Na regra, a staff escolhe a consequência: só avisar, arquivar (libera a vaga e pode ser reativado) ou excluir.
+- **Inatividade:** um personagem fica inativo quando passa X dias sem uso (sem cena, Capítulo, ação ou interação com ele). Na regra, a staff escolhe a consequência: só avisar, arquivar (libera a vaga e pode ser reativado) ou excluir.
 
 ## Personalização da comunidade
 Tudo disponível desde o lançamento:
@@ -69,10 +69,11 @@ Tudo disponível desde o lançamento:
 - **Ficha de personagem:** a staff define os campos (ex.: raça, classe, idade, poderes) e se a ficha precisa de aprovação.
 - **Mundo/Wiki:** páginas de lore (regras, locais, facções, história do mundo).
 - **Locais de cena:** categorias de lugares do mundo (ex.: Taverna, Floresta) para organizar as cenas.
+- **Terminologia:** a staff pode renomear os termos exibidos na comunidade (ex.: mostrar "POV" em vez de "Capítulo"), assim como já renomeia cargos.
 - **Regras próprias:** limites de personagens, inatividade, aprovação, entrada, pontos e notificações.
 
 ## Pontos de engajamento
-Sistema de pontos que recompensa atividades que aumentam o movimento geral da comunidade. Exemplos: responder cartas/POVs em que foi marcado, participar de cenas com outros jogadores, tempo online lendo e curtindo posts.
+Sistema de pontos que recompensa atividades que aumentam o movimento geral da comunidade. Exemplos: responder cartas/Capítulos em que foi marcado, participar de cenas com outros jogadores, tempo online lendo e curtindo posts.
 
 Usos dos pontos:
 - **Ranking** de membros mais ativos (semanal, mensal, geral).
@@ -85,9 +86,9 @@ O sistema deve incentivar a escrita com notificações que engajem os jogadores 
 
 **Gatilhos:**
 - Nova ação numa cena do jogador, ou chegou a vez dele (cenas com turnos).
-- Menções com `@` (em POVs e cenas) e convites para cenas.
+- Menções com `@` (em Capítulos e cenas) e convites para cenas.
 - Lembretes de engajamento (ex.: cena parada há dias, carta esperando resposta, personagem perto de ficar inativo).
-- Avisos da staff: anúncios da comunidade, aprovação ou recusa de ficha ou de POV.
+- Avisos da staff: anúncios da comunidade, aprovação ou recusa de ficha ou de Capítulo.
 
 **Configuração em duas camadas:**
 1. A staff escolhe quais tipos de notificação ficam ativos na comunidade e quais são os padrões.
@@ -105,10 +106,10 @@ Não existe notificação obrigatória: o jogador sempre pode desligar tudo, inc
 - [x] Notificações: gatilhos e configuração em duas camadas
 - [x] Stack: ver [ADR 0001](decisoes/0001-escolha-da-stack.md)
 - [x] Personagens: limites e inatividade configuráveis pela staff
-- [x] Aprovação de POV: oculto até aprovar; aplicável a toda a comunidade, a cargos ou a jogadores
+- [x] Aprovação de Capítulo: oculto até aprovar; aplicável a toda a comunidade, a cargos ou a jogadores
 - [x] Entrada na comunidade: aberta, com pedido ou só por convite (escolha da staff)
-- [ ] Nome definitivo: "POV" ou "Capítulo"?
-- [ ] IA para montar POV a partir da cena: viabilidade e custo
+- [x] Nome: "Capítulo" (renomeável pela staff)
+- [ ] IA para montar Capítulo a partir da cena: viabilidade e custo
 - [ ] Pontos: quanto vale cada atividade? A staff ajusta os valores? Como evitar farm (ex.: ficar online sem fazer nada)?
 - [ ] Interações sociais: curtidas, comentários, seguir jogadores/personagens?
 - [ ] Moderação: denúncias, banimento, silenciar membro
