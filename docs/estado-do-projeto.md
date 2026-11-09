@@ -49,18 +49,19 @@ Tudo na `main`, entregue em 7 Pull Requests com CI verde:
 - **Diagrama do banco (Figma)**: https://www.figma.com/design/NNugvMCOeCmyv09UI9aYBZ. Não se atualiza sozinho e está desatualizado: falta a tabela `uploads` e as colunas `background` e `attachment_key`.
 
 ## Próximos passos (em ordem sugerida)
-1. **Perfil global** (último item do Marco 1):
-   - página pública do usuário (`/u/[userName]`) com avatar, bio e a vitrine de personagens;
-   - respeitar "exibir no perfil" e "mostrar comunidade".
-2. **Teste de ponta a ponta do Marco 1** no navegador, com duas contas, seguindo a lista de verificação do plano do Marco 1.
-3. **Marco 2 — Jogo completo** (antes do beta fechado):
+1. **Perfis** (últimos itens do Marco 1, ver "Perfis" em `visao-produto.md`):
+   - **perfil global**: página pública do usuário (`/u/[userName]`) com avatar, bio e a vitrine, respeitando "exibir no perfil" e "mostrar comunidade";
+   - **perfil por comunidade**: apelido, avatar, bio e capa próprios, herdando do global; mostra fichas, atividade, cargo e entrada.
+2. **Enciclopédia** (fichas de qualquer tipo em pastas): planejada para o Marco 3, mas ligada ao perfil da comunidade. Há perguntas em aberto em `visao-produto.md`.
+3. **Teste de ponta a ponta do Marco 1** no navegador, com duas contas, seguindo a lista de verificação do plano do Marco 1.
+4. **Marco 2 — Jogo completo** (antes do beta fechado):
    - cenas por turnos e participação (pública / convite / pedido);
    - Cena → Capítulo (rascunho a partir das ações), cartas com `@`;
    - aprovação de Capítulos;
    - dados, atributos e inventário;
    - notificações no app;
    - moderação mínima.
-4. Itens do [`backlog.md`](backlog.md) conforme a prioridade do usuário. Os principais: curtidas, comentários e feed com capa nos capítulos.
+5. Itens do [`backlog.md`](backlog.md) conforme a prioridade do usuário. Os principais: curtidas, comentários e feed com capa nos capítulos.
 
 ## Pontos de atenção
 - **Dados locais não vão pelo git:** o banco do Docker (contas, comunidades, cenas de teste) e as imagens enviadas ficam só no computador antigo. No computador novo, o banco nasce vazio; é só criar contas de novo.

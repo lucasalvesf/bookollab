@@ -31,6 +31,18 @@ Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, par
 - Não invente regra de negócio: se não está em `docs/`, pergunte.
 - Todo pedido do usuário que não for construído na hora vai para `docs/backlog.md` (com data e, se houver, o marco previsto). Nada pedido pode se perder.
 
+## Baseline do produto: consultar antes de perguntar
+Antes de fazer qualquer pergunta sobre produto, regra de negócio ou escopo, **consulte todas as fontes abaixo, nesta ordem**. Só pergunte se a resposta não estiver em nenhuma delas, e diga onde procurou.
+
+1. `docs/visao-produto.md`: decisões de produto (fonte oficial).
+2. `docs/backlog.md`: pedidos já feitos pelo usuário, inclusive os ainda não construídos.
+3. `docs/roadmap.md` e `docs/estado-do-projeto.md`: o que está planejado e o que já existe.
+4. `docs/decisoes/`: ADRs.
+5. Histórico do git (`git log -p -- docs`): decisões que foram alteradas ou removidas.
+6. Doc do claude.ai "Bookollab — Documento do Projeto" (https://claude.ai/artifact/9z4UfsKDNRXGt1zfjCawrM), lido pelo conector Claude Docs. É a primeira versão da visão (03/11), já incorporada ao repositório.
+
+**Registro obrigatório:** toda decisão tomada em qualquer conversa (Claude Code, claude.ai, Claude Desktop) vai para `docs/` **na mesma hora**, antes de seguir o trabalho. Decisão que só existe num chat se perde: o Claude Code não consegue ler conversas do claude.ai. Ao trabalhar no claude.ai, peça ao chat para registrar a decisão no repositório, ou cole o resumo aqui.
+
 ## Decisões (ADRs)
 Decisões técnicas relevantes viram ADRs curtos em `docs/decisoes/NNNN-titulo.md` (contexto, decisão, consequências). Modelo e índice em `docs/decisoes/README.md`.
 

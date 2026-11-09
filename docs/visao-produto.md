@@ -91,6 +91,23 @@ A staff escolhe como a comunidade recebe membros:
 - **Edição:** o autor pode editar e apagar os próprios Capítulos. O Capítulo fica marcado como "editado", e a staff vê o histórico de versões. Narrador editar Capítulo de outros depende de flag.
 - **Aprovação** (quando ligada por flag; pode valer para a comunidade toda, para cargos ou para jogadores específicos): o Capítulo entra numa fila da staff e **fica oculto até ser aprovado**. Se for recusado, o autor recebe o motivo e pode editar e reenviar.
 
+## Perfis
+O jogador tem **dois níveis de perfil**. A conta e o @ são únicos.
+
+- **Perfil global:** nome de exibição, @, avatar e bio. Vale fora das comunidades e exibe a vitrine de personagens/fichas que o jogador escolher mostrar.
+- **Perfil por comunidade** (como no Amino): dentro de cada comunidade, o jogador tem um perfil próprio, OffGame, com **apelido, avatar, bio e capa**. O que ele não preencher herda do perfil global. Editar o perfil de uma comunidade não altera o global nem o de outras comunidades.
+- **O perfil da comunidade mostra:**
+  - as **fichas** do jogador naquela comunidade (não só personagens: qualquer tipo de ficha, ver Enciclopédia);
+  - a **atividade**: Capítulos publicados e cenas de que participou;
+  - o **cargo** e a data de entrada na comunidade;
+  - o **nível e o título** da comunidade (quando o sistema de pontos existir, Marco 4).
+
+## Enciclopédia (fichas)
+Cada comunidade tem uma **enciclopédia**, no estilo da wiki do Amino. Ela evolui e substitui o "Mundo/Wiki" e a ficha única de personagem:
+- **Fichas de qualquer tipo:** personagem, local, pet, família, facção, item etc.
+- A staff cria e coloca fichas diversas na enciclopédia e as **organiza em pastas**.
+- O personagem passa a ser um tipo de ficha.
+
 ## Personagens
 - Cada personagem pertence a **uma** comunidade.
 - O jogador tem um **perfil global** e pode exibir lá os personagens que quiser. Para cada personagem exibido, escolhe se mostra ou esconde a comunidade de origem.
@@ -221,3 +238,8 @@ Não existe notificação obrigatória: o jogador sempre pode desligar tudo, inc
 - [x] Mínimo de palavras para pontuar: 30 por ação, 500 por Capítulo
 - [x] Idade para +18: data de nascimento + declaração
 - [x] MVP: produto completo, construído em 4 marcos com beta fechado no Marco 2 (ver [roadmap](roadmap.md))
+- [x] Perfis: global + perfil por comunidade (apelido, avatar, bio, capa; herda do global). Decidido pelo usuário em outra conversa e registrado em 2026-11-09
+- [ ] Enciclopédia: jogadores também criam fichas próprias (pet, família) que aparecem no perfil da comunidade, ou só a staff cria?
+- [ ] Enciclopédia: cada tipo de ficha tem um modelo de campos definido pela staff (como a ficha de personagem hoje)?
+- [ ] Enciclopédia: ficha criada por jogador precisa de aprovação da staff para entrar?
+- [ ] Enciclopédia: só a staff organiza as pastas, ou o jogador também tem pastas próprias?
