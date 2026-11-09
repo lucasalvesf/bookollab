@@ -105,8 +105,18 @@ O jogador tem **dois níveis de perfil**. A conta e o @ são únicos.
 ## Enciclopédia (fichas)
 Cada comunidade tem uma **enciclopédia**, no estilo da wiki do Amino. Ela evolui e substitui o "Mundo/Wiki" e a ficha única de personagem:
 - **Fichas de qualquer tipo:** personagem, local, pet, família, facção, item etc.
-- A staff cria e coloca fichas diversas na enciclopédia e as **organiza em pastas**.
+- **Quem cria:** a staff **e os jogadores**. As fichas do jogador aparecem no perfil dele na comunidade.
+- **Pastas:** a staff organiza as fichas da enciclopédia em pastas.
 - O personagem passa a ser um tipo de ficha.
+
+### Modelos de ficha
+- A **staff cria modelos**: cada modelo define os campos (e o que mais o modelo determinar) que os jogadores seguem.
+- Ao criar uma ficha, o jogador **escolhe um modelo**, que já vem com os campos predefinidos, **ou cria uma ficha livre do zero**.
+- **Configurações da staff** (por comunidade):
+  1. **Fichas livres: ativadas ou desativadas.** Desativadas, o jogador só cria fichas a partir dos modelos; não existe ficha do zero.
+  2. **Rigidez do modelo:**
+     - *Somente o modelo*: a ficha tem exatamente os campos do modelo;
+     - *Modelo como base*: a ficha começa com os campos do modelo, e o jogador pode acrescentar campos novos.
 
 ## Personagens
 - Cada personagem pertence a **uma** comunidade.
@@ -239,7 +249,6 @@ Não existe notificação obrigatória: o jogador sempre pode desligar tudo, inc
 - [x] Idade para +18: data de nascimento + declaração
 - [x] MVP: produto completo, construído em 4 marcos com beta fechado no Marco 2 (ver [roadmap](roadmap.md))
 - [x] Perfis: global + perfil por comunidade (apelido, avatar, bio, capa; herda do global). Decidido pelo usuário em outra conversa e registrado em 2026-11-09
-- [ ] Enciclopédia: jogadores também criam fichas próprias (pet, família) que aparecem no perfil da comunidade, ou só a staff cria?
-- [ ] Enciclopédia: cada tipo de ficha tem um modelo de campos definido pela staff (como a ficha de personagem hoje)?
-- [ ] Enciclopédia: ficha criada por jogador precisa de aprovação da staff para entrar?
-- [ ] Enciclopédia: só a staff organiza as pastas, ou o jogador também tem pastas próprias?
+- [x] Enciclopédia: staff e jogadores criam fichas; a staff organiza as pastas
+- [x] Modelos de ficha: staff cria modelos; fichas livres ativáveis; rigidez "somente o modelo" ou "modelo como base"
+- [ ] Enciclopédia: aprovação de fichas criadas por jogadores (no backlog, o usuário vai decidir depois)

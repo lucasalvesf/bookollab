@@ -25,6 +25,12 @@
 - [ ] Formatação Markdown na leitura do capítulo (negrito, títulos, citações).
 - [ ] Imagens dentro do texto do capítulo.
 
+## Pedidos do usuário (2026-11-09)
+
+### Enciclopédia de fichas (regras em `visao-produto.md` → Enciclopédia)
+- [ ] Construir a enciclopédia: fichas de qualquer tipo, pastas da staff, modelos de ficha, fichas livres ativáveis, rigidez do modelo. *Marco 3, possivelmente adiantado por causa do perfil da comunidade.*
+- [ ] **A decidir pelo usuário:** fichas criadas por jogadores precisam de aprovação da staff para entrar na enciclopédia?
+
 ## Pendências técnicas
 - [ ] Armazenamento de produção no Cloudflare R2 (hoje o upload grava em disco local, `.data/uploads`).
 - [ ] Redimensionar/comprimir imagens no upload (hoje só valida tipo e tamanho, até 5 MB).
