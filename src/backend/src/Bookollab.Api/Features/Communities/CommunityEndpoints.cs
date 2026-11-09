@@ -80,7 +80,8 @@ public static partial class CommunityEndpoints
 
     private static async Task<IResult> Discover(string? search, AppDbContext db, CancellationToken ct)
     {
-        var query = db.Communities.Where(c => c.JoinPolicy == JoinPolicy.Open);
+        // Only invite-only (private) communities are hidden; "request" ones are public but need staff approval to join.
+        var query = db.Communities.Where(c => c.JoinPolicy != JoinPolicy.InviteOnly);
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = $"%{search.Trim()}%";

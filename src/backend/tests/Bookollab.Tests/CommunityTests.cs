@@ -84,6 +84,22 @@ public sealed class CommunityTests(ApiFactory factory) : IClassFixture<ApiFactor
     }
 
     [Fact]
+    public async Task Discover_lists_open_and_request_communities_but_not_invite_only()
+    {
+        var (owner, _) = await TestUsers.CreateClientAsync(factory);
+        var tag = Unique("Busca");
+        var open = await CreateCommunityAsync(owner, JoinPolicy.Open, $"{tag} A");
+        var request = await CreateCommunityAsync(owner, JoinPolicy.Request, $"{tag} B");
+        var invite = await CreateCommunityAsync(owner, JoinPolicy.InviteOnly, $"{tag} C");
+        var (visitor, _) = await TestUsers.CreateClientAsync(factory);
+
+        var found = await (await visitor.GetAsync($"/communities/?search={Uri.EscapeDataString(tag)}")).ReadAsync<List<CommunitySummary>>();
+        Assert.Contains(found, c => c.Slug == open.Slug);
+        Assert.Contains(found, c => c.Slug == request.Slug && c.JoinPolicy == JoinPolicy.Request);
+        Assert.DoesNotContain(found, c => c.Slug == invite.Slug);
+    }
+
+    [Fact]
     public async Task Invite_only_community_rejects_join_and_accepts_invite_until_max_uses()
     {
         var (owner, _) = await TestUsers.CreateClientAsync(factory);
