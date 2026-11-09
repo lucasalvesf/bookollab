@@ -12,6 +12,7 @@ export default function CommunityScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const me = useQuery({ queryKey: ['me'], queryFn: () => unwrap(api.GET('/me')) });
   const community = useQuery({
     queryKey: ['community', slug],
     queryFn: () => unwrap(api.GET('/communities/{slug}', { params: { path: { slug } } }), 'Comunidade não encontrada.'),
@@ -71,9 +72,22 @@ export default function CommunityScreen() {
               </View>
             ) : (
               <>
-                {isStaff ? (
-                  <Button title="Área da staff" variant="secondary" onPress={() => router.push({ pathname: '/c/[slug]/staff', params: { slug } })} />
-                ) : null}
+                <View style={styles.topActions}>
+                  {me.data ? (
+                    <View style={styles.topAction}>
+                      <Button
+                        title="Meu perfil aqui"
+                        variant="secondary"
+                        onPress={() => router.push({ pathname: '/c/[slug]/membros/[userName]', params: { slug, userName: me.data!.userName } })}
+                      />
+                    </View>
+                  ) : null}
+                  {isStaff ? (
+                    <View style={styles.topAction}>
+                      <Button title="Área da staff" variant="secondary" onPress={() => router.push({ pathname: '/c/[slug]/staff', params: { slug } })} />
+                    </View>
+                  ) : null}
+                </View>
 
                 <Section
                   title="Personagens"
@@ -105,7 +119,18 @@ export default function CommunityScreen() {
 
                 <Section title="Membros">
                   <Loadable query={members}>
-                    {(list) => list.map((m) => <Row key={m.userId} title={m.displayName} subtitle={`@${m.userName}`} left={<Avatar name={m.displayName} imageKey={m.avatarKey} size={40} />} right={<Tag label={m.roleName} />} />)}
+                    {(list) =>
+                      list.map((m) => (
+                        <Row
+                          key={m.userId}
+                          title={m.displayName}
+                          subtitle={`@${m.userName}`}
+                          left={<Avatar name={m.displayName} imageKey={m.avatarKey} size={40} />}
+                          right={<Tag label={m.roleName} />}
+                          onPress={() => router.push({ pathname: '/c/[slug]/membros/[userName]', params: { slug, userName: m.userName } })}
+                        />
+                      ))
+                    }
                   </Loadable>
                 </Section>
 
@@ -177,4 +202,6 @@ const styles = StyleSheet.create({
   description: { fontSize: 15, color: colors.text, lineHeight: 22 },
   joinBox: { gap: 12 },
   smallButton: { width: 110 },
+  topActions: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
+  topAction: { flexGrow: 1, minWidth: 180 },
 });

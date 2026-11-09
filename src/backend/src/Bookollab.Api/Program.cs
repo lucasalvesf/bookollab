@@ -126,6 +126,7 @@ app.MapSceneEndpoints();
 app.MapChapterEndpoints();
 app.MapUploadEndpoints();
 app.MapProfileEndpoints();
+app.MapPublicProfileEndpoints();
 app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();

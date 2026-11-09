@@ -1,23 +1,39 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { AvatarPicker } from '@/components/avatar-picker';
 import { Loadable, Page } from '@/components/layout';
-import { Button, Field, Notice } from '@/components/ui';
+import { Button, colors, Field, Notice } from '@/components/ui';
 
 type Me = components['schemas']['MeResponse'];
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const me = useQuery({ queryKey: ['me'], queryFn: () => unwrap(api.GET('/me')) });
   return (
-    <Page title="Meu perfil" subtitle="Como você aparece para os outros jogadores." back>
-      <Loadable query={me}>{(data) => <ProfileForm me={data} />}</Loadable>
+    <Page title="Meu perfil global" subtitle="Vale em toda a plataforma. Em cada comunidade você também pode ter um perfil próprio." back>
+      <Loadable query={me}>
+        {(data) => (
+          <>
+            <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/u/[userName]', params: { userName: data.userName } })}>
+              <Text style={styles.link}>Ver meu perfil público ›</Text>
+            </Pressable>
+            <ProfileForm me={data} />
+          </>
+        )}
+      </Loadable>
     </Page>
   );
 }
+
+const styles = StyleSheet.create({
+  link: { fontSize: 14, color: colors.brand, fontWeight: '600' },
+});
 
 function ProfileForm({ me }: { me: Me }) {
   const queryClient = useQueryClient();

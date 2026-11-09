@@ -10,8 +10,8 @@
 
 ## Marco 1 — Base jogável
 - [x] Contas (cadastro por e-mail e senha com data de nascimento, idade mínima 13 anos; confirmação de e-mail; recuperação de senha)
-- [ ] Perfil global (página pública do usuário com a vitrine de personagens)
-- [ ] Perfil por comunidade (apelido, avatar, bio e capa próprios, herdando do global; mostra fichas, atividade, cargo e entrada)
+- [x] Perfil global (página pública do usuário com a vitrine de personagens)
+- [x] Perfil por comunidade (apelido, avatar, bio e capa próprios, herdando do global; mostra fichas, atividade, cargo e entrada)
 - [x] Avatares de usuário e de personagem (upload de imagem)
 - [x] Cena em formato de chat (tela cheia, barra lateral, fundo, anexos de imagem, emojis)
 - [x] Papel de Staff Global (`GlobalAdmin`) definido no modelo
