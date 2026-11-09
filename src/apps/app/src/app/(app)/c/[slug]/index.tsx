@@ -73,6 +73,9 @@ export default function CommunityScreen() {
             ) : (
               <>
                 <View style={styles.topActions}>
+                  <View style={styles.topAction}>
+                    <Button title="📚 Enciclopédia" onPress={() => router.push({ pathname: '/c/[slug]/enciclopedia', params: { slug } })} />
+                  </View>
                   {me.data ? (
                     <View style={styles.topAction}>
                       <Button

@@ -5,7 +5,7 @@
 > Preparar um computador novo: [`docs-aux/ambiente-de-desenvolvimento.md`](../docs-aux/ambiente-de-desenvolvimento.md).
 
 ## Em uma frase
-O **Marco 1 está completo**: contas, perfis (global e por comunidade), comunidades, cargos, personagens com ficha e avatar, **Cenas ao vivo em formato de chat** e **Capítulos** com histórico (API + app web). Próximo: a enciclopédia e o Marco 2.
+O **Marco 1 está completo**: contas, perfis (global e por comunidade), comunidades, cargos, personagens com ficha e avatar, **enciclopédia** (fichas de qualquer tipo, pastas e modelos), **Cenas ao vivo em formato de chat** e **Capítulos** com histórico (API + app web). Próximo: o Marco 2.
 
 ## Onde está cada decisão
 | Assunto | Documento |
@@ -30,8 +30,9 @@ Tudo na `main`, entregue em 7 Pull Requests com CI verde:
 | #6 | Cenas ao vivo (SignalR: ações em tempo real, presença, "digitando") e Capítulos (rascunho, publicação, edição com histórico) |
 | #7 | Cena em formato de chat (barra lateral + chat, fundo, anexos de imagem, emojis), upload de imagens, avatares, tela Meu perfil, backlog |
 | #8 | Perfil global (vitrine) e perfil por comunidade (apelido, avatar, bio e capa próprios; fichas, atividade, cargo) |
+| #9 | Enciclopédia: fichas de qualquer tipo, pastas da staff, modelos de ficha, fichas livres ativáveis, rigidez do modelo |
 
-**Testes:** 58 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
+**Testes:** 64 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
 
 **Ainda sem testes automatizados:** o app. Ele é conferido com typecheck, lint e testes manuais no navegador.
 
@@ -51,7 +52,7 @@ Tudo na `main`, entregue em 7 Pull Requests com CI verde:
 
 ## Próximos passos (em ordem sugerida)
 1. ~~Perfis~~: **feitos** (PR #8). Perfil global em `/u/[userName]`; perfil por comunidade em `/c/[slug]/membros/[userName]`, editável em `/c/[slug]/perfil`. Com isso, o **Marco 1 está completo**.
-2. **Enciclopédia** (fichas de qualquer tipo em pastas): planejada para o Marco 3, mas ligada ao perfil da comunidade. Há perguntas em aberto em `visao-produto.md`.
+2. ~~Enciclopédia~~: **feita** (PR #9). `/c/[slug]/enciclopedia` (pastas, busca, fichas), `/c/[slug]/enciclopedia/nova` (modelo ou ficha livre), `/fichas/[id]`; regras, pastas e modelos na Área da staff. Pendente: aprovação de fichas (decisão do usuário, no backlog).
 3. **Teste de ponta a ponta do Marco 1** no navegador, com duas contas, seguindo a lista de verificação do plano do Marco 1.
 4. **Marco 2 — Jogo completo** (antes do beta fechado):
    - cenas por turnos e participação (pública / convite / pedido);

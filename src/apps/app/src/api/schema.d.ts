@@ -116,6 +116,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/characters/{id}/folder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["MoveCharacterToFolder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/register": {
         parameters: {
             query?: never;
@@ -644,6 +660,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/encyclopedia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetEncyclopedia"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/encyclopedia/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateEncyclopediaSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/sheet-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CreateSheetTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CreateEncyclopediaFolder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/sheets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CreateSheet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sheet-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateSheetTemplate"];
+        post?: never;
+        delete: operations["DeleteSheetTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateEncyclopediaFolder"];
+        post?: never;
+        delete: operations["DeleteEncyclopediaFolder"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sheets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetSheet"];
+        put: operations["UpdateSheet"];
+        post?: never;
+        delete: operations["DeleteSheet"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sheets/{id}/folder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["MoveSheetToFolder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -719,6 +879,8 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             canEdit: boolean;
+            /** Format: uuid */
+            folderId?: null | string;
         };
         /** @enum {unknown} */
         CharacterStatus: "Active" | "Archived";
@@ -751,6 +913,7 @@ export interface components {
             /** Format: date-time */
             joinedAt: string;
             characters: components["schemas"]["ProfileCharacterDto"][];
+            sheets: components["schemas"]["ProfileSheetDto"][];
             chapters: components["schemas"]["ProfileChapterDto"][];
             scenes: components["schemas"]["ProfileSceneDto"][];
             /** Format: int32 */
@@ -801,11 +964,55 @@ export interface components {
             title: string;
             description: null | string;
         };
+        CreateSheetRequest: {
+            name: string;
+            kind: null | string;
+            imageKey: null | string;
+            /** Format: uuid */
+            templateId: null | string;
+            fields: null | components["schemas"]["SheetFieldInput"][];
+        };
         EditActionRequest: {
             content: string;
         };
         EmailRequest: {
             email: string;
+        };
+        EncyclopediaDto: {
+            settings: components["schemas"]["EncyclopediaSettingsDto"];
+            folders: components["schemas"]["FolderDto"][];
+            templates: components["schemas"]["TemplateDto"][];
+            items: components["schemas"]["EncyclopediaItemDto"][];
+            canManage: boolean;
+            canCreate: boolean;
+        };
+        EncyclopediaItemDto: {
+            /** Format: uuid */
+            id: string;
+            itemType: components["schemas"]["EncyclopediaItemType"];
+            name: string;
+            kind: string;
+            imageKey: null | string;
+            /** Format: uuid */
+            ownerUserId: string;
+            ownerUserName: string;
+            /** Format: uuid */
+            folderId: null | string;
+        };
+        /** @enum {unknown} */
+        EncyclopediaItemType: "Character" | "Sheet";
+        EncyclopediaSettingsDto: {
+            freeSheetsEnabled: boolean;
+            templateMode: components["schemas"]["TemplateMode"];
+        };
+        FolderDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            position: number | string;
+            /** Format: int32 */
+            itemCount: number | string;
         };
         GlobalProfileDto: {
             /** Format: uuid */
@@ -898,6 +1105,10 @@ export interface components {
             avatarKey: null | string;
             roles: string[];
         };
+        MoveToFolderRequest: {
+            /** Format: uuid */
+            folderId: null | string;
+        };
         MyAccess: {
             roleName: string;
             baseKind: components["schemas"]["BaseRoleKind"];
@@ -924,6 +1135,13 @@ export interface components {
             status: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        ProfileSheetDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            kind: null | string;
+            imageKey: null | string;
         };
         RefreshRequest: {
             refreshToken: string;
@@ -952,6 +1170,17 @@ export interface components {
             showOnGlobalProfile: boolean;
             showCommunityOnProfile: boolean;
             avatarKey?: null | string;
+        };
+        SaveFolderRequest: {
+            name: string;
+            /** Format: int32 */
+            position: null | number | string;
+        };
+        SaveTemplateRequest: {
+            name: string;
+            description: null | string;
+            kind: null | string;
+            fields: null | components["schemas"]["SheetFieldDto"][];
         };
         SceneActionDto: {
             /** Format: uuid */
@@ -1031,14 +1260,53 @@ export interface components {
             content: null | string;
             attachmentKey?: null | string;
         };
+        SheetDto: {
+            /** Format: uuid */
+            id: string;
+            communitySlug: string;
+            communityName: string;
+            /** Format: uuid */
+            ownerUserId: string;
+            ownerUserName: string;
+            name: string;
+            kind: null | string;
+            imageKey: null | string;
+            /** Format: uuid */
+            templateId: null | string;
+            templateName: null | string;
+            /** Format: uuid */
+            folderId: null | string;
+            fields: components["schemas"]["SheetFieldValueDto"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: null | string;
+            canEdit: boolean;
+            canManage: boolean;
+            canAddFields: boolean;
+        };
         SheetFieldDto: {
             key: string;
             label: string;
             type: components["schemas"]["SheetFieldType"];
             required: boolean;
         };
+        SheetFieldInput: {
+            key: string;
+            label: null | string;
+            type: null | components["schemas"]["SheetFieldType"];
+            value: null | string;
+        };
         /** @enum {unknown} */
         SheetFieldType: "Text" | "LongText" | "Number";
+        SheetFieldValueDto: {
+            key: string;
+            label: string;
+            type: components["schemas"]["SheetFieldType"];
+            required: boolean;
+            fromTemplate: boolean;
+            value: null | string;
+        };
         SheetValueDto: {
             key: string;
             value: null | string;
@@ -1051,6 +1319,16 @@ export interface components {
             communitySlug: null | string;
             communityName: null | string;
         };
+        TemplateDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: null | string;
+            kind: null | string;
+            fields: components["schemas"]["SheetFieldDto"][];
+        };
+        /** @enum {unknown} */
+        TemplateMode: "Strict" | "Base";
         TokenResponse: {
             accessToken: string;
             /** Format: date-time */
@@ -1074,6 +1352,12 @@ export interface components {
         };
         UpdateSceneBackgroundRequest: {
             background: null | string;
+        };
+        UpdateSheetRequest: {
+            name: string;
+            kind: null | string;
+            imageKey: null | string;
+            fields: null | components["schemas"]["SheetFieldInput"][];
         };
         UploadResponse: {
             key: string;
@@ -1268,6 +1552,30 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CommunityProfileDto"];
                 };
+            };
+        };
+    };
+    MoveCharacterToFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveToFolderRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2292,6 +2600,319 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ChapterRevisionDto"][];
                 };
+            };
+        };
+    };
+    GetEncyclopedia: {
+        parameters: {
+            query?: {
+                folderId?: string;
+                search?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EncyclopediaDto"];
+                };
+            };
+        };
+    };
+    UpdateEncyclopediaSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EncyclopediaSettingsDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EncyclopediaSettingsDto"];
+                };
+            };
+        };
+    };
+    CreateSheetTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateDto"];
+                };
+            };
+        };
+    };
+    CreateEncyclopediaFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveFolderRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderDto"];
+                };
+            };
+        };
+    };
+    CreateSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSheetRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SheetDto"];
+                };
+            };
+        };
+    };
+    UpdateSheetTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateDto"];
+                };
+            };
+        };
+    };
+    DeleteSheetTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateEncyclopediaFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveFolderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderDto"];
+                };
+            };
+        };
+    };
+    DeleteEncyclopediaFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SheetDto"];
+                };
+            };
+        };
+    };
+    UpdateSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSheetRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SheetDto"];
+                };
+            };
+        };
+    };
+    DeleteSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MoveSheetToFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveToFolderRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

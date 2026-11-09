@@ -51,8 +51,8 @@ export default function CommunityProfileScreen() {
             </Pressable>
           </View>
 
-          <Section title={`Fichas · ${p.characters.length}`}>
-            {p.characters.length === 0 ? (
+          <Section title={`Fichas · ${p.characters.length + p.sheets.length}`}>
+            {p.characters.length + p.sheets.length === 0 ? (
               <Empty>Nenhuma ficha nesta comunidade ainda.</Empty>
             ) : (
               <View style={styles.grid}>
@@ -61,6 +61,13 @@ export default function CommunityProfileScreen() {
                     <Avatar name={c.name} imageKey={c.avatarKey} size={64} />
                     <Text style={styles.cardName} numberOfLines={1}>{c.name}</Text>
                     <Text style={styles.cardSub}>Personagem</Text>
+                  </Pressable>
+                ))}
+                {p.sheets.map((s) => (
+                  <Pressable key={s.id} accessibilityRole="button" onPress={() => router.push({ pathname: '/fichas/[id]', params: { id: s.id } })} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+                    <Avatar name={s.name} imageKey={s.imageKey} size={64} />
+                    <Text style={styles.cardName} numberOfLines={1}>{s.name}</Text>
+                    <Text style={styles.cardSub} numberOfLines={1}>{s.kind ?? 'Ficha'}</Text>
                   </Pressable>
                 ))}
               </View>

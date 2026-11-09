@@ -51,6 +51,12 @@ public sealed class Community
     /// <summary>Character sheet fields defined by the staff (stored as jsonb).</summary>
     public List<SheetField> SheetFields { get; set; } = [];
 
+    /// <summary>Encyclopedia: may players create sheets from scratch (without a template)?</summary>
+    public bool FreeSheetsEnabled { get; set; } = true;
+
+    /// <summary>Encyclopedia: whether template-based sheets may add fields.</summary>
+    public Encyclopedia.TemplateMode TemplateMode { get; set; } = Encyclopedia.TemplateMode.Base;
+
     public Guid OwnerId { get; set; }
     public User Owner { get; set; } = null!;
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
