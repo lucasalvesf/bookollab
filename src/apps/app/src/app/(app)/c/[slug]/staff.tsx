@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
+import { ChapterApprovalAdmin } from '@/components/chapter-approval-admin';
 import { EncyclopediaAdmin } from '@/components/encyclopedia-admin';
 import { Empty, Loadable, Page, Row, Section, ToggleRow } from '@/components/layout';
 import { Button, colors, Field, Notice } from '@/components/ui';
@@ -31,6 +32,9 @@ export default function StaffScreen() {
             {perms.has('ManageMembers') ? <JoinRequests slug={slug} /> : null}
             {perms.has('CreateInvites') ? <Invites slug={slug} /> : null}
             {perms.has('ManageCommunity') ? <SheetEditor slug={slug} initial={c.sheetFields} /> : null}
+            {perms.has('ManageCommunity') || perms.has('ModerateContent') ? (
+              <ChapterApprovalAdmin slug={slug} canConfigure={perms.has('ManageCommunity')} canModerate={perms.has('ModerateContent')} />
+            ) : null}
             {perms.has('ManageCommunity') ? <EncyclopediaAdmin slug={slug} /> : null}
           </Page>
         );

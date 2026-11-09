@@ -92,6 +92,9 @@ A staff escolhe como a comunidade recebe membros:
 - **Edição:** o autor pode editar e apagar os próprios Capítulos. O Capítulo fica marcado como "editado", e a staff vê o histórico de versões. Narrador editar Capítulo de outros depende de flag.
 - **Aprovação** (quando ligada por flag; pode valer para a comunidade toda, para cargos ou para jogadores específicos): o Capítulo entra numa fila da staff e **fica oculto até ser aprovado**. Se for recusado, o autor recebe o motivo e pode editar e reenviar.
   - Entrega em etapas *(decidido em 2026-11-09)*: no Marco 2, para a comunidade toda ou para cargos escolhidos; **por jogador específico** chega junto com as flags por membro, no Marco 3.
+  - Quem tem a permissão de moderar conteúdo (a staff) não passa pela fila: é quem aprova. *(Decisão de implementação, a confirmar pelo usuário.)*
+  - Marcações com `@` só notificam quando o Capítulo é de fato publicado (depois da aprovação, se houver).
+- **Resposta:** um Capítulo pode responder a outro (ex.: a resposta a uma carta), já marcando o personagem que escreveu o original.
 
 ## Perfis
 O jogador tem **dois níveis de perfil**. A conta e o @ são únicos.

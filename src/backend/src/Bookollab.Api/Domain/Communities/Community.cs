@@ -57,6 +57,12 @@ public sealed class Community
     /// <summary>Encyclopedia: whether template-based sheets may add fields.</summary>
     public Encyclopedia.TemplateMode TemplateMode { get; set; } = Encyclopedia.TemplateMode.Base;
 
+    /// <summary>Chapters: which authors need staff approval before a chapter shows up.</summary>
+    public Chapters.ChapterApprovalMode ChapterApprovalMode { get; set; } = Chapters.ChapterApprovalMode.Off;
+
+    /// <summary>Roles whose chapters need approval when the mode is "Roles".</summary>
+    public List<Guid> ChapterApprovalRoleIds { get; set; } = [];
+
     public Guid OwnerId { get; set; }
     public User Owner { get; set; } = null!;
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
