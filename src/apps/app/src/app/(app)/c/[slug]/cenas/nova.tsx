@@ -3,8 +3,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { api, problemMessage } from '@/api/client';
+import type { components } from '@/api/schema';
 import { Page } from '@/components/layout';
+import { ChipPicker } from '@/components/pickers';
 import { Button, Field, Notice } from '@/components/ui';
+import { PARTICIPATION_LABELS } from '@/features/scene/scene-settings';
+
+type Participation = components['schemas']['SceneParticipation'];
+type WritingMode = components['schemas']['SceneWritingMode'];
 
 export default function NewSceneScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -12,6 +18,8 @@ export default function NewSceneScreen() {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [participation, setParticipation] = useState<Participation>('Public');
+  const [writingMode, setWritingMode] = useState<WritingMode>('Free');
   const [loading, setLoading] = useState(false);
   const [problem, setProblem] = useState<unknown>();
 
@@ -19,7 +27,10 @@ export default function NewSceneScreen() {
     setLoading(true);
     setProblem(undefined);
     try {
-      const { data, error } = await api.POST('/communities/{slug}/scenes', { params: { path: { slug } }, body: { title, description } });
+      const { data, error } = await api.POST('/communities/{slug}/scenes', {
+        params: { path: { slug } },
+        body: { title, description, participation, writingMode, turnTimeLimitMinutes: writingMode === 'Turns' ? 1440 : null },
+      });
       if (data) {
         await queryClient.invalidateQueries({ queryKey: ['scenes', slug] });
         router.replace({ pathname: '/cenas/[id]', params: { id: data.id } });
@@ -39,6 +50,18 @@ export default function NewSceneScreen() {
       {problem && !fieldError ? <Notice kind="error">{problemMessage(problem) ?? 'Não foi possível abrir a cena.'}</Notice> : null}
       <Field label="Título" value={title} onChangeText={setTitle} error={problemMessage(problem, 'title')} placeholder="Ex.: Noite de chuva na taverna" />
       <Field label="Descrição (opcional)" value={description} onChangeText={setDescription} error={problemMessage(problem, 'description')} multiline numberOfLines={4} placeholder="Onde e quando acontece, o clima, o gancho inicial" />
+      <ChipPicker
+        label="Quem participa"
+        options={(Object.keys(PARTICIPATION_LABELS) as Participation[]).map((p) => ({ value: p, label: PARTICIPATION_LABELS[p] }))}
+        value={participation}
+        onChange={setParticipation}
+      />
+      <ChipPicker
+        label="Escrita"
+        options={[{ value: 'Free' as WritingMode, label: 'Livre' }, { value: 'Turns' as WritingMode, label: 'Por turnos (24 h por vez)' }]}
+        value={writingMode}
+        onChange={setWritingMode}
+      />
       <Button title="Abrir cena" onPress={submit} loading={loading} />
     </Page>
   );

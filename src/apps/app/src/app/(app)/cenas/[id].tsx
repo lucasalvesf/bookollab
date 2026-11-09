@@ -52,6 +52,7 @@ export default function SceneScreen() {
     onParticipantJoined: () => queryClient.invalidateQueries({ queryKey: sceneKey }),
     onSceneClosed: () => queryClient.invalidateQueries({ queryKey: sceneKey }),
     onSceneUpdated: () => queryClient.invalidateQueries({ queryKey: sceneKey }),
+    onTurnChanged: () => queryClient.invalidateQueries({ queryKey: sceneKey }),
   });
 
   // Keep the newest message in view.
@@ -73,6 +74,10 @@ export default function SceneScreen() {
   const s = scene.data;
   const bg = resolveBackground(s.background);
   const joinedCharacters = (myCharacters.data ?? []).filter((c) => s.participants.some((p) => p.characterId === c.id));
+  const turns = s.writingMode === 'Turns';
+  // In turns, only the character whose turn it is can write.
+  const writable = turns ? joinedCharacters.filter((c) => c.id === s.currentTurnCharacterId) : joinedCharacters;
+  const turnName = s.participants.find((p) => p.characterId === s.currentTurnCharacterId)?.characterName;
   const sidebar = (
     <SceneSidebar scene={s} online={realtime.online} myCharacters={myCharacters.data} myUserId={me.data?.id} onClose={wide ? undefined : () => setDrawerOpen(false)} />
   );
@@ -90,6 +95,7 @@ export default function SceneScreen() {
           <Text style={styles.chatTitle} numberOfLines={1}>{s.title}</Text>
           <Text style={styles.chatSubtitle} numberOfLines={1}>
             {realtime.connected ? `${realtime.online.length} online · ${s.participants.length} na cena` : 'Conectando…'}
+            {turns ? ` · ${turnName ? `vez de ${turnName}` : 'por turnos'}` : ''}
           </Text>
         </View>
       </View>
@@ -122,8 +128,12 @@ export default function SceneScreen() {
         <View style={styles.banner}>
           <Text style={styles.bannerText}>Esta cena foi encerrada. As ações ficam salvas para leitura.</Text>
         </View>
+      ) : writable.length > 0 ? (
+        <Composer sceneId={s.id} characters={writable} onTyping={realtime.notifyTyping} onSent={upsert} />
       ) : joinedCharacters.length > 0 ? (
-        <Composer sceneId={s.id} characters={joinedCharacters} onTyping={realtime.notifyTyping} onSent={upsert} />
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>{turnName ? `Aguarde: é a vez de ${turnName}.` : 'Aguardando a ordem dos turnos.'}</Text>
+        </View>
       ) : (
         <Pressable style={styles.banner} onPress={() => !wide && setDrawerOpen(true)} accessibilityRole="button">
           <Text style={styles.bannerText}>

@@ -80,6 +80,11 @@ Rotas tipadas do Expo Router: os tipos (`.expo/types/router.d.ts`) são gerados 
 - Armazenamento: `IFileStorage`. Em dev, disco local (`backend/src/Bookollab.Api/.data/uploads`, no `.gitignore`). Produção: Cloudflare R2 (pendente, ver backlog).
 - App: `src/lib/files.ts` (`pickAndUploadImage`, `fileUrl`).
 
+## Armadilhas conhecidas
+- **Migrations com coluna nova não nula** (enum como texto, `bool`): o EF gera `defaultValue: ""`/`false`, e as linhas existentes ficam inválidas (enum vazio quebra a leitura). Sempre confira e ajuste o `defaultValue` da migration para o padrão do domínio (ex.: `"Public"`, `true`) e verifique no banco local.
+- **Encoding no PowerShell 5**: nunca leia um arquivo UTF-8 com `Get-Content -Raw` para regravar (ele lê como ANSI e corrompe os acentos: "título" → "tÃ­tulo"). Use `[IO.File]::ReadAllText(caminho)` com caminho absoluto, ou a ferramenta Edit. O teste `SourceEncodingTests` barra esse tipo de corrupção no código da API.
+- **Rotas tipadas do Expo**: um `index.tsx` dentro de pasta de rota dinâmica gera o tipo `/…/index`. Prefira `pasta.tsx` ao lado da pasta (ex.: `c/[slug]/enciclopedia.tsx` + `c/[slug]/enciclopedia/nova.tsx`).
+
 ## Persistência
 - Entidades do domínio geram o próprio `Guid` (`Guid.CreateVersion7`); o `AppDbContext` marca essas chaves como não geradas pelo banco, para que filhos adicionados por navegação (ex.: revisões) sejam inseridos.
 - Remoção de Ações e Capítulos é lógica (`DeletedAt`), com revisões preservadas para auditoria da staff.

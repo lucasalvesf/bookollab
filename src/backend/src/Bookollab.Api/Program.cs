@@ -11,6 +11,7 @@ using Bookollab.Api.Features.Characters;
 using Bookollab.Api.Features.Common;
 using Bookollab.Api.Features.Communities;
 using Bookollab.Api.Features.Encyclopedia;
+using Bookollab.Api.Features.Notifications;
 using Bookollab.Api.Infrastructure;
 using Bookollab.Api.Infrastructure.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,6 +58,10 @@ builder.Services.AddOptions<SmtpOptions>().BindConfiguration(SmtpOptions.Section
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PermissionService>();
 builder.Services.AddSingleton<ScenePresence>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, SubUserIdProvider>();
+builder.Services.AddSingleton<TurnTimeoutService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<TurnTimeoutService>());
 builder.Services.AddOptions<StorageOptions>().BindConfiguration(StorageOptions.Section);
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddSignalR()
@@ -94,7 +99,12 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 
 // Enums travel as readable text ("InviteOnly"), matching how they are stored.
-builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.ConfigureHttpJsonOptions(o =>
+{
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    // Numbers are numbers (no "123" strings): keeps the OpenAPI types as plain integers for the app.
+    o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+});
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 
@@ -129,6 +139,7 @@ app.MapUploadEndpoints();
 app.MapProfileEndpoints();
 app.MapPublicProfileEndpoints();
 app.MapEncyclopediaEndpoints();
+app.MapNotificationEndpoints();
 app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();

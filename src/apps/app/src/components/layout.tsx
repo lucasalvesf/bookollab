@@ -2,10 +2,12 @@ import { useRouter } from 'expo-router';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { NotificationBell } from '@/realtime/notifications';
+
 import { colors, Notice } from './ui';
 
 /** Standard page for the logged-in area: scrollable, centered column, optional back button. */
-export function Page({ title, subtitle, back, actions, children }: PropsWithChildren<{ title: string; subtitle?: string; back?: boolean; actions?: ReactNode }>) {
+export function Page({ title, subtitle, back, actions, bell = true, children }: PropsWithChildren<{ title: string; subtitle?: string; back?: boolean; actions?: ReactNode; bell?: boolean }>) {
   const router = useRouter();
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -21,6 +23,7 @@ export function Page({ title, subtitle, back, actions, children }: PropsWithChil
             {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
           </View>
           {actions}
+          {bell ? <NotificationBell /> : null}
         </View>
         <View style={styles.body}>{children}</View>
       </View>
