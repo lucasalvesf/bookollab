@@ -148,6 +148,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/characters/{id}/mechanics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCharacterMechanics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/characters/{id}/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AddInventoryItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/inventory-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateInventoryItem"];
+        post?: never;
+        delete: operations["RemoveInventoryItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/register": {
         parameters: {
             query?: never;
@@ -1060,10 +1108,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/mechanics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMechanics"];
+        put: operations["UpdateMechanics"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AttributeDto: {
+            key: string;
+            label: string;
+            value: null | string;
+        };
         /** @enum {unknown} */
         BaseRoleKind: "Owner" | "Staff" | "Narrator" | "Player" | "Custom";
         ChapterApprovalConfigDto: {
@@ -1167,6 +1236,12 @@ export interface components {
             /** Format: uuid */
             folderId?: null | string;
         };
+        CharacterMechanicsDto: {
+            mechanics: components["schemas"]["MechanicsDto"];
+            attributes: components["schemas"]["AttributeDto"][];
+            inventory: components["schemas"]["InventoryItemDto"][];
+            canManageInventory: boolean;
+        };
         /** @enum {unknown} */
         CharacterStatus: "Active" | "Archived";
         CommunityDetail: {
@@ -1182,6 +1257,7 @@ export interface components {
             sheetFields: components["schemas"]["SheetFieldDto"][];
             me: null | components["schemas"]["MyAccess"];
             hasPendingRequest: boolean;
+            mechanics?: null | components["schemas"]["MechanicsDto"];
         };
         CommunityProfileDto: {
             /** Format: uuid */
@@ -1268,6 +1344,20 @@ export interface components {
             templateId: null | string;
             fields: null | components["schemas"]["SheetFieldInput"][];
         };
+        DiceRoll: {
+            expression: string;
+            terms: components["schemas"]["DiceTerm"][];
+            /** Format: int32 */
+            total: number;
+        };
+        DiceTerm: {
+            label: string;
+            /** Format: int32 */
+            sign: number;
+            rolls: number[];
+            /** Format: int32 */
+            value: number;
+        };
         EditActionRequest: {
             content: string;
         };
@@ -1338,6 +1428,16 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        InventoryItemDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            description: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         InviteCharacterRequest: {
             /** Format: uuid */
             characterId: string;
@@ -1381,6 +1481,11 @@ export interface components {
         LoginRequest: {
             email: string;
             password: string;
+        };
+        MechanicsDto: {
+            diceEnabled: boolean;
+            attributesEnabled: boolean;
+            inventoryEnabled: boolean;
         };
         MemberDto: {
             /** Format: uuid */
@@ -1505,6 +1610,12 @@ export interface components {
             /** Format: int32 */
             position: null | number;
         };
+        SaveInventoryItemRequest: {
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            description: null | string;
+        };
         SaveTemplateRequest: {
             name: string;
             description: null | string;
@@ -1529,6 +1640,7 @@ export interface components {
             /** Format: date-time */
             editedAt: null | string;
             deleted: boolean;
+            roll?: null | components["schemas"]["DiceRoll"];
         };
         /** @enum {unknown} */
         SceneArchiveVisibility: "Community" | "Participants";
@@ -1968,6 +2080,100 @@ export interface operations {
                 "application/json": components["schemas"]["MoveToFolderRequest"];
             };
         };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetCharacterMechanics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CharacterMechanicsDto"];
+                };
+            };
+        };
+    };
+    AddInventoryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveInventoryItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryItemDto"];
+                };
+            };
+        };
+    };
+    UpdateInventoryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveInventoryItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryItemDto"];
+                };
+            };
+        };
+    };
+    RemoveInventoryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description No Content */
             204: {
@@ -3671,6 +3877,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetMechanics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MechanicsDto"];
+                };
+            };
+        };
+    };
+    UpdateMechanics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MechanicsDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MechanicsDto"];
+                };
             };
         };
     };

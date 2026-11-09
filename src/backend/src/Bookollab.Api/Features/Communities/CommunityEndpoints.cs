@@ -314,7 +314,7 @@ public static partial class CommunityEndpoints
         c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.ContentRating, memberCount,
         c.SheetFields.Select(ToDto).ToList(),
         role is null ? null : new MyAccess(role.Name, role.BaseKind, PermissionNames(role.Permissions)),
-        pending);
+        pending, Mechanics.MechanicsEndpoints.ToDto(c));
 
     public static IReadOnlyList<string> PermissionNames(CommunityPermission permissions) =>
         Enum.GetValues<CommunityPermission>()

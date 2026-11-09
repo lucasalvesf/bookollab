@@ -130,6 +130,9 @@ public sealed class SceneAction
     /// <summary>Optional image attached to the action (upload key).</summary>
     public string? AttachmentKey { get; init; }
 
+    /// <summary>Server-generated dice roll (JSON of <see cref="Mechanics.DiceRoll"/>). Roll actions cannot be edited.</summary>
+    public string? RollJson { get; init; }
+
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? EditedAt { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }

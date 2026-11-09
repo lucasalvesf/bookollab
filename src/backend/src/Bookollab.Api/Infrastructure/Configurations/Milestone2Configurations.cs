@@ -21,6 +21,18 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
     }
 }
 
+internal sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Domain.Mechanics.InventoryItem>
+{
+    public void Configure(EntityTypeBuilder<Domain.Mechanics.InventoryItem> b)
+    {
+        b.Property(i => i.Name).HasMaxLength(100);
+        b.Property(i => i.Description).HasMaxLength(1000);
+        b.HasIndex(i => i.CharacterId);
+        b.HasOne<Character>().WithMany().HasForeignKey(i => i.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<User>().WithMany().HasForeignKey(i => i.GivenByUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 internal sealed class SceneInviteConfiguration : IEntityTypeConfiguration<SceneInvite>
 {
     public void Configure(EntityTypeBuilder<SceneInvite> b)

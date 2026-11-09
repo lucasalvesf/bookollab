@@ -144,6 +144,13 @@ Todas opcionais, ligadas ou desligadas pela staff de cada comunidade:
 - **Rolagem de dados:** comando dentro da cena (ex.: `/rolar 1d20+3`). O resultado é gerado pelo servidor, fica visível para todos e não pode ser forjado.
 - **Atributos na ficha:** campos numéricos definidos pela staff (ex.: força, vida), que podem ser usados nas rolagens.
 - **Inventário:** itens do personagem, que a staff pode dar ou tirar.
+- Detalhes de implementação *(decisões do Claude Code no Marco 2, a confirmar pelo usuário)*:
+  - toda mecânica começa **desligada** numa comunidade (nova ou existente) até a staff ligar;
+  - a rolagem aparece como um cartão na cena (expressão, cada dado e o total). Não pode ser editada; só a moderação pode apagá-la, para ninguém esconder um resultado ruim;
+  - numa cena por turnos, rolar **não gasta a vez**: o jogador rola e depois escreve o que acontece;
+  - atributos = campos **numéricos** da ficha do personagem, chamados pelo nome sem diferença de maiúsculas ou acentos (/rolar 1d20+forca usa "Força");
+  - limites da rolagem: até 50 dados de 2 a 1.000 lados e até 10 termos; também aceita /roll;
+  - quem dá e tira itens é quem tem a permissão de gerenciar personagens; todos os membros veem o inventário.
 
 ## Interações sociais
 - **Reações** (curtidas/emojis) em Capítulos e ações.

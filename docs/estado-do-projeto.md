@@ -18,7 +18,7 @@ O **Marco 1 está completo**: contas, perfis (global e por comunidade), comunida
 | Regras do código, comandos, arquitetura | [`../src/CLAUDE.md`](../src/CLAUDE.md) |
 
 ## O que já está pronto
-Tudo na `main`, entregue em 7 Pull Requests com CI verde:
+Tudo na `main`, entregue em Pull Requests com CI verde:
 
 | PR | Conteúdo |
 |---|---|
@@ -31,16 +31,19 @@ Tudo na `main`, entregue em 7 Pull Requests com CI verde:
 | #7 | Cena em formato de chat (barra lateral + chat, fundo, anexos de imagem, emojis), upload de imagens, avatares, tela Meu perfil, backlog |
 | #8 | Perfil global (vitrine) e perfil por comunidade (apelido, avatar, bio e capa próprios; fichas, atividade, cargo) |
 | #9 | Enciclopédia: fichas de qualquer tipo, pastas da staff, modelos de ficha, fichas livres ativáveis, rigidez do modelo |
+| #10 | Marco 2: cenas por turnos (ordem, tempo limite, pular vez), participação (pública / convite / pedido), visibilidade do registro, notificações no app (sino em tempo real), remover membro |
+| #11 | Marco 2: Cena → Capítulo com coautores, cartas com `@` e respostas, aprovação de Capítulos (comunidade toda ou por cargo, fila da staff) |
+| #12 | Marco 2: mecânicas de RPG opcionais: rolagem de dados (`/rolar 1d20+força`), atributos da ficha, inventário dado pela staff |
 
-**Testes:** 64 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
+**Testes:** 97 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
 
 **Ainda sem testes automatizados:** o app. Ele é conferido com typecheck, lint e testes manuais no navegador.
 
 ## Arquitetura em resumo
 - **API**: ASP.NET Core (.NET 10), Minimal APIs por feature, em `src/backend/src/Bookollab.Api/Features/`:
-  - Auth, Profile, Communities, Characters, Scenes, Chapters, Uploads.
+  - Auth, Profile, Communities, Characters, Scenes, Chapters, Uploads, Encyclopedia, Notifications, Mechanics.
   - PostgreSQL via EF Core (tabelas em snake_case, enums como texto).
-  - SignalR em `/hubs/scenes`.
+  - SignalR em `/hubs/scenes` e `/hubs/notifications`.
   - Permissões centralizadas no `PermissionService`.
 - **App**: Expo SDK 58 (React Native + Web), em `src/apps/app/`:
   - Expo Router com rotas em português (`/entrar`, `/c/[slug]`, `/cenas/[id]`, `/capitulos/[id]`…);
@@ -54,13 +57,7 @@ Tudo na `main`, entregue em 7 Pull Requests com CI verde:
 1. ~~Perfis~~: **feitos** (PR #8). Perfil global em `/u/[userName]`; perfil por comunidade em `/c/[slug]/membros/[userName]`, editável em `/c/[slug]/perfil`. Com isso, o **Marco 1 está completo**.
 2. ~~Enciclopédia~~: **feita** (PR #9). `/c/[slug]/enciclopedia` (pastas, busca, fichas), `/c/[slug]/enciclopedia/nova` (modelo ou ficha livre), `/fichas/[id]`; regras, pastas e modelos na Área da staff. Pendente: aprovação de fichas (decisão do usuário, no backlog).
 3. **Teste de ponta a ponta do Marco 1** no navegador, com duas contas, seguindo a lista de verificação do plano do Marco 1.
-4. **Marco 2 — Jogo completo** (antes do beta fechado):
-   - cenas por turnos e participação (pública / convite / pedido);
-   - Cena → Capítulo (rascunho a partir das ações), cartas com `@`;
-   - aprovação de Capítulos;
-   - dados, atributos e inventário;
-   - notificações no app;
-   - moderação mínima.
+4. ~~Marco 2 — Jogo completo~~: **feito** (PRs #10–#12). Falta o **teste de ponta a ponta do Marco 2** no navegador (turnos, convite/pedido, capítulo da cena, carta com `@`, aprovação, `/rolar`, inventário) e confirmar as decisões de implementação marcadas "a confirmar" em `visao-produto.md`. Depois disso: beta fechado.
 5. Itens do [`backlog.md`](backlog.md) conforme a prioridade do usuário. Os principais: curtidas, comentários e feed com capa nos capítulos.
 
 ## Pontos de atenção

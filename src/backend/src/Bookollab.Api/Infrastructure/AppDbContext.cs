@@ -32,6 +32,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Domain.Notifications.Notification> Notifications => Set<Domain.Notifications.Notification>();
     public DbSet<SceneInvite> SceneInvites => Set<SceneInvite>();
     public DbSet<SceneJoinRequest> SceneJoinRequests => Set<SceneJoinRequest>();
+    public DbSet<Domain.Mechanics.InventoryItem> InventoryItems => Set<Domain.Mechanics.InventoryItem>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configuration)
     {

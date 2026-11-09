@@ -41,6 +41,11 @@ export default function SceneScreen() {
     enabled: !!slug,
     queryFn: () => unwrap(api.GET('/communities/{slug}/characters', { params: { path: { slug: slug! }, query: { mine: true } } })),
   });
+  const community = useQuery({
+    queryKey: ['community', slug],
+    enabled: !!slug,
+    queryFn: () => unwrap(api.GET('/communities/{slug}', { params: { path: { slug: slug! } } })),
+  });
 
   const setActions = (fn: (list: SceneAction[]) => SceneAction[]) => queryClient.setQueryData<SceneAction[]>(actionsKey, (list) => fn(list ?? []));
   const upsert = (a: SceneAction) => setActions((list) => (list.some((x) => x.id === a.id) ? list.map((x) => (x.id === a.id ? a : x)) : [...list, a]));
@@ -129,7 +134,14 @@ export default function SceneScreen() {
           <Text style={styles.bannerText}>Esta cena foi encerrada. As ações ficam salvas para leitura.</Text>
         </View>
       ) : writable.length > 0 ? (
-        <Composer sceneId={s.id} characters={writable} onTyping={realtime.notifyTyping} onSent={upsert} />
+        <Composer
+          sceneId={s.id}
+          characters={writable}
+          onTyping={realtime.notifyTyping}
+          onSent={upsert}
+          diceEnabled={!!community.data?.mechanics?.diceEnabled}
+          attributesEnabled={!!community.data?.mechanics?.attributesEnabled}
+        />
       ) : joinedCharacters.length > 0 ? (
         <View style={styles.banner}>
           <Text style={styles.bannerText}>{turnName ? `Aguarde: é a vez de ${turnName}.` : 'Aguardando a ordem dos turnos.'}</Text>

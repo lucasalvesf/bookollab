@@ -10,7 +10,8 @@ public sealed record MyAccess(string RoleName, BaseRoleKind BaseKind, IReadOnlyL
 
 public sealed record CommunityDetail(
     Guid Id, string Slug, string Name, string? Description, JoinPolicy JoinPolicy, ContentRating ContentRating,
-    int MemberCount, IReadOnlyList<SheetFieldDto> SheetFields, MyAccess? Me, bool HasPendingRequest);
+    int MemberCount, IReadOnlyList<SheetFieldDto> SheetFields, MyAccess? Me, bool HasPendingRequest,
+    Mechanics.MechanicsDto? Mechanics = null);
 
 public sealed record SheetFieldDto(string Key, string Label, SheetFieldType Type, bool Required);
 

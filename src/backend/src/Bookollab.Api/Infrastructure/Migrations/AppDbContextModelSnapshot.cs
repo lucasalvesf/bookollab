@@ -266,6 +266,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<bool>("AttributesEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("attributes_enabled");
+
                     b.Property<string>("ChapterApprovalMode")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -292,9 +296,17 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("description");
 
+                    b.Property<bool>("DiceEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("dice_enabled");
+
                     b.Property<bool>("FreeSheetsEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("free_sheets_enabled");
+
+                    b.Property<bool>("InventoryEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("inventory_enabled");
 
                     b.Property<string>("JoinPolicy")
                         .IsRequired()
@@ -664,6 +676,51 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.ToTable("sheet_templates", (string)null);
                 });
 
+            modelBuilder.Entity("Bookollab.Api.Domain.Mechanics.InventoryItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("GivenByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("given_by_user_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inventory_items");
+
+                    b.HasIndex("CharacterId")
+                        .HasDatabaseName("ix_inventory_items_character_id");
+
+                    b.HasIndex("GivenByUserId")
+                        .HasDatabaseName("ix_inventory_items_given_by_user_id");
+
+                    b.ToTable("inventory_items", (string)null);
+                });
+
             modelBuilder.Entity("Bookollab.Api.Domain.Notifications.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -842,6 +899,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("EditedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("edited_at");
+
+                    b.Property<string>("RollJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("roll_json");
 
                     b.Property<Guid>("SceneId")
                         .HasColumnType("uuid")
@@ -1725,6 +1786,23 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         });
 
                     b.Navigation("Fields");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Mechanics.InventoryItem", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Characters.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_items_characters_character_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("GivenByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_items_users_given_by_user_id");
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Notifications.Notification", b =>

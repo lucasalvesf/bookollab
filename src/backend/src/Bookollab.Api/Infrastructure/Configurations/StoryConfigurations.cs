@@ -54,6 +54,7 @@ internal sealed class SceneActionConfiguration : IEntityTypeConfiguration<SceneA
     {
         b.Property(a => a.Content).HasMaxLength(20_000);
         b.Property(a => a.AttachmentKey).HasMaxLength(256);
+        b.Property(a => a.RollJson).HasColumnType("jsonb");
         b.HasIndex(a => new { a.SceneId, a.CreatedAt });
         b.HasOne<Scene>().WithMany().HasForeignKey(a => a.SceneId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne<Character>().WithMany().HasForeignKey(a => a.CharacterId).OnDelete(DeleteBehavior.Restrict);

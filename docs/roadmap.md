@@ -28,7 +28,7 @@
 - [x] Cena → Capítulo: rascunho automático ou escrita do zero, com coautores
 - [x] Capítulos colaborativos: cartas com `@` e notificação ao marcado (com resposta)
 - [x] Aprovação de Capítulos (fila da staff; comunidade toda ou por cargo)
-- [ ] Mecânicas de RPG opcionais: dados, atributos, inventário
+- [x] Mecânicas de RPG opcionais: dados, atributos, inventário
 - [x] Notificações dentro do app (sino com contador em tempo real; configuração por tipo fica para o Marco 4)
 - [x] *Recomendação para o beta:* moderação mínima (remover conteúdo e expulsar membro), já que o Marco 3 ainda não terá chegado
 
