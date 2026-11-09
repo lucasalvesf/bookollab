@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, type Href } from 'expo-router';
-import { AtSign, BellOff, CheckCheck, DoorOpen, FileCheck2, FilePen, Hourglass, Mail, UserPlus, UserRoundCheck, type LucideIcon } from 'lucide-react-native';
+import { ArrowRight, AtSign, BellOff, Check, CheckCheck, DoorOpen, FileCheck2, FilePen, Hourglass, Mail, UserPlus, UserRoundCheck, type LucideIcon } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { Empty, Loadable, Page, Section } from '@/components/layout';
+import { ContextMenu } from '@/components/menu';
 import { Button } from '@/components/ui';
 import { NOTIFICATIONS_KEY } from '@/realtime/notifications';
 import { makeStyles, radius, useTheme } from '@/theme';
@@ -56,7 +57,11 @@ export default function NotificationsScreen() {
               data.items.map((n) => {
                 const Icon = ICONS[n.type];
                 return (
-                  <Pressable key={n.id} accessibilityRole="button" onPress={() => open(n)} style={({ pressed, hovered }) => [styles.row, !n.read && styles.unread, (pressed || hovered) && styles.active]}>
+                  <ContextMenu key={n.id} title={n.title} items={[
+                    { label: 'Abrir', icon: ArrowRight, hidden: !n.link, onPress: () => void open(n) },
+                    { label: 'Marcar como lida', icon: Check, hidden: n.read, onPress: () => void api.POST('/notifications/{id}/read', { params: { path: { id: n.id } } }).then(refresh) },
+                  ]}>
+                  <Pressable accessibilityRole="button" onPress={() => open(n)} style={({ pressed, hovered }) => [styles.row, !n.read && styles.unread, (pressed || hovered) && styles.active]}>
                     <View style={[styles.icon, !n.read && styles.iconUnread]}>
                       <Icon size={18} color={n.read ? colors.textMuted : colors.brandText} strokeWidth={2.2} />
                     </View>
@@ -67,6 +72,7 @@ export default function NotificationsScreen() {
                     </View>
                     {!n.read ? <View style={styles.dot} /> : null}
                   </Pressable>
+                  </ContextMenu>
                 );
               })
             )}

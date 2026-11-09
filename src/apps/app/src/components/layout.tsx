@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Inbox, type LucideIcon } from 'lucide-react-native';
 import { useEffect, type PropsWithChildren, type ReactNode } from 'react';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
@@ -138,7 +138,7 @@ export function ToggleRow({ label, value, onChange, hint }: { label: string; val
         <Text style={styles.toggleLabel}>{label}</Text>
         {hint ? <Text style={styles.rowSubtitle}>{hint}</Text> : null}
       </View>
-      <Switch value={value} onValueChange={onChange} accessibilityLabel={label} trackColor={{ true: colors.brand, false: colors.borderStrong }} thumbColor="#FFFFFF" />
+      <Switch value={value} onValueChange={onChange} accessibilityLabel={label} trackColor={{ true: colors.brand, false: colors.borderStrong }} thumbColor="#FFFFFF" {...({ activeThumbColor: '#FFFFFF' } as object)} />
     </View>
   );
 }
@@ -175,7 +175,7 @@ function SkeletonRows() {
 export function Loadable<T>({ query, children }: { query: { isPending: boolean; isError: boolean; error: Error | null; data: T | undefined }; children: (data: T) => ReactNode }) {
   if (query.isPending) return <SkeletonRows />;
   if (query.isError || query.data === undefined) return <Notice kind="error">{query.error?.message ?? 'Algo deu errado.'}</Notice>;
-  return <Animated.View entering={FadeIn.duration(200)}>{children(query.data)}</Animated.View>;
+  return <>{children(query.data)}</>;
 }
 
 const useStyles = makeStyles((colors) => ({

@@ -181,18 +181,21 @@ public sealed class Invite
 /// <summary>Sections of the community home. The owner (or whoever has ArrangeSections) decides the order.</summary>
 public static class CommunitySections
 {
+    public const string Overview = "overview";
     public const string Scenes = "scenes";
     public const string Chapters = "chapters";
     public const string Encyclopedia = "encyclopedia";
     public const string Characters = "characters";
     public const string Members = "members";
 
-    public static readonly string[] Default = [Scenes, Chapters, Encyclopedia, Characters, Members];
+    public static readonly string[] Default = [Overview, Scenes, Chapters, Encyclopedia, Characters, Members];
 
     /// <summary>Known sections in the saved order, plus any section added later at the end.</summary>
     public static List<string> Normalize(IEnumerable<string> saved)
     {
         var known = saved.Where(Default.Contains).Distinct().ToList();
+        // "Overview" came later: communities saved before it get it first, like everyone else.
+        if (!known.Contains(Overview)) known.Insert(0, Overview);
         known.AddRange(Default.Where(s => !known.Contains(s)));
         return known;
     }

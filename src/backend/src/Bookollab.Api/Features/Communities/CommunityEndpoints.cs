@@ -25,6 +25,7 @@ public static partial class CommunityEndpoints
         g.MapGet("/", Discover).WithName("DiscoverCommunities").Produces<List<CommunitySummary>>();
         g.MapGet("/{slug}", Get).WithName("GetCommunity").Produces<CommunityDetail>();
         g.MapPost("/{slug}/join", Join).WithName("JoinCommunity").Produces<JoinResponse>();
+        g.MapPost("/{slug}/leave", Leave).WithName("LeaveCommunity").Produces(StatusCodes.Status204NoContent);
         g.MapGet("/{slug}/members", Members).WithName("ListMembers").Produces<List<MemberDto>>();
         g.MapPost("/{slug}/members/{userId:guid}/remove", RemoveMember).WithName("RemoveMember").Produces(StatusCodes.Status204NoContent);
         g.MapGet("/{slug}/join-requests", ListRequests).WithName("ListJoinRequests").Produces<List<JoinRequestDto>>();
@@ -100,12 +101,27 @@ public static partial class CommunityEndpoints
     private static async Task<IResult> Mine(ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
     {
         var userId = user.UserId();
-        var list = await db.Communities
-            .Where(c => c.Memberships.Any(m => m.UserId == userId))
-            .OrderBy(c => c.Name)
-            .Select(c => new CommunitySummary(c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.Memberships.Count, c.IconKey, c.CoverKey))
+        var rows = await db.Memberships
+            .Where(m => m.UserId == userId)
+            .Join(db.Communities, m => m.CommunityId, c => c.Id, (m, c) => new { c, m.RoleId })
+            .Join(db.CommunityRoles, x => x.RoleId, r => r.Id, (x, r) => new { x.c, r.Permissions })
+            .OrderBy(x => x.c.Name)
+            .Select(x => new { x.c, Count = x.c.Memberships.Count, x.Permissions })
             .ToListAsync(ct);
-        return TypedResults.Ok(list);
+        // My permissions in each community let the app show the right context-menu actions (e.g. staff area).
+        return TypedResults.Ok(rows.Select(r => new CommunitySummary(
+            r.c.Id, r.c.Slug, r.c.Name, r.c.Description, r.c.JoinPolicy, r.Count, r.c.IconKey, r.c.CoverKey, PermissionNames(r.Permissions))).ToList());
+    }
+
+    /// <summary>Leave a community. The owner can't leave (ownership transfer does not exist yet).</summary>
+    private static async Task<IResult> Leave(string slug, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
+    {
+        var (access, error) = await RequireMemberAsync(slug, user, perms, ct);
+        if (error is not null) return error;
+        if (access!.Role.BaseKind == BaseRoleKind.Owner) return Problems.Conflict("O dono não pode sair da própria comunidade.", "owner_cannot_leave");
+        db.Memberships.Remove(access.Membership);
+        await db.SaveChangesAsync(ct);
+        return TypedResults.NoContent();
     }
 
     private static async Task<IResult> Get(string slug, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)

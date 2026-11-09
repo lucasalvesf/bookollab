@@ -13,6 +13,42 @@ O usuário achou o app feio e "com cara de feito por IA". Pedidos:
 - [x] Menus, barras e navegação: faixa lateral de comunidades (web), barra inferior (celular), página da comunidade no estilo Amino com abas reordenáveis.
 - [ ] Próximas rodadas, conforme o retorno do usuário: telas de formulário (criar cena/personagem/ficha), enciclopédia e perfis no mesmo nível de acabamento; transições entre telas no celular.
 
+### Segunda rodada de UX (2026-11-09)
+Princípio pedido pelo usuário: cada tela parte do **propósito** e de **como Amino/Discord resolvem**. Nada de "tela A = botões X, Y, Z gigantes": ações secundárias em ícones ou menu "⋯", e tudo pensado para crescer.
+
+Feito agora:
+- [x] Rolagem quebrada em várias telas (página dentro de `Loadable` não rolava). Barras de rolagem visíveis e com o estilo do tema na web.
+- [x] Fim do degradê roxo: telas de entrada, avatares e capas usam cores sólidas.
+- [x] Menu de contexto próprio do app (botão direito na web; pressionar e segurar no celular) e menu "⋯" com o mesmo conteúdo.
+  - Na faixa de comunidades: abrir, meu perfil, área da staff, copiar link, sair.
+  - Também em comunidades, cenas, capítulos, personagens, membros, ações do chat e notificações.
+- [x] Configurações da comunidade no estilo Discord:
+  - categorias e subtópicos numa lista lateral (web) ou em lista com navegação (celular);
+  - busca de configurações.
+- [x] Buscas:
+  - busca rápida (Ctrl+K) de comunidades e páginas;
+  - busca dentro das abas da comunidade (cenas, capítulos, personagens, membros);
+  - busca nas mensagens da cena.
+- [x] Tela inicial personalizável:
+  - carrossel dos últimos capítulos, cenas ao vivo, miniaturas da enciclopédia e minhas comunidades;
+  - cada seção com "ver mais";
+  - o usuário escolhe quais seções aparecem e em que ordem.
+- [x] Aba "Visão geral" na comunidade, com carrossel de capítulos, cenas ao vivo e miniaturas da enciclopédia, todos com "ver mais".
+- [x] Tela do capítulo: ações em ícones e menu "⋯", sem botões gigantes.
+- [x] Saída da comunidade (o dono não pode sair; transferir a posse ainda não existe).
+
+Próximas melhorias (a fazer):
+- [ ] Curtidas e comentários nos Capítulos, com contadores no cartão e na tela (Marco 4, já pedido).
+- [ ] Revisar com o mesmo princípio as telas de formulário: criar cena, personagem, ficha e capítulo. Hoje são uma coluna de campos e botões grandes.
+- [ ] Perfil global e perfil na comunidade no estilo Amino: capa, destaques e abas de conteúdo.
+- [ ] Enciclopédia em grade de cartões com imagem, com filtros por pasta/tipo como chips e busca fixa no topo.
+- [ ] Lista de membros com cabeçalhos por cargo (como a lista de membros do Discord) e menu de contexto com ações de moderação.
+- [ ] Atalhos de teclado na web (Esc fecha menus/modais, setas no carrossel, Enter envia) e foco visível para acessibilidade.
+- [ ] Transições entre telas no celular e gestos (deslizar para voltar, puxar para atualizar).
+- [ ] Busca global de conteúdo (capítulos, fichas, cenas) no servidor; hoje a busca filtra o que já foi carregado.
+- [ ] Transferência de posse da comunidade (permite ao dono sair).
+- [ ] Cor de marca: o roxo sólido ficou. Se o usuário quiser outra identidade (cor/nome do tema), definir com ele.
+
 ## Pedidos do usuário (2026-11-05)
 
 ### Cenas como chat (no estilo do Amino)

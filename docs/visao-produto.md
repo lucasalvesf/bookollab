@@ -137,6 +137,13 @@ Cada comunidade tem uma **enciclopédia**, no estilo da wiki do Amino. Ela evolu
 - **Ícones de verdade** na interface (nada de emoji como ícone); emojis ficam só no conteúdo dos usuários.
 - Animações e transições suaves; navegação com barra inferior no celular e faixa lateral de comunidades na web larga.
 - Processo: redesign feito **direto no código**, antes do beta.
+- **Princípio de toda tela** *(decidido em 2026-11-09)*: partir do propósito da tela e de como Amino/Discord resolvem aquilo; ações secundárias viram ícones ou ficam no menu "⋯"; listas longas têm busca; tudo pensado para crescer.
+- **Sem degradês** ("cara de IA"): cores sólidas.
+- **Menu de contexto próprio**: botão direito na web, pressionar e segurar no celular. Exemplo: botão direito no ícone da comunidade abre ver, meu perfil, área da staff, copiar link e sair.
+- **Configurações em categorias e subtópicos**, com busca, como no Discord.
+- **Tela inicial personalizável pelo usuário**: escolhe as seções e a ordem (últimos capítulos em carrossel, cenas ao vivo, miniaturas da enciclopédia, minhas comunidades); cada seção tem "ver mais".
+- **Comunidade:** a primeira aba padrão é a "Visão geral", com os destaques das outras seções.
+- **Sair da comunidade**: qualquer membro pode sair; o dono não, até existir transferência de posse.
 
 ## Personalização da comunidade
 Tudo disponível desde o lançamento:

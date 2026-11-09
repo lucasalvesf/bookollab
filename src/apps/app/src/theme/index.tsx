@@ -60,8 +60,6 @@ const dark: Palette = {
   shadow: '#000000',
 };
 
-/** Brand gradient (auth screens, default community cover). Text on it is always white. */
-export const brandGradient = ['#5B3DF5', '#9B3DF5', '#E0458F'] as const;
 
 export const radius = { sm: 8, md: 12, lg: 16, xl: 24, pill: 999 };
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };

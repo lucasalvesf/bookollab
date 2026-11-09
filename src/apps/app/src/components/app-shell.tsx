@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, type Href } from 'expo-router';
-import { BookOpen, Compass, House, Moon, Plus, Sun, UserRound, Bell, type LucideIcon } from 'lucide-react-native';
+import { Bell, BookOpen, Compass, House, LogOut, Moon, Plus, Search, Sun, UserRound, type LucideIcon } from 'lucide-react-native';
 import type { PropsWithChildren } from 'react';
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -11,7 +11,12 @@ import { unwrap } from '@/api/hooks';
 import { useUnreadNotifications } from '@/realtime/notifications';
 import { makeStyles, radius, useTheme } from '@/theme';
 
+import { useSession } from '@/auth/session';
+
 import { Avatar } from './avatar';
+import { useCommunityMenu } from './community-menu';
+import { ContextMenu } from './menu';
+import { QuickSwitcherProvider, useQuickSwitcher } from './quick-switcher';
 
 export const WIDE_SHELL = 900;
 
@@ -27,19 +32,20 @@ export function AppShell({ children }: PropsWithChildren) {
   const styles = useStyles();
   const { width } = useWindowDimensions();
   const pathname = usePathname();
-  if (width >= WIDE_SHELL) {
-    return (
-      <View style={styles.wide}>
-        <CommunityRail />
-        <View style={styles.flex}>{children}</View>
-      </View>
-    );
-  }
   return (
-    <View style={styles.flex}>
-      <View style={styles.flex}>{children}</View>
-      {TAB_ROUTES.includes(pathname) ? <BottomTabs /> : null}
-    </View>
+    <QuickSwitcherProvider>
+      {width >= WIDE_SHELL ? (
+        <View style={styles.wide}>
+          <CommunityRail />
+          <View style={styles.flex}>{children}</View>
+        </View>
+      ) : (
+        <View style={styles.flex}>
+          <View style={styles.flex}>{children}</View>
+          {TAB_ROUTES.includes(pathname) ? <BottomTabs /> : null}
+        </View>
+      )}
+    </QuickSwitcherProvider>
   );
 }
 
@@ -55,6 +61,9 @@ function CommunityRail() {
   const me = useMe();
   const unread = useUnreadNotifications();
   const mine = useQuery({ queryKey: ['my-communities'], queryFn: () => unwrap(api.GET('/me/communities')) });
+  const communityMenu = useCommunityMenu();
+  const openSearch = useQuickSwitcher();
+  const { signOut } = useSession();
 
   return (
     <View style={styles.rail}>
@@ -63,14 +72,17 @@ function CommunityRail() {
           <BookOpen size={22} color={pathname === '/' ? colors.brandText : colors.brand} strokeWidth={2.4} />
         </View>
       </RailItem>
+      <RailIcon icon={Search} label="Buscar (Ctrl+K)" onPress={openSearch} />
       <View style={styles.railDivider} />
       <ScrollView style={styles.flex} contentContainerStyle={styles.railList} showsVerticalScrollIndicator={false}>
         {(mine.data ?? []).map((c) => {
           const active = pathname.startsWith(`/c/${c.slug}`);
           return (
-            <RailItem key={c.id} label={c.name} active={active} onPress={() => router.push({ pathname: '/c/[slug]', params: { slug: c.slug } })}>
-              <Avatar name={c.name} imageKey={c.iconKey} size={46} shape="rounded" />
-            </RailItem>
+            <ContextMenu key={c.id} items={communityMenu(c)} title={c.name}>
+              <RailItem label={c.name} active={active} onPress={() => router.push({ pathname: '/c/[slug]', params: { slug: c.slug } })}>
+                <Avatar name={c.name} imageKey={c.iconKey} size={46} shape="rounded" />
+              </RailItem>
+            </ContextMenu>
           );
         })}
         <RailIcon icon={Plus} label="Criar comunidade" active={pathname === '/comunidades/nova'} onPress={() => router.push('/comunidades/nova')} />
@@ -79,9 +91,18 @@ function CommunityRail() {
       <View style={styles.railBottom}>
         <RailIcon icon={Bell} label="Notificações" badge={unread} active={pathname === '/notificacoes'} onPress={() => router.push('/notificacoes')} />
         <RailIcon icon={scheme === 'dark' ? Sun : Moon} label={scheme === 'dark' ? 'Tema claro' : 'Tema escuro'} onPress={() => setPreference(scheme === 'dark' ? 'light' : 'dark')} />
-        <RailItem label="Meu perfil" active={pathname === '/perfil'} onPress={() => router.push('/perfil')}>
-          {me.data ? <Avatar name={me.data.displayName} imageKey={me.data.avatarKey} size={40} /> : <UserRound size={22} color={colors.textMuted} />}
-        </RailItem>
+        <ContextMenu
+          title={me.data ? `@${me.data.userName}` : undefined}
+          items={[
+            { label: 'Meu perfil e aparência', icon: UserRound, onPress: () => router.push('/perfil') },
+            { label: 'Ver perfil público', icon: House, hidden: !me.data, onPress: () => router.push({ pathname: '/u/[userName]', params: { userName: me.data!.userName } }) },
+            'separator',
+            { label: 'Sair da conta', icon: LogOut, danger: true, onPress: signOut },
+          ]}>
+          <RailItem label="Meu perfil" active={pathname === '/perfil'} onPress={() => router.push('/perfil')}>
+            {me.data ? <Avatar name={me.data.displayName} imageKey={me.data.avatarKey} size={40} /> : <UserRound size={22} color={colors.textMuted} />}
+          </RailItem>
+        </ContextMenu>
       </View>
     </View>
   );

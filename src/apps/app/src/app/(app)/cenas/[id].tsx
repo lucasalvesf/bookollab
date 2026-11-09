@@ -2,13 +2,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImageBackground } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { PanelLeft } from 'lucide-react-native';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
+import { PanelLeft, Search, X } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
-import { Notice } from '@/components/ui';
+import { IconButton, Notice } from '@/components/ui';
 import { Composer } from '@/features/scene/composer';
 import { MessageBubble } from '@/features/scene/message-bubble';
 import { SceneSidebar } from '@/features/scene/scene-sidebar';
@@ -29,6 +29,8 @@ export default function SceneScreen() {
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [term, setTerm] = useState('');
   const scrollRef = useRef<ScrollViewInstance>(null);
   const sceneKey = ['scene', id];
   const actionsKey = ['scene-actions', id];
@@ -91,7 +93,9 @@ export default function SceneScreen() {
     <SceneSidebar scene={s} online={realtime.online} myCharacters={myCharacters.data} myUserId={me.data?.id} onClose={wide ? undefined : () => setDrawerOpen(false)} />
   );
 
-  const list = actions.data ?? [];
+  const all = actions.data ?? [];
+  const q = term.trim().toLocaleLowerCase('pt-BR');
+  const list = q ? all.filter((a) => !a.deleted && `${a.characterName} ${a.content ?? ''}`.toLocaleLowerCase('pt-BR').includes(q)) : all;
   const chat = (
     <View style={styles.chat}>
       <View style={styles.chatHeader}>
@@ -107,12 +111,28 @@ export default function SceneScreen() {
             {turns ? ` · ${turnName ? `vez de ${turnName}` : 'por turnos'}` : ''}
           </Text>
         </View>
+        <IconButton
+          icon={searching ? X : Search}
+          label={searching ? 'Fechar busca' : 'Buscar mensagens'}
+          size={36}
+          onPress={() => {
+            setSearching((v) => !v);
+            setTerm('');
+          }}
+        />
       </View>
+      {searching ? (
+        <View style={styles.searchBar}>
+          <Search size={16} color={colors.textSubtle} />
+          <TextInput autoFocus value={term} onChangeText={setTerm} placeholder="Buscar nas mensagens da cena" placeholderTextColor={colors.textSubtle} style={styles.searchInput} accessibilityLabel="Buscar nas mensagens" />
+          {q ? <Text style={styles.searchCount}>{list.length === 1 ? '1 resultado' : `${list.length} resultados`}</Text> : null}
+        </View>
+      ) : null}
 
       <ScrollView ref={scrollRef} style={styles.messages} contentContainerStyle={styles.messagesContent}>
         {actions.isPending ? <ActivityIndicator color={bg.dark ? '#FFFFFF' : colors.brand} style={styles.loading} /> : null}
         {!actions.isPending && list.length === 0 ? (
-          <Text style={[styles.empty, bg.dark && styles.onDark]}>Nenhuma ação ainda. Comece a história!</Text>
+          <Text style={[styles.empty, bg.dark && styles.onDark]}>{q ? 'Nenhuma mensagem encontrada.' : 'Nenhuma ação ainda. Comece a história!'}</Text>
         ) : null}
         {list.map((a, i) => (
           <MessageBubble
@@ -191,6 +211,9 @@ const useStyles = makeStyles((colors) => ({
   chat: { flex: 1 },
   chatHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
   menuButton: { padding: 4 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
+  searchInput: { flex: 1, fontSize: 14, color: colors.text, paddingVertical: 6 },
+  searchCount: { fontSize: 12, fontWeight: '600', color: colors.textSubtle },
   headerText: { flex: 1 },
   chatTitle: { fontSize: 17, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
   chatSubtitle: { fontSize: 12, color: colors.textMuted },

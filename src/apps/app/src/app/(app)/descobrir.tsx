@@ -7,6 +7,7 @@ import { TextInput, View } from 'react-native';
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { CardGrid, CommunityCard } from '@/components/community';
+import { useCommunityMenu } from '@/components/community-menu';
 import { Empty, Loadable, Page, Section, Tag } from '@/components/layout';
 import { makeStyles, radius, useTheme } from '@/theme';
 
@@ -14,6 +15,7 @@ export default function DiscoverScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
   const router = useRouter();
+  const communityMenu = useCommunityMenu();
   const [search, setSearch] = useState('');
   const term = useDeferredValue(search.trim());
   const results = useQuery({
@@ -46,6 +48,7 @@ export default function DiscoverScreen() {
                   <CommunityCard
                     key={c.id}
                     community={c}
+                    menu={communityMenu(c, false)}
                     right={c.joinPolicy === 'Request' ? <Tag label="Com aprovação" tone="warning" /> : <Tag label="Aberta" tone="success" />}
                     onPress={() => router.push({ pathname: '/c/[slug]', params: { slug: c.slug } })}
                   />

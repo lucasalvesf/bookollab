@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams } from 'expo-router';
+import { BookMarked, Check, Plus, Dices, FileCheck2, IdCard, LayoutList, Link2, Paintbrush, UserPlus, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -11,7 +12,8 @@ import { ChapterApprovalAdmin } from '@/components/chapter-approval-admin';
 import { AppearanceAdmin, SectionsAdmin } from '@/components/community-admin';
 import { EncyclopediaAdmin } from '@/components/encyclopedia-admin';
 import { MechanicsAdmin } from '@/components/mechanics';
-import { Empty, Loadable, Page, Row, Section, ToggleRow } from '@/components/layout';
+import { Empty, Loadable, Row, Section, ToggleRow } from '@/components/layout';
+import { SettingsLayout, type SettingsPage } from '@/components/settings';
 import { Button, Field, Notice } from '@/components/ui';
 import { makeStyles } from '@/theme';
 
@@ -26,24 +28,38 @@ export default function StaffScreen() {
     queryFn: () => unwrap(api.GET('/communities/{slug}', { params: { path: { slug } } })),
   });
 
+  const requests = useQuery({
+    queryKey: ['join-requests', slug],
+    enabled: !!community.data?.me?.permissions.includes('ManageMembers'),
+    queryFn: () => unwrap(api.GET('/communities/{slug}/join-requests', { params: { path: { slug } } })),
+  });
+
   return (
     <Loadable query={community}>
       {(c) => {
         const perms = new Set(c.me?.permissions ?? []);
-        return (
-          <Page title="Área da staff" subtitle={c.name} back>
-            {perms.has('ManageCommunity') ? <AppearanceAdmin community={c} /> : null}
-            {perms.has('ArrangeSections') ? <SectionsAdmin community={c} /> : null}
-            {perms.has('ManageMembers') ? <JoinRequests slug={slug} /> : null}
-            {perms.has('CreateInvites') ? <Invites slug={slug} /> : null}
-            {perms.has('ManageCommunity') ? <SheetEditor slug={slug} initial={c.sheetFields} /> : null}
-            {perms.has('ManageCommunity') || perms.has('ModerateContent') ? (
-              <ChapterApprovalAdmin slug={slug} canConfigure={perms.has('ManageCommunity')} canModerate={perms.has('ModerateContent')} />
-            ) : null}
-            {perms.has('ManageCommunity') ? <MechanicsAdmin slug={slug} /> : null}
-            {perms.has('ManageCommunity') ? <EncyclopediaAdmin slug={slug} /> : null}
-          </Page>
-        );
+        const manage = perms.has('ManageCommunity');
+        const pages: SettingsPage[] = [
+          { key: 'appearance', group: 'Comunidade', title: 'Aparência', icon: Paintbrush, keywords: 'capa ícone imagem foto visual cor', description: 'Ícone e capa que aparecem na faixa lateral, nos cartões e no topo da comunidade.', render: () => <AppearanceAdmin community={c} /> },
+          { key: 'sections', group: 'Comunidade', title: 'Seções e ordem', icon: LayoutList, keywords: 'abas ordem menu visão geral reordenar', description: 'A ordem das abas que os membros veem.', render: () => <SectionsAdmin community={c} /> },
+          { key: 'requests', group: 'Membros', title: 'Pedidos de entrada', icon: UserPlus, keywords: 'aprovar entrada pedidos aceitar recusar', description: 'Quem pediu para entrar na comunidade.', badge: requests.data?.length, render: () => <JoinRequests slug={slug} /> },
+          { key: 'invites', group: 'Membros', title: 'Convites', icon: Link2, keywords: 'link convite validade usos', description: 'Links para entrar na comunidade, com validade e limite de usos.', render: () => <Invites slug={slug} /> },
+          { key: 'chapters', group: 'Conteúdo', title: 'Aprovação de capítulos', icon: FileCheck2, keywords: 'fila moderação aprovar recusar capítulos cargos', description: 'Quem precisa de aprovação e a fila de capítulos pendentes.', render: () => <ChapterApprovalAdmin slug={slug} canConfigure={manage} canModerate={perms.has('ModerateContent')} /> },
+          { key: 'encyclopedia', group: 'Conteúdo', title: 'Enciclopédia', icon: BookMarked, keywords: 'pastas modelos fichas livres wiki', description: 'Pastas, modelos de ficha e regras da enciclopédia.', render: () => <EncyclopediaAdmin slug={slug} /> },
+          { key: 'sheet', group: 'Conteúdo', title: 'Ficha de personagem', icon: IdCard, keywords: 'campos ficha personagem atributos raça classe', description: 'Campos que todo personagem desta comunidade preenche. Campos numéricos viram atributos.', render: () => <SheetEditor slug={slug} initial={c.sheetFields} /> },
+          { key: 'mechanics', group: 'Jogo', title: 'Mecânicas de RPG', icon: Dices, keywords: 'dados rolagem atributos inventário itens', description: 'Ligue o que a comunidade usa: mais regras ou mais literária.', render: () => <MechanicsAdmin slug={slug} /> },
+        ];
+        const allowed: Record<string, boolean> = {
+          appearance: manage,
+          sections: perms.has('ArrangeSections'),
+          requests: perms.has('ManageMembers'),
+          invites: perms.has('CreateInvites'),
+          chapters: manage || perms.has('ModerateContent'),
+          encyclopedia: manage,
+          sheet: manage,
+          mechanics: manage,
+        };
+        return <SettingsLayout title="Configurações" subtitle={c.name} pages={pages.filter((p) => allowed[p.key])} />;
       }}
     </Loadable>
   );
@@ -84,12 +100,8 @@ function JoinRequests({ slug }: { slug: string }) {
                 subtitle={`@${r.userName}`}
                 right={
                   <View style={styles.inline}>
-                    <View style={styles.smallButton}>
-                      <Button title="Aprovar" onPress={() => decide.mutate({ id: r.id, approve: true })} />
-                    </View>
-                    <View style={styles.smallButton}>
-                      <Button title="Recusar" variant="secondary" onPress={() => decide.mutate({ id: r.id, approve: false })} />
-                    </View>
+                    <Button title="Aprovar" icon={Check} size="sm" onPress={() => decide.mutate({ id: r.id, approve: true })} />
+                    <Button title="Recusar" icon={X} size="sm" variant="ghost" onPress={() => decide.mutate({ id: r.id, approve: false })} />
                   </View>
                 }
               />
@@ -184,7 +196,7 @@ function SheetEditor({ slug, initial }: { slug: string; initial: SheetField[] })
       .replace(/^(\d)/, 'f_$1') || 'campo';
 
   return (
-    <Section title="Enciclopédia · modelo de Personagem">
+    <Section title="Campos da ficha">
       <View style={styles.padded}>
         <Text style={styles.hint}>Defina os campos que todo personagem desta comunidade preenche.</Text>
         {fields.map((f, i) => (
@@ -203,7 +215,7 @@ function SheetEditor({ slug, initial }: { slug: string; initial: SheetField[] })
             </Pressable>
           </View>
         ))}
-        <Button title="+ Adicionar campo" variant="secondary" onPress={() => setFields((c) => [...c, { key: 'campo', label: '', type: 'Text', required: false }])} />
+        <Button title="Adicionar campo" icon={Plus} variant="secondary" onPress={() => setFields((c) => [...c, { key: 'campo', label: '', type: 'Text', required: false }])} />
         {save.isError ? <Notice kind="error">{save.error.message}</Notice> : null}
         {saved ? <Notice kind="success">Ficha salva.</Notice> : null}
         <Button title="Salvar ficha" onPress={() => save.mutate()} loading={save.isPending} />
