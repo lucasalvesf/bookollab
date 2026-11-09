@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
@@ -9,7 +9,9 @@ import { fieldKey } from '@/lib/keys';
 
 import { Empty, Row, Section, ToggleRow } from './layout';
 import { ChipPicker, ConfirmButton } from './pickers';
-import { Button, colors, Field, Notice } from './ui';
+import { Button, Field, Notice } from './ui';
+import { makeStyles } from '@/theme';
+import { Folder } from 'lucide-react-native';
 
 type Template = components['schemas']['TemplateDto'];
 type SheetField = components['schemas']['SheetFieldDto'];
@@ -40,6 +42,7 @@ function useRefresh(slug: string) {
 }
 
 function Rules({ slug, freeSheetsEnabled, templateMode }: { slug: string; freeSheetsEnabled: boolean; templateMode: TemplateMode }) {
+  const styles = useStyles();
   const refresh = useRefresh(slug);
   const save = useMutation({
     mutationFn: (body: { freeSheetsEnabled: boolean; templateMode: TemplateMode }) =>
@@ -71,6 +74,7 @@ function Rules({ slug, freeSheetsEnabled, templateMode }: { slug: string; freeSh
 }
 
 function Folders({ slug, folders }: { slug: string; folders: components['schemas']['FolderDto'][] }) {
+  const styles = useStyles();
   const refresh = useRefresh(slug);
   const [name, setName] = useState('');
   const [renaming, setRenaming] = useState<{ id: string; name: string }>();
@@ -119,7 +123,8 @@ function Folders({ slug, folders }: { slug: string; folders: components['schemas
         ) : (
           <Row
             key={f.id}
-            title={`📁 ${f.name}`}
+            icon={Folder}
+            title={f.name}
             subtitle={`${f.itemCount} ${f.itemCount === 1 ? 'ficha' : 'fichas'}`}
             right={
               <View style={styles.inline}>
@@ -137,6 +142,7 @@ function Folders({ slug, folders }: { slug: string; folders: components['schemas
 }
 
 function Templates({ slug, templates }: { slug: string; templates: Template[] }) {
+  const styles = useStyles();
   const [editing, setEditing] = useState<Template | 'new'>();
   return (
     <Section
@@ -156,6 +162,7 @@ function Templates({ slug, templates }: { slug: string; templates: Template[] })
 }
 
 function TemplateEditor({ slug, template, onDone }: { slug: string; template?: Template; onDone: () => void }) {
+  const styles = useStyles();
   const refresh = useRefresh(slug);
   const [name, setName] = useState(template?.name ?? '');
   const [kind, setKind] = useState(template?.kind ?? '');
@@ -237,7 +244,7 @@ function TemplateEditor({ slug, template, onDone }: { slug: string; template?: T
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   padded: { padding: 16, gap: 12 },
   inline: { flexDirection: 'row', gap: 12, alignItems: 'center', flexWrap: 'wrap' },
   flex: { flex: 1, minWidth: 140 },
@@ -247,4 +254,4 @@ const styles = StyleSheet.create({
   fieldCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, gap: 10 },
   remove: { fontSize: 13, color: colors.danger, fontWeight: '600' },
   hint: { fontSize: 13, color: colors.textMuted },
-});
+}));

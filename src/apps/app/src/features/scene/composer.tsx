@@ -1,14 +1,15 @@
 import { Image } from 'expo-image';
+import { Dices, Paperclip, SendHorizontal, Smile, X } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputKeyPressEvent } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, Text, TextInput, View, type TextInputKeyPressEvent } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
-import { colors } from '@/components/ui';
 import { fileUrl, pickAndUploadImage } from '@/lib/files';
 
 import { EMOJIS, type Character, type SceneAction } from './types';
+import { makeStyles, useTheme } from '@/theme';
 
 /** Chat input bar: who you are playing as, attachment, emoji, text and send. */
 export function Composer({
@@ -27,6 +28,8 @@ export function Composer({
   diceEnabled?: boolean;
   attributesEnabled?: boolean;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const [characterId, setCharacterId] = useState<string>();
   const [pickingCharacter, setPickingCharacter] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
@@ -111,7 +114,7 @@ export function Composer({
           <Image source={{ uri: fileUrl(attachment) }} style={styles.previewImage} contentFit="cover" />
           <Text style={styles.previewText}>Imagem anexada</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Remover anexo" onPress={() => setAttachment(undefined)} hitSlop={8}>
-            <Text style={styles.remove}>✕</Text>
+            <X size={18} color={colors.textMuted} />
           </Pressable>
         </View>
       ) : null}
@@ -122,18 +125,18 @@ export function Composer({
           {current ? <Avatar name={current.name} imageKey={current.avatarKey} size={34} /> : null}
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Anexar imagem" onPress={attach} disabled={uploading} style={styles.iconButton}>
-          {uploading ? <ActivityIndicator size="small" color={colors.brand} /> : <Text style={styles.icon}>📎</Text>}
+          {uploading ? <ActivityIndicator size="small" color={colors.brand} /> : <Paperclip size={20} color={colors.textMuted} />}
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Emojis" onPress={() => setEmojiOpen((v) => !v)} style={styles.iconButton}>
-          <Text style={styles.icon}>😊</Text>
+          <Smile size={20} color={emojiOpen ? colors.brand : colors.textMuted} />
         </Pressable>
         {diceEnabled ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Rolar dados"
+            accessibilityLabel={attributesEnabled ? 'Rolar dados (ex.: /rolar 1d20+força)' : 'Rolar dados (ex.: /rolar 1d20+3)'}
             onPress={() => setText((t) => (t.trim().startsWith('/rolar') ? t : '/rolar 1d20'))}
             style={styles.iconButton}>
-            <Text style={styles.icon}>🎲</Text>
+            <Dices size={20} color={colors.textMuted} />
           </Pressable>
         ) : null}
         <TextInput
@@ -144,29 +147,27 @@ export function Composer({
           }}
           onKeyPress={onKeyPress}
           multiline
-          placeholder={diceEnabled ? `Digite sua ação aqui (ou /rolar 1d20${attributesEnabled ? '+força' : '+3'})` : 'Digite sua ação aqui'}
-          placeholderTextColor={colors.textMuted}
+          placeholder="Digite sua ação aqui"
+          placeholderTextColor={colors.textSubtle}
           style={styles.input}
           accessibilityLabel="Digite sua ação aqui"
         />
         <Pressable accessibilityRole="button" accessibilityLabel="Enviar ação" onPress={send} disabled={!canSend} style={[styles.send, !canSend && styles.sendDisabled]}>
-          {sending ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={styles.sendIcon}>➤</Text>}
+          {sending ? <ActivityIndicator size="small" color={colors.brandText} /> : <SendHorizontal size={20} color={colors.brandText} />}
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { padding: 10, gap: 8, backgroundColor: 'rgba(255,255,255,0.94)', borderTopWidth: 1, borderTopColor: colors.border },
+const useStyles = makeStyles((colors) => ({
+  wrap: { padding: 10, gap: 8, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border },
   bar: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
   iconButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  icon: { fontSize: 20 },
-  input: { flex: 1, minHeight: 40, maxHeight: 140, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10, fontSize: 15, color: colors.text },
+  input: { flex: 1, minHeight: 40, maxHeight: 140, borderRadius: 20, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.surfaceAlt, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10, fontSize: 15, color: colors.text },
   send: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
   sendDisabled: { opacity: 0.4 },
-  sendIcon: { color: '#FFFFFF', fontSize: 18, marginLeft: 2 },
-  panel: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, gap: 8 },
+  panel: { backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, gap: 8 },
   panelTitle: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase' },
   panelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   charOption: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingRight: 12, paddingLeft: 4, paddingVertical: 4 },
@@ -175,9 +176,8 @@ const styles = StyleSheet.create({
   emojiGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   emoji: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   emojiText: { fontSize: 22 },
-  preview: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 6, borderWidth: 1, borderColor: colors.border },
+  preview: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.surfaceAlt, borderRadius: 12, padding: 6, borderWidth: 1, borderColor: colors.border },
   previewImage: { width: 48, height: 48, borderRadius: 8 },
   previewText: { flex: 1, fontSize: 13, color: colors.textMuted },
-  remove: { fontSize: 16, color: colors.textMuted, paddingHorizontal: 6 },
   error: { fontSize: 13, color: colors.danger },
-});
+}));

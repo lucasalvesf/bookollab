@@ -287,6 +287,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("character varying(32)")
                         .HasColumnName("content_rating");
 
+                    b.Property<string>("CoverKey")
+                        .HasColumnType("text")
+                        .HasColumnName("cover_key");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -303,6 +307,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<bool>("FreeSheetsEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("free_sheets_enabled");
+
+                    b.Property<string>("IconKey")
+                        .HasColumnType("text")
+                        .HasColumnName("icon_key");
 
                     b.Property<bool>("InventoryEnabled")
                         .HasColumnType("boolean")
@@ -323,6 +331,11 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid")
                         .HasColumnName("owner_id");
+
+                    b.PrimitiveCollection<List<string>>("Sections")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("sections");
 
                     b.Property<string>("Slug")
                         .IsRequired()

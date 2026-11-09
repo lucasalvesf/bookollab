@@ -84,6 +84,25 @@ public sealed class CommunityTests(ApiFactory factory) : IClassFixture<ApiFactor
     }
 
     [Fact]
+    public async Task Owner_reorders_sections_and_others_need_the_flag()
+    {
+        var (owner, _) = await TestUsers.CreateClientAsync(factory);
+        var community = await CreateCommunityAsync(owner, JoinPolicy.Open);
+        Assert.Equal(CommunitySections.Default, community.Sections);
+
+        var (staff, staffUser) = await TestUsers.CreateClientAsync(factory);
+        await staff.PostAsync($"/communities/{community.Slug}/join", null);
+        Assert.Equal(HttpStatusCode.Forbidden, (await staff.PutJsonAsync($"/communities/{community.Slug}/sections", new UpdateSectionsRequest(["members"]))).StatusCode);
+
+        var updated = await (await owner.PutJsonAsync($"/communities/{community.Slug}/sections", new UpdateSectionsRequest(["encyclopedia", "scenes"]))).ReadAsync<CommunityDetail>();
+        Assert.Equal(["encyclopedia", "scenes", "chapters", "characters", "members"], updated.Sections); // missing ones keep their place at the end
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutJsonAsync($"/communities/{community.Slug}/sections", new UpdateSectionsRequest(["shop"]))).StatusCode);
+
+        var seen = await (await staff.GetAsync($"/communities/{community.Slug}")).ReadAsync<CommunityDetail>();
+        Assert.Equal("encyclopedia", seen.Sections![0]);
+    }
+
+    [Fact]
     public async Task Discover_lists_open_and_request_communities_but_not_invite_only()
     {
         var (owner, _) = await TestUsers.CreateClientAsync(factory);

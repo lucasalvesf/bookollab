@@ -1,16 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useDeferredValue, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { Empty, Loadable, Page } from '@/components/layout';
-import { Button, colors, Field } from '@/components/ui';
+import { Button, Field } from '@/components/ui';
+import { makeStyles } from '@/theme';
 
 /** Encyclopedia of the community: all sheets (characters and others), organized in staff folders. */
 export default function EncyclopediaScreen() {
+  const styles = useStyles();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const [folderId, setFolderId] = useState<string | undefined>();
@@ -40,12 +42,12 @@ export default function EncyclopediaScreen() {
             <View style={styles.folders}>
               <FolderChip label="Todas" selected={!folderId} onPress={() => setFolderId(undefined)} />
               {e.folders.map((f) => (
-                <FolderChip key={f.id} label={`📁 ${f.name} · ${f.itemCount}`} selected={folderId === f.id} onPress={() => setFolderId(f.id)} />
+                <FolderChip key={f.id} label={`${f.name} · ${f.itemCount}`} selected={folderId === f.id} onPress={() => setFolderId(f.id)} />
               ))}
             </View>
             {e.canManage ? (
               <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/c/[slug]/staff', params: { slug } })}>
-                <Text style={styles.manage}>Gerenciar pastas, modelos e regras da enciclopédia ›</Text>
+                <Text style={styles.manage}>Gerenciar pastas, modelos e regras da enciclopédia</Text>
               </Pressable>
             ) : null}
             {e.items.length === 0 ? (
@@ -80,6 +82,7 @@ export default function EncyclopediaScreen() {
 }
 
 function FolderChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const styles = useStyles();
   return (
     <Pressable accessibilityRole="radio" accessibilityState={{ checked: selected }} onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
       <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
@@ -87,7 +90,7 @@ function FolderChip({ label, selected, onPress }: { label: string; selected: boo
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   newButton: { width: 140 },
   folders: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.surface },
@@ -104,4 +107,4 @@ const styles = StyleSheet.create({
   kindTextCharacter: { color: colors.brandText },
   owner: { fontSize: 12, color: colors.textMuted, maxWidth: '100%' },
   pressed: { opacity: 0.6 },
-});
+}));

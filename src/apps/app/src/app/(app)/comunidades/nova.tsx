@@ -1,13 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
 import { labels } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { Page } from '@/components/layout';
-import { Button, colors, Field, Notice } from '@/components/ui';
+import { Button, Field, Notice } from '@/components/ui';
+import { makeStyles } from '@/theme';
 
 type JoinPolicy = components['schemas']['JoinPolicy'];
 const POLICIES: { value: JoinPolicy; hint: string }[] = [
@@ -17,6 +18,7 @@ const POLICIES: { value: JoinPolicy; hint: string }[] = [
 ];
 
 export default function NewCommunityScreen() {
+  const styles = useStyles();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
@@ -67,11 +69,11 @@ export default function NewCommunityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   policies: { gap: 8 },
   label: { fontSize: 14, fontWeight: '600', color: colors.text },
   policy: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 14, backgroundColor: colors.surface, gap: 2 },
   policySelected: { borderColor: colors.brand, borderWidth: 2 },
   policyTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
   policyHint: { fontSize: 13, color: colors.textMuted },
-});
+}));

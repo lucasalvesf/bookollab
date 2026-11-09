@@ -4,14 +4,18 @@ namespace Bookollab.Api.Features.Communities;
 
 public sealed record CreateCommunityRequest(string Name, string? Slug, string? Description, JoinPolicy JoinPolicy);
 
-public sealed record CommunitySummary(Guid Id, string Slug, string Name, string? Description, JoinPolicy JoinPolicy, int MemberCount);
+public sealed record CommunitySummary(Guid Id, string Slug, string Name, string? Description, JoinPolicy JoinPolicy, int MemberCount, string? IconKey = null, string? CoverKey = null);
 
 public sealed record MyAccess(string RoleName, BaseRoleKind BaseKind, IReadOnlyList<string> Permissions);
 
 public sealed record CommunityDetail(
     Guid Id, string Slug, string Name, string? Description, JoinPolicy JoinPolicy, ContentRating ContentRating,
     int MemberCount, IReadOnlyList<SheetFieldDto> SheetFields, MyAccess? Me, bool HasPendingRequest,
-    Mechanics.MechanicsDto? Mechanics = null);
+    Mechanics.MechanicsDto? Mechanics = null, string? IconKey = null, string? CoverKey = null, IReadOnlyList<string>? Sections = null);
+
+public sealed record UpdateAppearanceRequest(string? IconKey, string? CoverKey);
+
+public sealed record UpdateSectionsRequest(List<string> Sections);
 
 public sealed record SheetFieldDto(string Key, string Label, SheetFieldType Type, bool Required);
 

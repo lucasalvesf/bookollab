@@ -130,9 +130,18 @@ Cada comunidade tem uma **enciclopédia**, no estilo da wiki do Amino. Ela evolu
 - **Limites definidos pela staff de cada comunidade**, por exemplo: ilimitado, até N personagens, ou até N personagens desde que nenhum fique inativo por mais de X dias.
 - **Inatividade:** um personagem fica inativo quando passa X dias sem uso (sem cena, Capítulo, ação ou interação com ele). Na regra, a staff escolhe a consequência: só avisar, arquivar (libera a vaga e pode ser reativado) ou excluir.
 
+## Visual e navegação do app
+*(Decidido em 2026-11-09, depois de o usuário achar o visual inicial feio e "com cara de feito por IA".)*
+- **Inspiração:** tudo o que é bom e funciona em **Amino** (base: capa da comunidade, wiki, perfis, chat com fundo), **Discord** (faixa lateral com as comunidades), **Wattpad/AO3** (leitura de Capítulos com tipografia de livro) e **Instagram/Threads** (feed limpo, perfis em vitrine, animações suaves).
+- **Tema:** claro como padrão, com tema escuro. Cores semânticas com contraste verificado (WCAG AA), definidas num só lugar e reaproveitadas pelo app todo.
+- **Ícones de verdade** na interface (nada de emoji como ícone); emojis ficam só no conteúdo dos usuários.
+- Animações e transições suaves; navegação com barra inferior no celular e faixa lateral de comunidades na web larga.
+- Processo: redesign feito **direto no código**, antes do beta.
+
 ## Personalização da comunidade
 Tudo disponível desde o lançamento:
 - **Visual:** capa, ícone, cores/tema, fonte.
+- **Ordem das seções da comunidade** *(decidido em 2026-11-09)*: como no Amino, o dono reordena as seções que o membro vê na comunidade (Cenas, Capítulos, Enciclopédia, Personagens, Membros…), principalmente pensando no celular. Também pode reordenar quem recebeu essa permissão (flag própria, dada pelo dono).
 - **Ficha de personagem:** a staff define os campos (ex.: raça, classe, idade, poderes) e se a ficha precisa de aprovação.
 - **Mundo/Wiki:** páginas de lore (regras, locais, facções, história do mundo).
 - **Locais de cena:** categorias de lugares do mundo (ex.: Taverna, Floresta) para organizar as cenas.

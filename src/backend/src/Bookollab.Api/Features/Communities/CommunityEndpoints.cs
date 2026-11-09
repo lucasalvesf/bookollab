@@ -35,6 +35,8 @@ public static partial class CommunityEndpoints
         g.MapGet("/{slug}/invites", ListInvites).WithName("ListInvites").Produces<List<InviteDto>>();
         g.MapPost("/{slug}/invites", CreateInvite).WithName("CreateInvite").Produces<InviteDto>(StatusCodes.Status201Created);
         g.MapPut("/{slug}/sheet-fields", UpdateSheetFields).WithName("UpdateSheetFields").Produces<List<SheetFieldDto>>();
+        g.MapPut("/{slug}/appearance", UpdateAppearance).WithName("UpdateCommunityAppearance").Produces<CommunityDetail>();
+        g.MapPut("/{slug}/sections", UpdateSections).WithName("UpdateCommunitySections").Produces<CommunityDetail>();
 
         app.MapGet("/me/communities", Mine).WithTags("Communities").WithName("MyCommunities")
             .RequireAuthorization().Produces<List<CommunitySummary>>();
@@ -90,7 +92,7 @@ public static partial class CommunityEndpoints
         var list = await query
             .OrderByDescending(c => c.Memberships.Count).ThenBy(c => c.Name)
             .Take(50)
-            .Select(c => new CommunitySummary(c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.Memberships.Count))
+            .Select(c => new CommunitySummary(c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.Memberships.Count, c.IconKey, c.CoverKey))
             .ToListAsync(ct);
         return TypedResults.Ok(list);
     }
@@ -101,7 +103,7 @@ public static partial class CommunityEndpoints
         var list = await db.Communities
             .Where(c => c.Memberships.Any(m => m.UserId == userId))
             .OrderBy(c => c.Name)
-            .Select(c => new CommunitySummary(c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.Memberships.Count))
+            .Select(c => new CommunitySummary(c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.Memberships.Count, c.IconKey, c.CoverKey))
             .ToListAsync(ct);
         return TypedResults.Ok(list);
     }
@@ -264,6 +266,37 @@ public static partial class CommunityEndpoints
         return TypedResults.Ok(new JoinResponse("member"));
     }
 
+    // ------------------------------------------------------------------ appearance and sections
+
+    private static async Task<IResult> UpdateAppearance(string slug, UpdateAppearanceRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
+    {
+        var (access, error) = await RequireAsync(slug, CommunityPermission.ManageCommunity, user, perms, ct);
+        if (error is not null) return error;
+        var community = access!.Community;
+        var userId = user.UserId();
+        foreach (var (key, current) in new[] { (req.IconKey, community.IconKey), (req.CoverKey, community.CoverKey) })
+            if (key is not null && key != current && !await Uploads.UploadEndpoints.OwnsAsync(db, key, userId, ct))
+                return Problems.Validation("image", "Envie a imagem antes de usá-la.");
+        community.IconKey = req.IconKey;
+        community.CoverKey = req.CoverKey;
+        await db.SaveChangesAsync(ct);
+        return TypedResults.Ok(await DetailAsync(db, community, access.Role, ct));
+    }
+
+    /// <summary>Order of the home sections (Amino-like). Owner, or whoever received ArrangeSections.</summary>
+    private static async Task<IResult> UpdateSections(string slug, UpdateSectionsRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
+    {
+        var (access, error) = await RequireAsync(slug, CommunityPermission.ArrangeSections, user, perms, ct);
+        if (error is not null) return error;
+        if (req.Sections.Any(s => !CommunitySections.Default.Contains(s))) return Problems.Validation("sections", "Seção desconhecida.");
+        access!.Community.Sections = CommunitySections.Normalize(req.Sections);
+        await db.SaveChangesAsync(ct);
+        return TypedResults.Ok(await DetailAsync(db, access.Community, access.Role, ct));
+    }
+
+    private static async Task<CommunityDetail> DetailAsync(AppDbContext db, Community c, CommunityRole role, CancellationToken ct) =>
+        ToDetail(c, await db.Memberships.CountAsync(m => m.CommunityId == c.Id, ct), role, false);
+
     // ------------------------------------------------------------------ sheet fields
 
     private static async Task<IResult> UpdateSheetFields(string slug, List<SheetFieldDto> fields, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
@@ -315,7 +348,7 @@ public static partial class CommunityEndpoints
         c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.ContentRating, memberCount,
         c.SheetFields.Select(ToDto).ToList(),
         role is null ? null : new MyAccess(role.Name, role.BaseKind, PermissionNames(role.Permissions)),
-        pending, Mechanics.MechanicsEndpoints.ToDto(c));
+        pending, Mechanics.MechanicsEndpoints.ToDto(c), c.IconKey, c.CoverKey, CommunitySections.Normalize(c.Sections));
 
     public static IReadOnlyList<string> PermissionNames(CommunityPermission permissions) =>
         Enum.GetValues<CommunityPermission>()

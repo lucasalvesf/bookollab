@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 
 import { Empty, Row, Section, ToggleRow } from './layout';
-import { Button, colors, Field, Notice } from './ui';
+import { Button, Field, Notice } from './ui';
+import { makeStyles } from '@/theme';
 
 /** Staff: turn each RPG mechanic on or off for the community. */
 export function MechanicsAdmin({ slug }: { slug: string }) {
@@ -37,6 +38,7 @@ export function MechanicsAdmin({ slug }: { slug: string }) {
 
 /** Character screen: attributes and inventory, according to the community toggles. */
 export function CharacterMechanics({ characterId }: { characterId: string }) {
+  const styles = useStyles();
   const queryClient = useQueryClient();
   const key = ['character-mechanics', characterId];
   const data = useQuery({ queryKey: key, queryFn: () => unwrap(api.GET('/characters/{id}/mechanics', { params: { path: { id: characterId } } })) });
@@ -130,7 +132,7 @@ export function CharacterMechanics({ characterId }: { characterId: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   attributes: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 16 },
   attribute: { minWidth: 84, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border },
   attributeValue: { fontSize: 22, fontWeight: '800', color: colors.brand },
@@ -139,4 +141,4 @@ const styles = StyleSheet.create({
   step: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   stepText: { fontSize: 18, color: colors.text },
   padded: { padding: 16, gap: 10 },
-});
+}));

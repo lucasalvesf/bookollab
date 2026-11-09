@@ -2,16 +2,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { ChapterApprovalAdmin } from '@/components/chapter-approval-admin';
+import { AppearanceAdmin, SectionsAdmin } from '@/components/community-admin';
 import { EncyclopediaAdmin } from '@/components/encyclopedia-admin';
 import { MechanicsAdmin } from '@/components/mechanics';
 import { Empty, Loadable, Page, Row, Section, ToggleRow } from '@/components/layout';
-import { Button, colors, Field, Notice } from '@/components/ui';
+import { Button, Field, Notice } from '@/components/ui';
+import { makeStyles } from '@/theme';
 
 type SheetField = components['schemas']['SheetFieldDto'];
 type FieldType = components['schemas']['SheetFieldType'];
@@ -30,6 +32,8 @@ export default function StaffScreen() {
         const perms = new Set(c.me?.permissions ?? []);
         return (
           <Page title="Área da staff" subtitle={c.name} back>
+            {perms.has('ManageCommunity') ? <AppearanceAdmin community={c} /> : null}
+            {perms.has('ArrangeSections') ? <SectionsAdmin community={c} /> : null}
             {perms.has('ManageMembers') ? <JoinRequests slug={slug} /> : null}
             {perms.has('CreateInvites') ? <Invites slug={slug} /> : null}
             {perms.has('ManageCommunity') ? <SheetEditor slug={slug} initial={c.sheetFields} /> : null}
@@ -46,6 +50,7 @@ export default function StaffScreen() {
 }
 
 function JoinRequests({ slug }: { slug: string }) {
+  const styles = useStyles();
   const queryClient = useQueryClient();
   const requests = useQuery({
     queryKey: ['join-requests', slug],
@@ -97,6 +102,7 @@ function JoinRequests({ slug }: { slug: string }) {
 }
 
 function Invites({ slug }: { slug: string }) {
+  const styles = useStyles();
   const queryClient = useQueryClient();
   const [days, setDays] = useState('7');
   const [maxUses, setMaxUses] = useState('');
@@ -152,6 +158,7 @@ function Invites({ slug }: { slug: string }) {
 }
 
 function SheetEditor({ slug, initial }: { slug: string; initial: SheetField[] }) {
+  const styles = useStyles();
   const queryClient = useQueryClient();
   const [fields, setFields] = useState<SheetField[]>(initial);
   const [saved, setSaved] = useState(false);
@@ -205,7 +212,7 @@ function SheetEditor({ slug, initial }: { slug: string; initial: SheetField[] })
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   inline: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' },
   smallButton: { width: 96 },
   flex: { flex: 1, minWidth: 140 },
@@ -217,4 +224,4 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 13, color: colors.text },
   chipTextSelected: { color: colors.brandText, fontWeight: '600' },
   remove: { fontSize: 13, color: colors.danger, fontWeight: '600' },
-});
+}));

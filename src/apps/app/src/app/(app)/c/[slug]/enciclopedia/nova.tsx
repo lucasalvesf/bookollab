@@ -1,20 +1,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { Loadable, Page } from '@/components/layout';
 import { SheetForm } from '@/components/sheet-form';
-import { colors, Notice } from '@/components/ui';
+import { Notice } from '@/components/ui';
+import { makeStyles } from '@/theme';
 
 type Template = components['schemas']['TemplateDto'];
 type Choice = { kind: 'template'; template: Template } | { kind: 'free' };
 
 /** New sheet: choose a template (or a free sheet, if the staff allows), then fill it in. */
 export default function NewSheetScreen() {
+  const styles = useStyles();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -77,6 +79,7 @@ export default function NewSheetScreen() {
 }
 
 function Option({ title, description, onPress }: { title: string; description: string; onPress: () => void }) {
+  const styles = useStyles();
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.option, pressed && styles.pressed]}>
       <Text style={styles.optionTitle}>{title}</Text>
@@ -85,10 +88,10 @@ function Option({ title, description, onPress }: { title: string; description: s
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   options: { gap: 10 },
   option: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 16, gap: 4, backgroundColor: colors.surface },
   optionTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
   optionDescription: { fontSize: 13, color: colors.textMuted },
   pressed: { opacity: 0.6 },
-});
+}));

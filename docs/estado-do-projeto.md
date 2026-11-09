@@ -34,8 +34,10 @@ Tudo na `main`, entregue em Pull Requests com CI verde:
 | #10 | Marco 2: cenas por turnos (ordem, tempo limite, pular vez), participação (pública / convite / pedido), visibilidade do registro, notificações no app (sino em tempo real), remover membro |
 | #11 | Marco 2: Cena → Capítulo com coautores, cartas com `@` e respostas, aprovação de Capítulos (comunidade toda ou por cargo, fila da staff) |
 | #12 | Marco 2: mecânicas de RPG opcionais: rolagem de dados (`/rolar 1d20+força`), atributos da ficha, inventário dado pela staff |
+| #13 | Comunidades com pedido aparecem no Descobrir (só as só por convite ficam ocultas) |
+| #14 | Redesign: tema claro/escuro com contraste AA, fontes Inter/Literata, ícones Lucide, faixa lateral de comunidades (web) e barra inferior (celular), página da comunidade no estilo Amino (capa, ícone, abas reordenáveis pelo dono) |
 
-**Testes:** 97 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
+**Testes:** 99 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
 
 **Ainda sem testes automatizados:** o app. Ele é conferido com typecheck, lint e testes manuais no navegador.
 

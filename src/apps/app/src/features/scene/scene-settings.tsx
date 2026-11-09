@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { Avatar } from '@/components/avatar';
 import { ChipPicker } from '@/components/pickers';
-import { colors, Notice } from '@/components/ui';
+import { Notice } from '@/components/ui';
 
 import type { SceneDetail } from './types';
+import { makeStyles, useTheme } from '@/theme';
+import { ChevronDown, ChevronRight } from 'lucide-react-native';
 
 type WritingMode = components['schemas']['SceneWritingMode'];
 type Participation = components['schemas']['SceneParticipation'];
@@ -35,6 +37,7 @@ const deadlineFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2
 
 /** Turn order with the current turn highlighted; managers reorder, narrators/staff skip. */
 export function SceneTurns({ scene }: { scene: SceneDetail }) {
+  const styles = useStyles();
   const setScene = useSetScene(scene.id);
   const reorder = useMutation({
     mutationFn: (characterIds: string[]) => unwrap(api.PUT('/scenes/{id}/turn-order', { params: { path: { id: scene.id } }, body: { characterIds } })),
@@ -86,6 +89,7 @@ export function SceneTurns({ scene }: { scene: SceneDetail }) {
 
 /** Chat settings (opener or staff): turns, time limit, participation, visibility after closing. */
 export function SceneSettings({ scene }: { scene: SceneDetail }) {
+  const styles = useStyles();
   const setScene = useSetScene(scene.id);
   const save = useMutation({
     mutationFn: (patch: Partial<{ writingMode: WritingMode; turnTimeLimitMinutes: number | null; participation: Participation; archiveVisibility: ArchiveVisibility }>) =>
@@ -141,6 +145,8 @@ export function SceneSettings({ scene }: { scene: SceneDetail }) {
 
 /** Invite characters (invite-only scenes) and review join requests (request scenes). */
 export function SceneInvitesAndRequests({ scene }: { scene: SceneDetail }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const queryClient = useQueryClient();
   const setScene = useSetScene(scene.id);
   const [inviting, setInviting] = useState(false);
@@ -187,7 +193,7 @@ export function SceneInvitesAndRequests({ scene }: { scene: SceneDetail }) {
         <View style={styles.block}>
           <Pressable accessibilityRole="button" onPress={() => setInviting((v) => !v)} style={styles.header}>
             <Text style={styles.title}>Convidar personagens</Text>
-            <Text style={styles.muted}>{inviting ? '▾' : '▸'}</Text>
+            {inviting ? <ChevronDown size={18} color={colors.textMuted} /> : <ChevronRight size={18} color={colors.textMuted} />}
           </Pressable>
           {scene.invitedCharacterIds.length > 0 ? <Text style={styles.muted}>{scene.invitedCharacterIds.length} convidado(s)</Text> : null}
           {inviting
@@ -206,7 +212,7 @@ export function SceneInvitesAndRequests({ scene }: { scene: SceneDetail }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   block: { gap: 8 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -222,4 +228,4 @@ const styles = StyleSheet.create({
   link: { fontSize: 13, color: colors.brand, fontWeight: '600' },
   danger: { fontSize: 13, color: colors.danger, fontWeight: '600' },
   error: { fontSize: 13, color: colors.danger },
-});
+}));

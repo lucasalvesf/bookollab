@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
-import { AuthScreen, Button, colors, Notice } from '@/components/ui';
+import { AuthScreen, Button, Notice } from '@/components/ui';
+import { useTheme } from '@/theme';
 
 type State = { status: 'loading' } | { status: 'done' } | { status: 'error'; message: string };
 
 export default function ConfirmEmailScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const { userId, token } = useLocalSearchParams<{ userId?: string; token?: string }>();
   const [result, setResult] = useState<State>({ status: 'loading' });
