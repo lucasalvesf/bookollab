@@ -74,5 +74,29 @@ internal sealed class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
         b.HasOne<Character>().WithMany().HasForeignKey(c => c.CharacterId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<User>().WithMany().HasForeignKey(c => c.AuthorUserId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(c => c.Revisions).WithOne().HasForeignKey(r => r.ChapterId).OnDelete(DeleteBehavior.Cascade);
+        b.Property(c => c.RejectionReason).HasMaxLength(1000);
+        b.HasOne<Scene>().WithMany().HasForeignKey(c => c.SourceSceneId).OnDelete(DeleteBehavior.SetNull);
+        b.HasOne<Chapter>().WithMany().HasForeignKey(c => c.ReplyToChapterId).OnDelete(DeleteBehavior.SetNull);
+        b.HasMany(c => c.Coauthors).WithOne().HasForeignKey(x => x.ChapterId).OnDelete(DeleteBehavior.Cascade);
+        b.HasMany(c => c.Mentions).WithOne().HasForeignKey(x => x.ChapterId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class ChapterCoauthorConfiguration : IEntityTypeConfiguration<ChapterCoauthor>
+{
+    public void Configure(EntityTypeBuilder<ChapterCoauthor> b)
+    {
+        b.HasKey(x => new { x.ChapterId, x.CharacterId });
+        b.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class ChapterMentionConfiguration : IEntityTypeConfiguration<ChapterMention>
+{
+    public void Configure(EntityTypeBuilder<ChapterMention> b)
+    {
+        b.HasIndex(x => x.ChapterId);
+        b.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 }

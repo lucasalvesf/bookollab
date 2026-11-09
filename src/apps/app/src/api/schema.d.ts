@@ -52,6 +52,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/scenes/{id}/chapter-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetSceneChapterDraft"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/uploads": {
         parameters: {
             query?: never;
@@ -740,6 +756,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/chapter-approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListChapterApprovals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/chapter-approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetChapterApprovalConfig"];
+        put: operations["UpdateChapterApprovalConfig"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/chapters/{id}": {
         parameters: {
             query?: never;
@@ -766,6 +814,38 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["PublishChapter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chapters/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApproveChapter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chapters/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RejectChapter"];
         delete?: never;
         options?: never;
         head?: never;
@@ -986,6 +1066,17 @@ export interface components {
     schemas: {
         /** @enum {unknown} */
         BaseRoleKind: "Owner" | "Staff" | "Narrator" | "Player" | "Custom";
+        ChapterApprovalConfigDto: {
+            mode: components["schemas"]["ChapterApprovalMode"];
+            roleIds: string[];
+            roles: components["schemas"]["RoleOptionDto"][];
+        };
+        /** @enum {unknown} */
+        ChapterApprovalMode: "Off" | "All" | "Roles";
+        ChapterApprovalSettingsDto: {
+            mode: components["schemas"]["ChapterApprovalMode"];
+            roleIds: string[];
+        };
         ChapterDetail: {
             /** Format: uuid */
             id: string;
@@ -1011,6 +1102,24 @@ export interface components {
             canEdit: boolean;
             canDelete: boolean;
             canViewRevisions: boolean;
+            rejectionReason: null | string;
+            canModerate: boolean;
+            /** Format: uuid */
+            sourceSceneId: null | string;
+            sourceSceneTitle: null | string;
+            /** Format: uuid */
+            replyToChapterId: null | string;
+            replyToChapterTitle: null | string;
+            coauthors: components["schemas"]["ChapterPersonDto"][];
+            mentionedCharacters: components["schemas"]["ChapterPersonDto"][];
+            mentionedUsers: components["schemas"]["ChapterPersonDto"][];
+            mentionsMe: boolean;
+        };
+        ChapterPersonDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            avatarKey: null | string;
         };
         ChapterRevisionDto: {
             title: string;
@@ -1019,7 +1128,7 @@ export interface components {
             createdAt: string;
         };
         /** @enum {unknown} */
-        ChapterStatus: "Draft" | "Published";
+        ChapterStatus: "Draft" | "Published" | "Pending" | "Rejected";
         ChapterSummary: {
             /** Format: uuid */
             id: string;
@@ -1123,6 +1232,13 @@ export interface components {
             title: string;
             content: string;
             publish: boolean;
+            /** Format: uuid */
+            sourceSceneId?: null | string;
+            coauthorCharacterIds?: null | string[];
+            mentionedCharacterIds?: null | string[];
+            mentionedUserIds?: null | string[];
+            /** Format: uuid */
+            replyToChapterId?: null | string;
         };
         CreateCommunityRequest: {
             name: string;
@@ -1358,6 +1474,9 @@ export interface components {
             /** Format: date */
             birthDate: string;
         };
+        RejectChapterRequest: {
+            reason: string;
+        };
         ResetPasswordRequest: {
             email: string;
             token: string;
@@ -1367,6 +1486,12 @@ export interface components {
             content: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        RoleOptionDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            baseKind: components["schemas"]["BaseRoleKind"];
         };
         SaveCharacterRequest: {
             name: string;
@@ -1407,6 +1532,14 @@ export interface components {
         };
         /** @enum {unknown} */
         SceneArchiveVisibility: "Community" | "Participants";
+        SceneChapterDraftDto: {
+            /** Format: uuid */
+            sceneId: string;
+            sceneTitle: string;
+            title: string;
+            content: string;
+            coauthors: components["schemas"]["ChapterPersonDto"][];
+        };
         SceneDetail: {
             /** Format: uuid */
             id: string;
@@ -1698,6 +1831,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommunitySummary"][];
+                };
+            };
+        };
+    };
+    GetSceneChapterDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneChapterDraftDto"];
                 };
             };
         };
@@ -2918,6 +3073,76 @@ export interface operations {
             };
         };
     };
+    ListChapterApprovals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterSummary"][];
+                };
+            };
+        };
+    };
+    GetChapterApprovalConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterApprovalConfigDto"];
+                };
+            };
+        };
+    };
+    UpdateChapterApprovalConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChapterApprovalSettingsDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterApprovalConfigDto"];
+                };
+            };
+        };
+    };
     GetChapter: {
         parameters: {
             query?: never;
@@ -2996,6 +3221,54 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterDetail"];
+                };
+            };
+        };
+    };
+    ApproveChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChapterDetail"];
+                };
+            };
+        };
+    };
+    RejectChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectChapterRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

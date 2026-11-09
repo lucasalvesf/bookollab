@@ -178,6 +178,18 @@ export function SceneSidebar({
         </View>
       ) : null}
 
+      {scene.status === 'Closed' && joinedIds.size > 0 ? (
+        <View style={styles.block}>
+          <Text style={styles.sectionTitle}>Depois da cena</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug: scene.communitySlug, sceneId: scene.id } })}
+            style={({ pressed }) => [styles.member, styles.joinRow, pressed && styles.pressed]}>
+            <Text style={styles.memberName}>📜 Escrever o capítulo desta cena</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       {scene.canClose ? (
         <View style={styles.block}>
           {close.isError ? <Notice kind="error">{close.error.message}</Notice> : null}

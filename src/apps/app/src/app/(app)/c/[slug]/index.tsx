@@ -50,7 +50,7 @@ export default function CommunityScreen() {
     <Loadable query={community}>
       {(c) => {
         const perms = new Set(c.me?.permissions ?? []);
-        const isStaff = perms.has('ManageMembers') || perms.has('CreateInvites') || perms.has('ManageCommunity');
+        const isStaff = perms.has('ManageMembers') || perms.has('CreateInvites') || perms.has('ManageCommunity') || perms.has('ModerateContent');
         return (
           <Page
             title={c.name}
@@ -184,7 +184,9 @@ export default function CommunityScreen() {
                             key={ch.id}
                             title={ch.title}
                             subtitle={`${ch.characterName} · ${ch.excerpt}`}
-                            right={ch.status === 'Draft' ? <Tag label="Rascunho" /> : undefined}
+                            right={
+                              ch.status === 'Draft' ? <Tag label="Rascunho" /> : ch.status === 'Pending' ? <Tag label="Aguardando aprovação" /> : ch.status === 'Rejected' ? <Tag label="Recusado" /> : undefined
+                            }
                             onPress={() => router.push({ pathname: '/capitulos/[id]', params: { id: ch.id } })}
                           />
                         ))
