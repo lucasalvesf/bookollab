@@ -20,6 +20,9 @@ public sealed class Character
     public bool ShowOnGlobalProfile { get; set; }
     public bool ShowCommunityOnProfile { get; set; } = true;
     public CharacterStatus Status { get; set; } = CharacterStatus.Active;
+
+    /// <summary>Encyclopedia folder chosen by the staff.</summary>
+    public Guid? FolderId { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>Last scene, action, chapter or interaction; drives the inactivity rule.</summary>

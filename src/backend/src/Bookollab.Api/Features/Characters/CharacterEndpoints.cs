@@ -16,7 +16,7 @@ public sealed record SaveCharacterRequest(string Name, List<SheetValueDto>? Shee
 public sealed record CharacterDto(
     Guid Id, Guid CommunityId, string CommunitySlug, Guid OwnerUserId, string OwnerUserName, string Name, string? AvatarKey,
     IReadOnlyList<SheetValueDto> Sheet, bool ShowOnGlobalProfile, bool ShowCommunityOnProfile, CharacterStatus Status,
-    DateTimeOffset CreatedAt, bool CanEdit);
+    DateTimeOffset CreatedAt, bool CanEdit, Guid? FolderId = null);
 
 public static class CharacterEndpoints
 {
@@ -139,5 +139,5 @@ public static class CharacterEndpoints
     private static CharacterDto ToDto(Character c, string slug, string ownerUserName, bool canEdit) => new(
         c.Id, c.CommunityId, slug, c.OwnerUserId, ownerUserName, c.Name, c.AvatarKey,
         c.Sheet.Select(v => new SheetValueDto(v.Key, v.Value)).ToList(),
-        c.ShowOnGlobalProfile, c.ShowCommunityOnProfile, c.Status, c.CreatedAt, canEdit);
+        c.ShowOnGlobalProfile, c.ShowCommunityOnProfile, c.Status, c.CreatedAt, canEdit, c.FolderId);
 }

@@ -107,7 +107,7 @@ Cada comunidade tem uma **enciclopédia**, no estilo da wiki do Amino. Ela evolu
 - **Fichas de qualquer tipo:** personagem, local, pet, família, facção, item etc.
 - **Quem cria:** a staff **e os jogadores**. As fichas do jogador aparecem no perfil dele na comunidade.
 - **Pastas:** a staff organiza as fichas da enciclopédia em pastas.
-- O personagem passa a ser um tipo de ficha.
+- O personagem passa a ser um tipo de ficha: o tipo **jogável**, o único que entra em cenas e escreve Capítulos. O modelo dele é a "ficha de personagem" que a staff já define. A enciclopédia mostra personagens e demais fichas juntos, nas mesmas pastas.
 
 ### Modelos de ficha
 - A **staff cria modelos**: cada modelo define os campos (e o que mais o modelo determinar) que os jogadores seguem.

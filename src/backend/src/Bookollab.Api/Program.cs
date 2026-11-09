@@ -10,6 +10,7 @@ using Bookollab.Api.Infrastructure.Storage;
 using Bookollab.Api.Features.Characters;
 using Bookollab.Api.Features.Common;
 using Bookollab.Api.Features.Communities;
+using Bookollab.Api.Features.Encyclopedia;
 using Bookollab.Api.Infrastructure;
 using Bookollab.Api.Infrastructure.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -127,6 +128,7 @@ app.MapChapterEndpoints();
 app.MapUploadEndpoints();
 app.MapProfileEndpoints();
 app.MapPublicProfileEndpoints();
+app.MapEncyclopediaEndpoints();
 app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();

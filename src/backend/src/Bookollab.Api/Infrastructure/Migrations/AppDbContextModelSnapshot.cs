@@ -141,6 +141,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("FolderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("folder_id");
+
                     b.Property<DateTimeOffset>("LastActivityAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_activity_at");
@@ -172,6 +176,9 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_characters");
 
+                    b.HasIndex("FolderId")
+                        .HasDatabaseName("ix_characters_folder_id");
+
                     b.HasIndex("OwnerUserId")
                         .HasDatabaseName("ix_characters_owner_user_id");
 
@@ -202,6 +209,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("description");
 
+                    b.Property<bool>("FreeSheetsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("free_sheets_enabled");
+
                     b.Property<string>("JoinPolicy")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -223,6 +234,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("slug");
+
+                    b.Property<string>("TemplateMode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("template_mode");
 
                     b.HasKey("Id")
                         .HasName("pk_communities");
@@ -415,6 +432,153 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasDatabaseName("ix_memberships_user_id");
 
                     b.ToTable("memberships", (string)null);
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.EncyclopediaFolder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CommunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("community_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.HasKey("Id")
+                        .HasName("pk_encyclopedia_folders");
+
+                    b.HasIndex("CommunityId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_encyclopedia_folders_community_id_name");
+
+                    b.ToTable("encyclopedia_folders", (string)null);
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.EncyclopediaSheet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CommunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("community_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("FolderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("folder_id");
+
+                    b.Property<string>("ImageKey")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("image_key");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_encyclopedia_sheets");
+
+                    b.HasIndex("FolderId")
+                        .HasDatabaseName("ix_encyclopedia_sheets_folder_id");
+
+                    b.HasIndex("OwnerUserId")
+                        .HasDatabaseName("ix_encyclopedia_sheets_owner_user_id");
+
+                    b.HasIndex("TemplateId")
+                        .HasDatabaseName("ix_encyclopedia_sheets_template_id");
+
+                    b.HasIndex("CommunityId", "FolderId")
+                        .HasDatabaseName("ix_encyclopedia_sheets_community_id_folder_id");
+
+                    b.HasIndex("CommunityId", "OwnerUserId")
+                        .HasDatabaseName("ix_encyclopedia_sheets_community_id_owner_user_id");
+
+                    b.ToTable("encyclopedia_sheets", (string)null);
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.SheetTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CommunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("community_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sheet_templates");
+
+                    b.HasIndex("CommunityId")
+                        .HasDatabaseName("ix_sheet_templates_community_id");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_sheet_templates_created_by_user_id");
+
+                    b.ToTable("sheet_templates", (string)null);
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.Scene", b =>
@@ -971,6 +1135,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_characters_communities_community_id");
 
+                    b.HasOne("Bookollab.Api.Domain.Encyclopedia.EncyclopediaFolder", null)
+                        .WithMany()
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_characters_encyclopedia_folders_folder_id");
+
                     b.HasOne("Bookollab.Api.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("OwnerUserId")
@@ -1037,7 +1207,8 @@ namespace Bookollab.Api.Infrastructure.Migrations
                                 .IsRequired()
                                 .HasMaxLength(32);
 
-                            b1.HasKey("CommunityId", "__synthesizedOrdinal");
+                            b1.HasKey("CommunityId", "__synthesizedOrdinal")
+                                .HasName("pk_communities");
 
                             b1.ToTable("communities");
 
@@ -1125,6 +1296,138 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.EncyclopediaFolder", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
+                        .WithMany()
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_encyclopedia_folders_communities_community_id");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.EncyclopediaSheet", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
+                        .WithMany()
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_encyclopedia_sheets_communities_community_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Encyclopedia.EncyclopediaFolder", null)
+                        .WithMany()
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_encyclopedia_sheets_encyclopedia_folders_folder_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_encyclopedia_sheets_users_owner_user_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Encyclopedia.SheetTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_encyclopedia_sheets_sheet_templates_template_id");
+
+                    b.OwnsMany("Bookollab.Api.Domain.Encyclopedia.SheetEntryField", "Fields", b1 =>
+                        {
+                            b1.Property<Guid>("EncyclopediaSheetId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd();
+
+                            b1.Property<bool>("FromTemplate");
+
+                            b1.Property<string>("Key")
+                                .IsRequired()
+                                .HasMaxLength(64);
+
+                            b1.Property<string>("Label")
+                                .IsRequired()
+                                .HasMaxLength(100);
+
+                            b1.Property<bool>("Required");
+
+                            b1.Property<string>("Type")
+                                .IsRequired()
+                                .HasMaxLength(32);
+
+                            b1.Property<string>("Value");
+
+                            b1.HasKey("EncyclopediaSheetId", "__synthesizedOrdinal");
+
+                            b1.ToTable("encyclopedia_sheets");
+
+                            b1
+                                .ToJson("fields")
+                                .HasColumnType("jsonb");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EncyclopediaSheetId")
+                                .HasConstraintName("fk_encyclopedia_sheets_encyclopedia_sheets_encyclopedia_sheet_id");
+                        });
+
+                    b.Navigation("Fields");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.SheetTemplate", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
+                        .WithMany()
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sheet_templates_communities_community_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sheet_templates_users_created_by_user_id");
+
+                    b.OwnsMany("Bookollab.Api.Domain.Communities.SheetField", "Fields", b1 =>
+                        {
+                            b1.Property<Guid>("SheetTemplateId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd();
+
+                            b1.Property<string>("Key")
+                                .IsRequired()
+                                .HasMaxLength(64);
+
+                            b1.Property<string>("Label")
+                                .IsRequired()
+                                .HasMaxLength(100);
+
+                            b1.Property<bool>("Required");
+
+                            b1.Property<string>("Type")
+                                .IsRequired()
+                                .HasMaxLength(32);
+
+                            b1.HasKey("SheetTemplateId", "__synthesizedOrdinal");
+
+                            b1.ToTable("sheet_templates");
+
+                            b1
+                                .ToJson("fields")
+                                .HasColumnType("jsonb");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SheetTemplateId")
+                                .HasConstraintName("fk_sheet_templates_sheet_templates_sheet_template_id");
+                        });
+
+                    b.Navigation("Fields");
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.Scene", b =>

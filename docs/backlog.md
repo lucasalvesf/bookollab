@@ -28,7 +28,7 @@
 ## Pedidos do usuário (2026-11-09)
 
 ### Enciclopédia de fichas (regras em `visao-produto.md` → Enciclopédia)
-- [ ] Construir a enciclopédia: fichas de qualquer tipo, pastas da staff, modelos de ficha, fichas livres ativáveis, rigidez do modelo. *Marco 3, possivelmente adiantado por causa do perfil da comunidade.*
+- [x] Construir a enciclopédia: fichas de qualquer tipo, pastas da staff, modelos de ficha, fichas livres ativáveis, rigidez do modelo. *Feita no Marco 1 (PR #9).*
 - [ ] **A decidir pelo usuário:** fichas criadas por jogadores precisam de aprovação da staff para entrar na enciclopédia?
 
 ## Pendências técnicas

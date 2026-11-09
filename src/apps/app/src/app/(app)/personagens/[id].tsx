@@ -7,6 +7,7 @@ import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { CharacterForm } from '@/components/character-form';
+import { FolderPicker } from '@/components/folder-picker';
 import { Loadable, Page, Row, Section } from '@/components/layout';
 import { Button, colors, Notice } from '@/components/ui';
 
@@ -40,6 +41,9 @@ export default function CharacterScreen() {
             ) : undefined
           }>
           {!editing ? <Avatar name={ch.name} imageKey={ch.avatarKey} size={96} /> : null}
+          {!editing ? (
+            <FolderPicker slug={ch.communitySlug} itemType="Character" itemId={ch.id} folderId={ch.folderId} onMoved={() => queryClient.invalidateQueries({ queryKey: ['character', id] })} />
+          ) : null}
           {saved ? <Notice kind="success">Personagem salvo.</Notice> : null}
           <Loadable query={community}>
             {(c) =>

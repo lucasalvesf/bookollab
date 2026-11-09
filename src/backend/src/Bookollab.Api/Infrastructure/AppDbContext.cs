@@ -26,6 +26,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Chapter> Chapters => Set<Chapter>();
     public DbSet<ChapterRevision> ChapterRevisions => Set<ChapterRevision>();
     public DbSet<Domain.Uploads.Upload> Uploads => Set<Domain.Uploads.Upload>();
+    public DbSet<Domain.Encyclopedia.SheetTemplate> SheetTemplates => Set<Domain.Encyclopedia.SheetTemplate>();
+    public DbSet<Domain.Encyclopedia.EncyclopediaFolder> EncyclopediaFolders => Set<Domain.Encyclopedia.EncyclopediaFolder>();
+    public DbSet<Domain.Encyclopedia.EncyclopediaSheet> EncyclopediaSheets => Set<Domain.Encyclopedia.EncyclopediaSheet>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configuration)
     {

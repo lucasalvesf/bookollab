@@ -67,6 +67,12 @@ Rotas tipadas do Expo Router: os tipos (`.expo/types/router.d.ts`) são gerados 
 - O token JWT chega ao hub pela query `access_token` (navegadores não mandam header em WebSocket).
 - App: `src/realtime/use-scene-realtime.ts` (reconecta e reassina sozinho).
 
+## Enciclopédia
+- `Features/Encyclopedia`: fichas (`EncyclopediaSheet`), modelos (`SheetTemplate`), pastas (`EncyclopediaFolder`) e configurações da comunidade (`FreeSheetsEnabled`, `TemplateMode`).
+- Personagens (`Character`) são o tipo jogável e continuam separados (cenas e capítulos dependem deles); a enciclopédia lista personagens e fichas juntos, e ambos podem estar numa pasta.
+- Cada ficha guarda a **própria cópia** dos campos (definição + valor). Mudar ou apagar o modelo não altera fichas já criadas.
+- Regras centrais em `EncyclopediaEndpoints.BuildFields` (campos do modelo, obrigatórios, campos extras só se a ficha puder ter campos novos).
+
 ## Uploads
 - `POST /uploads` (multipart, campo `file`): só imagens (JPG, PNG, WEBP, GIF), até 5 MB. O tipo é validado pelos bytes do arquivo, não pelo que o cliente declara.
 - `GET /files/{key}`: público pela chave (impossível de adivinhar), com cache longo.

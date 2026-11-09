@@ -11,6 +11,7 @@
 ## Marco 1 — Base jogável
 - [x] Contas (cadastro por e-mail e senha com data de nascimento, idade mínima 13 anos; confirmação de e-mail; recuperação de senha)
 - [x] Perfil global (página pública do usuário com a vitrine de personagens)
+- [x] Enciclopédia: fichas de qualquer tipo, pastas da staff, modelos de ficha, fichas livres ativáveis, rigidez do modelo (movida do Marco 3 a pedido do usuário em 2026-11-09)
 - [x] Perfil por comunidade (apelido, avatar, bio e capa próprios, herdando do global; mostra fichas, atividade, cargo e entrada)
 - [x] Avatares de usuário e de personagem (upload de imagem)
 - [x] Cena em formato de chat (tela cheia, barra lateral, fundo, anexos de imagem, emojis)
@@ -34,7 +35,6 @@
 ## Marco 3 — Staff completa
 - Cargos livres e flags por membro, organizadas por categoria
 - Personalização completa: visual, locais de cena, terminologia
-- Enciclopédia: fichas de qualquer tipo (personagem, local, pet, família…) organizadas em pastas pela staff (substitui o "wiki/mundo" e generaliza a ficha de personagem)
 - Regras de personagem: limites e inatividade com consequência escolhida pela staff
 - Moderação completa: denúncias, silenciar/suspender, banir, registro de moderação
 - Classificação de conteúdo da comunidade (Livre/+16/+18)

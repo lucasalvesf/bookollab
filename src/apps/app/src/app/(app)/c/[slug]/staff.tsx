@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
+import { EncyclopediaAdmin } from '@/components/encyclopedia-admin';
 import { Empty, Loadable, Page, Row, Section, ToggleRow } from '@/components/layout';
 import { Button, colors, Field, Notice } from '@/components/ui';
 
@@ -30,6 +31,7 @@ export default function StaffScreen() {
             {perms.has('ManageMembers') ? <JoinRequests slug={slug} /> : null}
             {perms.has('CreateInvites') ? <Invites slug={slug} /> : null}
             {perms.has('ManageCommunity') ? <SheetEditor slug={slug} initial={c.sheetFields} /> : null}
+            {perms.has('ManageCommunity') ? <EncyclopediaAdmin slug={slug} /> : null}
           </Page>
         );
       }}
@@ -169,7 +171,7 @@ function SheetEditor({ slug, initial }: { slug: string; initial: SheetField[] })
       .replace(/^(\d)/, 'f_$1') || 'campo';
 
   return (
-    <Section title="Ficha de personagem">
+    <Section title="Enciclopédia · modelo de Personagem">
       <View style={styles.padded}>
         <Text style={styles.hint}>Defina os campos que todo personagem desta comunidade preenche.</Text>
         {fields.map((f, i) => (

@@ -17,6 +17,8 @@ public sealed record GlobalProfileDto(
 
 public sealed record ProfileCharacterDto(Guid Id, string Name, string? AvatarKey);
 
+public sealed record ProfileSheetDto(Guid Id, string Name, string? Kind, string? ImageKey);
+
 public sealed record ProfileChapterDto(Guid Id, string Title, string CharacterName, DateTimeOffset? PublishedAt);
 
 public sealed record ProfileSceneDto(Guid Id, string Title, string Status, DateTimeOffset CreatedAt);
@@ -26,7 +28,7 @@ public sealed record CommunityProfileDto(
     Guid UserId, string UserName, string CommunitySlug, string CommunityName,
     string Nickname, string? Bio, string? AvatarKey, string? CoverKey,
     string RoleName, Domain.Communities.BaseRoleKind BaseKind, DateTimeOffset JoinedAt,
-    IReadOnlyList<ProfileCharacterDto> Characters, IReadOnlyList<ProfileChapterDto> Chapters, IReadOnlyList<ProfileSceneDto> Scenes,
+    IReadOnlyList<ProfileCharacterDto> Characters, IReadOnlyList<ProfileSheetDto> Sheets, IReadOnlyList<ProfileChapterDto> Chapters, IReadOnlyList<ProfileSceneDto> Scenes,
     int? Level, string? Title,
     bool IsMe,
     // Raw community values (null = inherited), for the edit form.
@@ -114,6 +116,12 @@ public static class PublicProfileEndpoints
             .Select(c => new ProfileCharacterDto(c.Id, c.Name, c.AvatarKey))
             .ToListAsync(ct);
 
+        var sheets = await db.EncyclopediaSheets
+            .Where(s => s.CommunityId == community.Id && s.OwnerUserId == m.UserId)
+            .OrderBy(s => s.Name)
+            .Select(s => new ProfileSheetDto(s.Id, s.Name, s.Kind, s.ImageKey))
+            .ToListAsync(ct);
+
         var chapters = await db.Chapters
             .Where(c => c.CommunityId == community.Id && c.AuthorUserId == m.UserId && c.Status == ChapterStatus.Published && c.DeletedAt == null)
             .OrderByDescending(c => c.PublishedAt).Take(20)
@@ -134,7 +142,7 @@ public static class PublicProfileEndpoints
             AvatarKey: m.AvatarKey ?? m.User.AvatarKey,
             CoverKey: m.CoverKey,
             m.Role.Name, m.Role.BaseKind, m.JoinedAt,
-            characters, chapters, scenes,
+            characters, sheets, chapters, scenes,
             Level: null, Title: null, // points/levels arrive in Milestone 4
             IsMe: m.UserId == viewerId,
             OwnNickname: m.Nickname, OwnBio: m.Bio, OwnAvatarKey: m.AvatarKey);
