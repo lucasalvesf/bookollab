@@ -26,6 +26,7 @@ public static partial class CommunityEndpoints
         g.MapGet("/{slug}", Get).WithName("GetCommunity").Produces<CommunityDetail>();
         g.MapPost("/{slug}/join", Join).WithName("JoinCommunity").Produces<JoinResponse>();
         g.MapGet("/{slug}/members", Members).WithName("ListMembers").Produces<List<MemberDto>>();
+        g.MapPost("/{slug}/members/{userId:guid}/remove", RemoveMember).WithName("RemoveMember").Produces(StatusCodes.Status204NoContent);
         g.MapGet("/{slug}/join-requests", ListRequests).WithName("ListJoinRequests").Produces<List<JoinRequestDto>>();
         g.MapPost("/{slug}/join-requests/{id:guid}/approve", (string slug, Guid id, ClaimsPrincipal u, AppDbContext db, PermissionService p, TimeProvider c, CancellationToken ct) => Decide(slug, id, true, u, db, p, c, ct))
             .WithName("ApproveJoinRequest").Produces(StatusCodes.Status204NoContent);
@@ -152,6 +153,27 @@ public static partial class CommunityEndpoints
             .Select(m => new MemberDto(m.UserId, m.User.UserName!, m.Nickname ?? m.User.DisplayName, m.AvatarKey ?? m.User.AvatarKey, m.Role.Name, m.Role.BaseKind, m.JoinedAt))
             .ToListAsync(ct);
         return TypedResults.Ok(list);
+    }
+
+    /// <summary>
+    /// Removes ("expels") a member. Needs ManageMembers; nobody removes the Owner, and only someone higher in the
+    /// hierarchy (lower role position) can remove a member. The member's content stays.
+    /// </summary>
+    private static async Task<IResult> RemoveMember(string slug, Guid userId, ClaimsPrincipal user, AppDbContext db, PermissionService perms, Notifications.NotificationService notifications, CancellationToken ct)
+    {
+        var (access, error) = await RequireAsync(slug, CommunityPermission.ManageMembers, user, perms, ct);
+        if (error is not null) return error;
+        var target = await db.Memberships.Include(m => m.Role)
+            .SingleOrDefaultAsync(m => m.CommunityId == access!.Community.Id && m.UserId == userId, ct);
+        if (target is null) return Problems.NotFound("Membro não encontrado.");
+        if (target.Role.BaseKind == BaseRoleKind.Owner) return Problems.Forbidden("O Dono não pode ser removido.");
+        if (target.Role.Position <= access!.Role.Position) return Problems.Forbidden("Você só pode remover membros com cargo abaixo do seu.");
+
+        db.Memberships.Remove(target);
+        await db.SaveChangesAsync(ct);
+        await notifications.NotifyAsync(userId, Domain.Notifications.NotificationType.RemovedFromCommunity,
+            $"Você foi removido de \"{access.Community.Name}\"", null, null, null, user.UserId(), ct);
+        return TypedResults.NoContent();
     }
 
     // ------------------------------------------------------------------ join requests

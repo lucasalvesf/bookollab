@@ -29,6 +29,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Domain.Encyclopedia.SheetTemplate> SheetTemplates => Set<Domain.Encyclopedia.SheetTemplate>();
     public DbSet<Domain.Encyclopedia.EncyclopediaFolder> EncyclopediaFolders => Set<Domain.Encyclopedia.EncyclopediaFolder>();
     public DbSet<Domain.Encyclopedia.EncyclopediaSheet> EncyclopediaSheets => Set<Domain.Encyclopedia.EncyclopediaSheet>();
+    public DbSet<Domain.Notifications.Notification> Notifications => Set<Domain.Notifications.Notification>();
+    public DbSet<SceneInvite> SceneInvites => Set<SceneInvite>();
+    public DbSet<SceneJoinRequest> SceneJoinRequests => Set<SceneJoinRequest>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configuration)
     {

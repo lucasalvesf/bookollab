@@ -23,14 +23,14 @@
 - [x] Capítulos solo: escrever, editar (com histórico) e apagar
 
 ## Marco 2 — Jogo completo → **beta fechado**
-- Cenas por turnos: ordem, tempo limite, pular vez
-- Participação em cenas: pública, por convite, com pedido; cenas encerradas como registro
-- Cena → Capítulo: rascunho automático ou escrita do zero, com coautores
-- Capítulos colaborativos: cartas com `@` e notificação ao marcado
-- Aprovação de Capítulos (fila da staff)
-- Mecânicas de RPG opcionais: dados, atributos, inventário
-- Notificações dentro do app
-- *Recomendação para o beta:* moderação mínima (remover conteúdo e expulsar membro), já que o Marco 3 ainda não terá chegado
+- [x] Cenas por turnos: ordem, tempo limite, pular vez (turnos como opção nas configurações do chat)
+- [x] Participação em cenas: pública, por convite, com pedido; cenas encerradas como registro (visibilidade escolhida)
+- [ ] Cena → Capítulo: rascunho automático ou escrita do zero, com coautores
+- [ ] Capítulos colaborativos: cartas com `@` e notificação ao marcado
+- [ ] Aprovação de Capítulos (fila da staff)
+- [ ] Mecânicas de RPG opcionais: dados, atributos, inventário
+- [x] Notificações dentro do app (sino com contador em tempo real; configuração por tipo fica para o Marco 4)
+- [x] *Recomendação para o beta:* moderação mínima (remover conteúdo e expulsar membro), já que o Marco 3 ainda não terá chegado
 
 ## Marco 3 — Staff completa
 - Cargos livres e flags por membro, organizadas por categoria

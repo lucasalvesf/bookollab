@@ -581,11 +581,73 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.ToTable("sheet_templates", (string)null);
                 });
 
+            modelBuilder.Entity("Bookollab.Api.Domain.Notifications.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Body")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("body");
+
+                    b.Property<Guid?>("CommunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("community_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Link")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("link");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("type");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_notifications");
+
+                    b.HasIndex("CommunityId")
+                        .HasDatabaseName("ix_notifications_community_id");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .HasDatabaseName("ix_notifications_user_id_created_at");
+
+                    b.ToTable("notifications", (string)null);
+                });
+
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.Scene", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("ArchiveVisibility")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("archive_visibility");
 
                     b.Property<string>("Background")
                         .HasMaxLength(300)
@@ -604,6 +666,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("CurrentTurnCharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_turn_character_id");
+
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
@@ -612,6 +678,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<Guid>("OpenedByUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("opened_by_user_id");
+
+                    b.Property<string>("Participation")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("participation");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -624,6 +696,14 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("title");
+
+                    b.Property<DateTimeOffset?>("TurnStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("turn_started_at");
+
+                    b.Property<int?>("TurnTimeLimitMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("turn_time_limit_minutes");
 
                     b.Property<string>("WritingMode")
                         .IsRequired()
@@ -727,6 +807,85 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.ToTable("scene_action_revisions", (string)null);
                 });
 
+            modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneInvite", b =>
+                {
+                    b.Property<Guid>("SceneId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("scene_id");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("InvitedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invited_by_user_id");
+
+                    b.HasKey("SceneId", "CharacterId")
+                        .HasName("pk_scene_invites");
+
+                    b.HasIndex("CharacterId")
+                        .HasDatabaseName("ix_scene_invites_character_id");
+
+                    b.HasIndex("InvitedByUserId")
+                        .HasDatabaseName("ix_scene_invites_invited_by_user_id");
+
+                    b.ToTable("scene_invites", (string)null);
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneJoinRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid>("SceneId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("scene_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_scene_join_requests");
+
+                    b.HasIndex("CharacterId")
+                        .HasDatabaseName("ix_scene_join_requests_character_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_scene_join_requests_user_id");
+
+                    b.HasIndex("SceneId", "CharacterId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_scene_join_requests_scene_id_character_id")
+                        .HasFilter("status = 'Pending'");
+
+                    b.ToTable("scene_join_requests", (string)null);
+                });
+
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneParticipant", b =>
                 {
                     b.Property<Guid>("SceneId")
@@ -740,6 +899,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("JoinedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("joined_at");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
 
                     b.HasKey("SceneId", "CharacterId")
                         .HasName("pk_scene_participants");
@@ -1430,6 +1593,22 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Navigation("Fields");
                 });
 
+            modelBuilder.Entity("Bookollab.Api.Domain.Notifications.Notification", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
+                        .WithMany()
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_notifications_communities_community_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_notifications_users_user_id");
+                });
+
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.Scene", b =>
                 {
                     b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
@@ -1479,6 +1658,54 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_scene_action_revisions_scene_actions_action_id");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneInvite", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Characters.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scene_invites_characters_character_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_scene_invites_users_invited_by_user_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Scenes.Scene", null)
+                        .WithMany()
+                        .HasForeignKey("SceneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scene_invites_scenes_scene_id");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneJoinRequest", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Characters.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scene_join_requests_characters_character_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Scenes.Scene", null)
+                        .WithMany()
+                        .HasForeignKey("SceneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scene_join_requests_scenes_scene_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scene_join_requests_users_user_id");
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Scenes.SceneParticipant", b =>

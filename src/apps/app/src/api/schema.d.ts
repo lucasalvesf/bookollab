@@ -324,6 +324,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/members/{userId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RemoveMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/communities/{slug}/join-requests": {
         parameters: {
             query?: never;
@@ -548,6 +564,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/scenes/{id}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateSceneSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/turn-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateSceneTurnOrder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/skip-turn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SkipSceneTurn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InviteToScene"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/join-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListSceneJoinRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/scenes/{id}/actions": {
         parameters: {
             query?: never;
@@ -558,6 +654,38 @@ export interface paths {
         get: operations["ListSceneActions"];
         put?: never;
         post: operations["SendSceneAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scene-join-requests/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApproveSceneJoinRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scene-join-requests/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RejectSceneJoinRequest"];
         delete?: never;
         options?: never;
         head?: never;
@@ -804,6 +932,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MarkNotificationRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MarkAllNotificationsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -893,7 +1069,7 @@ export interface components {
             joinPolicy: components["schemas"]["JoinPolicy"];
             contentRating: components["schemas"]["ContentRating"];
             /** Format: int32 */
-            memberCount: number | string;
+            memberCount: number;
             sheetFields: components["schemas"]["SheetFieldDto"][];
             me: null | components["schemas"]["MyAccess"];
             hasPendingRequest: boolean;
@@ -917,7 +1093,7 @@ export interface components {
             chapters: components["schemas"]["ProfileChapterDto"][];
             scenes: components["schemas"]["ProfileSceneDto"][];
             /** Format: int32 */
-            level: null | number | string;
+            level: null | number;
             title: null | string;
             isMe: boolean;
             ownNickname: null | string;
@@ -932,7 +1108,7 @@ export interface components {
             description: null | string;
             joinPolicy: components["schemas"]["JoinPolicy"];
             /** Format: int32 */
-            memberCount: number | string;
+            memberCount: number;
         };
         ConfirmEmailRequest: {
             /** Format: uuid */
@@ -956,13 +1132,17 @@ export interface components {
         };
         CreateInviteRequest: {
             /** Format: int32 */
-            expiresInDays: null | number | string;
+            expiresInDays: null | number;
             /** Format: int32 */
-            maxUses: null | number | string;
+            maxUses: null | number;
         };
         CreateSceneRequest: {
             title: string;
             description: null | string;
+            participation?: components["schemas"]["SceneParticipation"];
+            writingMode?: components["schemas"]["SceneWritingMode"];
+            /** Format: int32 */
+            turnTimeLimitMinutes?: null | number;
         };
         CreateSheetRequest: {
             name: string;
@@ -1010,9 +1190,9 @@ export interface components {
             id: string;
             name: string;
             /** Format: int32 */
-            position: number | string;
+            position: number;
             /** Format: int32 */
-            itemCount: number | string;
+            itemCount: number;
         };
         GlobalProfileDto: {
             /** Format: uuid */
@@ -1033,7 +1213,7 @@ export interface components {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
-            status?: null | number | string;
+            status?: null | number;
             detail?: null | string;
             instance?: null | string;
             errors?: {
@@ -1042,14 +1222,18 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        InviteCharacterRequest: {
+            /** Format: uuid */
+            characterId: string;
+        };
         InviteDto: {
             code: string;
             /** Format: date-time */
             expiresAt: null | string;
             /** Format: int32 */
-            maxUses: null | number | string;
+            maxUses: null | number;
             /** Format: int32 */
-            uses: number | string;
+            uses: number;
         };
         InvitePreview: {
             code: string;
@@ -1114,6 +1298,26 @@ export interface components {
             baseKind: components["schemas"]["BaseRoleKind"];
             permissions: string[];
         };
+        NotificationDto: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["NotificationType"];
+            title: string;
+            body: null | string;
+            link: null | string;
+            /** Format: uuid */
+            communityId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            read: boolean;
+        };
+        NotificationListDto: {
+            items: components["schemas"]["NotificationDto"][];
+            /** Format: int32 */
+            unreadCount: number;
+        };
+        /** @enum {unknown} */
+        NotificationType: "YourTurn" | "SceneInvite" | "SceneJoinRequest" | "SceneJoinDecision" | "Mention" | "ChapterApproval" | "ChapterDecision" | "RemovedFromCommunity";
         ProfileChapterDto: {
             /** Format: uuid */
             id: string;
@@ -1174,7 +1378,7 @@ export interface components {
         SaveFolderRequest: {
             name: string;
             /** Format: int32 */
-            position: null | number | string;
+            position: null | number;
         };
         SaveTemplateRequest: {
             name: string;
@@ -1201,6 +1405,8 @@ export interface components {
             editedAt: null | string;
             deleted: boolean;
         };
+        /** @enum {unknown} */
+        SceneArchiveVisibility: "Community" | "Participants";
         SceneDetail: {
             /** Format: uuid */
             id: string;
@@ -1225,6 +1431,31 @@ export interface components {
             canModerate: boolean;
             canViewRevisions: boolean;
             canEditBackground: boolean;
+            participation: components["schemas"]["SceneParticipation"];
+            archiveVisibility: components["schemas"]["SceneArchiveVisibility"];
+            /** Format: int32 */
+            turnTimeLimitMinutes: null | number;
+            /** Format: uuid */
+            currentTurnCharacterId: null | string;
+            /** Format: date-time */
+            turnDeadline: null | string;
+            canManage: boolean;
+            canSkipTurn: boolean;
+            invitedCharacterIds: string[];
+            myPendingCharacterIds: string[];
+            /** Format: int32 */
+            pendingRequestCount: number;
+        };
+        SceneJoinRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            characterId: string;
+            characterName: string;
+            characterAvatarKey: null | string;
+            userName: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         SceneParticipantDto: {
             /** Format: uuid */
@@ -1236,6 +1467,8 @@ export interface components {
             ownerUserName: string;
         };
         /** @enum {unknown} */
+        SceneParticipation: "Public" | "InviteOnly" | "Request";
+        /** @enum {unknown} */
         SceneStatus: "Open" | "Closed";
         SceneSummary: {
             /** Format: uuid */
@@ -1244,9 +1477,10 @@ export interface components {
             description: null | string;
             status: components["schemas"]["SceneStatus"];
             writingMode: components["schemas"]["SceneWritingMode"];
+            participation: components["schemas"]["SceneParticipation"];
             openedByUserName: string;
             /** Format: int32 */
-            participantCount: number | string;
+            participantCount: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1335,6 +1569,9 @@ export interface components {
             accessTokenExpiresAt: string;
             refreshToken: string;
         };
+        TurnOrderRequest: {
+            characterIds: string[];
+        };
         UpdateChapterRequest: {
             title: string;
             content: string;
@@ -1353,6 +1590,13 @@ export interface components {
         UpdateSceneBackgroundRequest: {
             background: null | string;
         };
+        UpdateSceneSettingsRequest: {
+            writingMode: components["schemas"]["SceneWritingMode"];
+            /** Format: int32 */
+            turnTimeLimitMinutes: null | number;
+            participation: components["schemas"]["SceneParticipation"];
+            archiveVisibility: components["schemas"]["SceneArchiveVisibility"];
+        };
         UpdateSheetRequest: {
             name: string;
             kind: null | string;
@@ -1363,7 +1607,7 @@ export interface components {
             key: string;
             contentType: string;
             /** Format: int64 */
-            size: number | string;
+            size: number;
         };
     };
     responses: never;
@@ -1898,6 +2142,27 @@ export interface operations {
             };
         };
     };
+    RemoveMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ListJoinRequests: {
         parameters: {
             query?: never;
@@ -2322,11 +2587,133 @@ export interface operations {
             };
         };
     };
+    UpdateSceneSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSceneSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    UpdateSceneTurnOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TurnOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    SkipSceneTurn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    InviteToScene: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteCharacterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    ListSceneJoinRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneJoinRequestDto"][];
+                };
+            };
+        };
+    };
     ListSceneActions: {
         parameters: {
             query?: {
                 before?: string;
-                limit?: number | string;
+                limit?: number;
             };
             header?: never;
             path: {
@@ -2370,6 +2757,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SceneActionDto"];
                 };
+            };
+        };
+    };
+    ApproveSceneJoinRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RejectSceneJoinRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2906,6 +3333,64 @@ export interface operations {
                 "application/json": components["schemas"]["MoveToFolderRequest"];
             };
         };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListNotifications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationListDto"];
+                };
+            };
+        };
+    };
+    MarkNotificationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MarkAllNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description No Content */
             204: {

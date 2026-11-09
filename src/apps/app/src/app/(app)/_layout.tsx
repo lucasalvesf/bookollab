@@ -1,5 +1,11 @@
 import { Stack } from 'expo-router';
 
+import { NotificationsProvider } from '@/realtime/notifications';
+
 export default function AppLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <NotificationsProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </NotificationsProvider>
+  );
 }

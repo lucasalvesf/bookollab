@@ -11,6 +11,7 @@ import { colors, Notice } from '@/components/ui';
 import { BACKGROUND_PRESETS } from '@/lib/backgrounds';
 import { pickAndUploadImage } from '@/lib/files';
 
+import { PARTICIPATION_LABELS, SceneInvitesAndRequests, SceneSettings, SceneTurns } from './scene-settings';
 import type { Character, Presence, SceneDetail } from './types';
 
 const COLLAPSED_COUNT = 5;
@@ -110,19 +111,36 @@ export function SceneSidebar({
         ) : null}
       </View>
 
+      <SceneTurns scene={scene} />
+
       {scene.status === 'Open' && scene.canJoin && notJoined.length > 0 ? (
         <View style={styles.block}>
-          <Text style={styles.sectionTitle}>{joinedIds.size === 0 ? 'Entrar na cena com' : 'Trazer outro personagem'}</Text>
+          <Text style={styles.sectionTitle}>
+            {scene.participation === 'Request' && !scene.canManage ? 'Pedir para entrar com' : joinedIds.size === 0 ? 'Entrar na cena com' : 'Trazer outro personagem'}
+          </Text>
+          <Text style={styles.muted}>Participação: {PARTICIPATION_LABELS[scene.participation]}</Text>
           {join.isError ? <Notice kind="error">{join.error.message}</Notice> : null}
-          {notJoined.map((c) => (
-            <Pressable key={c.id} accessibilityRole="button" onPress={() => join.mutate(c.id)} style={({ pressed }) => [styles.member, styles.joinRow, pressed && styles.pressed]}>
-              <Avatar name={c.name} imageKey={c.avatarKey} size={32} />
-              <Text style={styles.memberName}>{c.name}</Text>
-              <Text style={styles.plus}>＋</Text>
-            </Pressable>
-          ))}
+          {notJoined.map((c) => {
+            const pending = scene.myPendingCharacterIds.includes(c.id);
+            const blocked = scene.participation === 'InviteOnly' && !scene.canManage && !scene.invitedCharacterIds.includes(c.id);
+            return (
+              <Pressable
+                key={c.id}
+                accessibilityRole="button"
+                disabled={pending || blocked}
+                onPress={() => join.mutate(c.id)}
+                style={({ pressed }) => [styles.member, styles.joinRow, (pending || blocked) && styles.disabled, pressed && styles.pressed]}>
+                <Avatar name={c.name} imageKey={c.avatarKey} size={32} />
+                <Text style={styles.memberName}>{c.name}</Text>
+                <Text style={pending || blocked ? styles.muted : styles.plus}>{pending ? 'Pedido enviado' : blocked ? 'Não convidado' : '＋'}</Text>
+              </Pressable>
+            );
+          })}
         </View>
       ) : null}
+
+      <SceneInvitesAndRequests scene={scene} />
+      <SceneSettings scene={scene} />
       {scene.status === 'Open' && scene.canJoin && myCharacters && myCharacters.length === 0 ? (
         <Notice kind="info">Crie um personagem nesta comunidade para entrar na cena.</Notice>
       ) : null}
@@ -193,6 +211,7 @@ const styles = StyleSheet.create({
   joinRow: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 8 },
   plus: { marginLeft: 'auto', fontSize: 18, color: colors.brand },
   pressed: { opacity: 0.6 },
+  disabled: { opacity: 0.55 },
   link: { fontSize: 13, color: colors.brand, fontWeight: '600' },
   linkMuted: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

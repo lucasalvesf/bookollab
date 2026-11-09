@@ -1,13 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { Empty, Loadable, Page, Row, Section, Tag } from '@/components/layout';
+import { ConfirmButton } from '@/components/pickers';
 import { ProfileHeader } from '@/components/profile-header';
-import { Button, colors } from '@/components/ui';
+import { Button, colors, Notice } from '@/components/ui';
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -15,6 +17,10 @@ const dateFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short
 export default function CommunityProfileScreen() {
   const { slug, userName } = useLocalSearchParams<{ slug: string; userName: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [removeError, setRemoveError] = useState<string>();
+  const community = useQuery({ queryKey: ['community', slug], queryFn: () => unwrap(api.GET('/communities/{slug}', { params: { path: { slug } } })) });
+  const canRemove = community.data?.me?.permissions.includes('ManageMembers') ?? false;
   const profile = useQuery({
     queryKey: ['community-profile', slug, userName],
     queryFn: () => unwrap(api.GET('/communities/{slug}/members/{userName}', { params: { path: { slug, userName } } }), 'Perfil não encontrado.'),
@@ -50,6 +56,25 @@ export default function CommunityProfileScreen() {
               <Text style={styles.link}>Ver perfil global</Text>
             </Pressable>
           </View>
+          {!p.isMe && p.baseKind !== 'Owner' && canRemove ? (
+            <View style={styles.removeBox}>
+              {removeError ? <Notice kind="error">{removeError}</Notice> : null}
+              <ConfirmButton
+                label="Remover da comunidade"
+                confirmLabel={`Confirmar: remover ${p.nickname}`}
+                onConfirm={async () => {
+                  setRemoveError(undefined);
+                  try {
+                    await unwrap(api.POST('/communities/{slug}/members/{userId}/remove', { params: { path: { slug, userId: p.userId } } }));
+                    await queryClient.invalidateQueries({ queryKey: ['members', slug] });
+                    router.replace({ pathname: '/c/[slug]', params: { slug } });
+                  } catch (e) {
+                    setRemoveError((e as Error).message);
+                  }
+                }}
+              />
+            </View>
+          ) : null}
 
           <Section title={`Fichas · ${p.characters.length + p.sheets.length}`}>
             {p.characters.length + p.sheets.length === 0 ? (
@@ -121,4 +146,5 @@ const styles = StyleSheet.create({
   cardName: { fontSize: 14, fontWeight: '700', color: colors.text, maxWidth: '100%' },
   cardSub: { fontSize: 12, color: colors.textMuted },
   pressed: { opacity: 0.6 },
+  removeBox: { gap: 8, alignItems: 'flex-start' },
 });
