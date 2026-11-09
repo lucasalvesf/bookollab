@@ -60,9 +60,10 @@ Sistema de cargos e permissões focado em RPG, no estilo do Discord.
 
 ## Entrada na comunidade
 A staff escolhe como a comunidade recebe membros:
-- *Aberta:* qualquer pessoa entra direto. Comunidades abertas aparecem numa busca/listagem.
+- *Aberta:* qualquer pessoa entra direto.
 - *Com pedido:* a staff aprova os pedidos de entrada.
 - *Só por convite:* entra apenas quem recebe um link de convite.
+- **Visibilidade** *(decidido em 2026-11-09)*: comunidades abertas e com pedido são **públicas** e aparecem na busca/listagem (a com pedido só exige o aceite da staff para entrar). Só as comunidades *só por convite* são privadas e ficam fora da listagem.
 
 ## Cenas
 - Tempo real: as ações aparecem na hora para todos, com presença (quem está online) e indicador de "digitando".
