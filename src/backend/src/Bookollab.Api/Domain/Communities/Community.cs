@@ -63,6 +63,13 @@ public sealed class Community
     /// <summary>Roles whose chapters need approval when the mode is "Roles".</summary>
     public List<Guid> ChapterApprovalRoleIds { get; set; } = [];
 
+    /// <summary>Community icon and cover (upload keys).</summary>
+    public string? IconKey { get; set; }
+    public string? CoverKey { get; set; }
+
+    /// <summary>Order of the sections members see on the community home (see <see cref="CommunitySections"/>).</summary>
+    public List<string> Sections { get; set; } = [.. CommunitySections.Default];
+
     // RPG mechanics, each optional (off = more free and literary play).
     public bool DiceEnabled { get; set; }
     public bool AttributesEnabled { get; set; }
@@ -169,4 +176,24 @@ public sealed class Invite
 
     public bool IsUsable(DateTimeOffset now) =>
         (ExpiresAt is null || ExpiresAt > now) && (MaxUses is null || Uses < MaxUses);
+}
+
+/// <summary>Sections of the community home. The owner (or whoever has ArrangeSections) decides the order.</summary>
+public static class CommunitySections
+{
+    public const string Scenes = "scenes";
+    public const string Chapters = "chapters";
+    public const string Encyclopedia = "encyclopedia";
+    public const string Characters = "characters";
+    public const string Members = "members";
+
+    public static readonly string[] Default = [Scenes, Chapters, Encyclopedia, Characters, Members];
+
+    /// <summary>Known sections in the saved order, plus any section added later at the end.</summary>
+    public static List<string> Normalize(IEnumerable<string> saved)
+    {
+        var known = saved.Where(Default.Contains).Distinct().ToList();
+        known.AddRange(Default.Where(s => !known.Contains(s)));
+        return known;
+    }
 }

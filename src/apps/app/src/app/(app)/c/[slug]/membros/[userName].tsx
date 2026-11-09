@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
@@ -9,12 +9,14 @@ import { Avatar } from '@/components/avatar';
 import { Empty, Loadable, Page, Row, Section, Tag } from '@/components/layout';
 import { ConfirmButton } from '@/components/pickers';
 import { ProfileHeader } from '@/components/profile-header';
-import { Button, colors, Notice } from '@/components/ui';
+import { Button, Notice } from '@/components/ui';
+import { makeStyles } from '@/theme';
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
 /** A player's profile inside one community: own nickname/avatar/bio/cover, sheets, activity, role. */
 export default function CommunityProfileScreen() {
+  const styles = useStyles();
   const { slug, userName } = useLocalSearchParams<{ slug: string; userName: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -135,7 +137,7 @@ export default function CommunityProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   edit: { minWidth: 170 },
   bio: { fontSize: 15, color: colors.text, lineHeight: 22 },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
@@ -147,4 +149,4 @@ const styles = StyleSheet.create({
   cardSub: { fontSize: 12, color: colors.textMuted },
   pressed: { opacity: 0.6 },
   removeBox: { gap: 8, alignItems: 'flex-start' },
-});
+}));

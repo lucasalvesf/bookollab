@@ -2,12 +2,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImageBackground } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
+import { PanelLeft } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
-import { colors, Notice } from '@/components/ui';
+import { Notice } from '@/components/ui';
 import { Composer } from '@/features/scene/composer';
 import { MessageBubble } from '@/features/scene/message-bubble';
 import { SceneSidebar } from '@/features/scene/scene-sidebar';
@@ -15,11 +16,14 @@ import type { SceneAction } from '@/features/scene/types';
 import { resolveBackground } from '@/lib/backgrounds';
 import { fileUrl } from '@/lib/files';
 import { useSceneRealtime } from '@/realtime/use-scene-realtime';
+import { makeStyles, useTheme } from '@/theme';
 
 const WIDE_BREAKPOINT = 860;
 
 /** Scene as a full-screen chat: sidebar (~1/3) with scene info and members, chat (~2/3) with the messages. */
 export default function SceneScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { width } = useWindowDimensions();
@@ -93,7 +97,7 @@ export default function SceneScreen() {
       <View style={styles.chatHeader}>
         {!wide ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Abrir painel da cena" onPress={() => setDrawerOpen(true)} hitSlop={8} style={styles.menuButton}>
-            <Text style={styles.menuIcon}>☰</Text>
+            <PanelLeft size={22} color={colors.text} />
           </Pressable>
         ) : null}
         <View style={styles.headerText}>
@@ -178,27 +182,26 @@ export default function SceneScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, flexDirection: 'row', backgroundColor: colors.surface },
   fill: { flex: 1 },
   loading: { marginTop: 40 },
   errorBox: { padding: 24 },
   sidebarColumn: { borderRightWidth: 1, borderRightColor: colors.border },
   chat: { flex: 1 },
-  chatHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: 'rgba(255,255,255,0.94)', borderBottomWidth: 1, borderBottomColor: colors.border },
+  chatHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
   menuButton: { padding: 4 },
-  menuIcon: { fontSize: 22, color: colors.text },
   headerText: { flex: 1 },
-  chatTitle: { fontSize: 17, fontWeight: '700', color: colors.text },
+  chatTitle: { fontSize: 17, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
   chatSubtitle: { fontSize: 12, color: colors.textMuted },
   messages: { flex: 1 },
   messagesContent: { paddingVertical: 12, flexGrow: 1 },
   empty: { textAlign: 'center', marginTop: 40, fontSize: 15, color: colors.textMuted },
   onDark: { color: 'rgba(255,255,255,0.8)' },
-  typing: { alignSelf: 'flex-start', marginLeft: 62, marginTop: 10, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 },
+  typing: { alignSelf: 'flex-start', marginLeft: 62, marginTop: 10, backgroundColor: colors.surface, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 },
   typingText: { fontSize: 12, color: colors.textMuted, fontStyle: 'italic' },
-  banner: { padding: 16, backgroundColor: 'rgba(255,255,255,0.94)', borderTopWidth: 1, borderTopColor: colors.border },
+  banner: { padding: 16, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border },
   bannerText: { textAlign: 'center', fontSize: 14, color: colors.textMuted },
-  drawerOverlay: { ...StyleSheet.absoluteFill, flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.35)' },
+  drawerOverlay: { ...StyleSheet.absoluteFill, flexDirection: 'row', backgroundColor: colors.overlay },
   drawer: { height: '100%', backgroundColor: colors.surface },
-});
+}));

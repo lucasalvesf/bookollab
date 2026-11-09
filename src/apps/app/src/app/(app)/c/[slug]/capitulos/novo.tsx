@@ -1,14 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { Loadable, Page } from '@/components/layout';
 import { ChipPicker } from '@/components/pickers';
-import { Button, colors, Field, Notice } from '@/components/ui';
+import { Button, Field, Notice } from '@/components/ui';
+import { makeStyles, useTheme } from '@/theme';
+import { ChevronDown, ChevronRight } from 'lucide-react-native';
 
 /**
  * Write a chapter. Optional params:
@@ -16,6 +18,8 @@ import { Button, colors, Field, Notice } from '@/components/ui';
  * - replyTo + mention: answer a letter, tagging the original character.
  */
 export default function NewChapterScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { slug, sceneId, replyTo, mention } = useLocalSearchParams<{ slug: string; sceneId?: string; replyTo?: string; mention?: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -128,7 +132,7 @@ export default function NewChapterScreen() {
               <View style={styles.box}>
                 <Pressable accessibilityRole="button" onPress={() => setMentionsOpen((v) => !v)} style={styles.header}>
                   <Text style={styles.label}>Marcar personagens (@) {mentions.length ? `· ${mentions.length}` : ''}</Text>
-                  <Text style={styles.muted}>{mentionsOpen ? '▾' : '▸'}</Text>
+                  {mentionsOpen ? <ChevronDown size={18} color={colors.textMuted} /> : <ChevronRight size={18} color={colors.textMuted} />}
                 </Pressable>
                 <Text style={styles.muted}>{'Quem for marcado recebe um aviso para responder (ex.: uma carta "Para @John").'}</Text>
                 {mentionsOpen ? (
@@ -160,7 +164,7 @@ export default function NewChapterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   box: { gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, backgroundColor: colors.surface },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { fontSize: 14, fontWeight: '600', color: colors.text },
@@ -172,4 +176,4 @@ const styles = StyleSheet.create({
   personOn: { backgroundColor: colors.brand, borderColor: colors.brand },
   personText: { fontSize: 13, color: colors.text },
   personTextOn: { color: colors.brandText, fontWeight: '600' },
-});
+}));

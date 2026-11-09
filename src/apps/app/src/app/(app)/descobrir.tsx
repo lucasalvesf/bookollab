@@ -1,13 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
+import { Search, TrendingUp } from 'lucide-react-native';
 import { useDeferredValue, useState } from 'react';
+import { TextInput, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
-import { Empty, Loadable, Page, Row, Section, Tag } from '@/components/layout';
-import { Field } from '@/components/ui';
+import { CardGrid, CommunityCard } from '@/components/community';
+import { Empty, Loadable, Page, Section, Tag } from '@/components/layout';
+import { makeStyles, radius, useTheme } from '@/theme';
 
 export default function DiscoverScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const term = useDeferredValue(search.trim());
@@ -17,23 +22,35 @@ export default function DiscoverScreen() {
   });
 
   return (
-    <Page title="Descobrir comunidades" subtitle="Comunidades públicas: algumas você entra direto, outras pedem aprovação da staff." back>
-      <Field label="Buscar" value={search} onChangeText={setSearch} placeholder="Nome ou tema" autoCapitalize="none" />
-      <Section title={term ? `Resultados para "${term}"` : 'Mais populares'}>
+    <Page title="Descobrir" subtitle="Comunidades públicas: algumas você entra direto, outras pedem aprovação da staff.">
+      <View style={styles.search}>
+        <Search size={18} color={colors.textSubtle} />
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Buscar por nome ou tema"
+          placeholderTextColor={colors.textSubtle}
+          autoCapitalize="none"
+          style={styles.searchInput}
+          accessibilityLabel="Buscar comunidades"
+        />
+      </View>
+      <Section title={term ? `Resultados para "${term}"` : 'Em alta'} icon={TrendingUp} plain>
         <Loadable query={results}>
           {(list) =>
             list.length === 0 ? (
-              <Empty>Nenhuma comunidade encontrada.</Empty>
+              <Empty icon={Search}>Nenhuma comunidade encontrada.</Empty>
             ) : (
-              list.map((c) => (
-                <Row
-                  key={c.id}
-                  title={c.name}
-                  subtitle={[c.description, `${c.memberCount} ${c.memberCount === 1 ? 'membro' : 'membros'}`].filter(Boolean).join(' · ')}
-                  right={c.joinPolicy === 'Request' ? <Tag label="Com aprovação" /> : undefined}
-                  onPress={() => router.push({ pathname: '/c/[slug]', params: { slug: c.slug } })}
-                />
-              ))
+              <CardGrid>
+                {list.map((c) => (
+                  <CommunityCard
+                    key={c.id}
+                    community={c}
+                    right={c.joinPolicy === 'Request' ? <Tag label="Com aprovação" tone="warning" /> : <Tag label="Aberta" tone="success" />}
+                    onPress={() => router.push({ pathname: '/c/[slug]', params: { slug: c.slug } })}
+                  />
+                ))}
+              </CardGrid>
             )
           }
         </Loadable>
@@ -41,3 +58,8 @@ export default function DiscoverScreen() {
     </Page>
   );
 }
+
+const useStyles = makeStyles((colors) => ({
+  search: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.surface, borderRadius: radius.pill, borderWidth: 1.5, borderColor: colors.border, paddingHorizontal: 16 },
+  searchInput: { flex: 1, fontSize: 16, color: colors.text, paddingVertical: 12 },
+}));

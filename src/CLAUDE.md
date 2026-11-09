@@ -54,6 +54,15 @@ Rotas tipadas do Expo Router: os tipos (`.expo/types/router.d.ts`) são gerados 
 - `src/components/`: `ui.tsx` (campos, botões, avisos), `layout.tsx` (página, seções, linhas), formulários reutilizáveis.
 - Textos de interface em português; rotas em português (`/entrar`, `/c/[slug]`, `/personagens/[id]`).
 
+## Visual (tema, ícones, componentes)
+Decisões de produto em `docs/visao-produto.md` → "Visual e navegação do app".
+- **Cores só pelo tema** (`src/theme/index.tsx`): `const useStyles = makeStyles((colors) => ({ ... }))` fora do componente e `const styles = useStyles()` dentro; para cor em JSX, `const { colors } = useTheme()`. Nunca escreva hex numa tela (exceções: branco sobre imagem/gradiente). As paletas clara e escura têm contraste AA verificado; cor nova entra nas duas.
+- `makeStyles` aplica a família Inter certa conforme o `fontWeight`. Texto de leitura (Capítulos) usa `fontFamily: 'Literata_400Regular'`.
+- **Ícones**: `lucide-react-native` (nunca emoji como ícone; emoji só no conteúdo dos usuários).
+- **Componentes base**: `Page` (com `hero` opcional), `Section`, `Row` (`icon`/`left`), `Tag` (tons), `Empty`, `Loadable` (esqueleto), `Button` (variantes e `icon`), `IconButton`, `PressableScale`, `ChipPicker` (`segmented`), `Avatar` (`shape="rounded"` para comunidades), `CommunityCover`/`CommunityCard`.
+- **Moldura do app** (`components/app-shell.tsx`): faixa lateral de comunidades na web larga (≥ 900 px) e barra inferior no celular só nas rotas de topo (`/`, `/descobrir`, `/notificacoes`, `/perfil`).
+- Animações com Reanimated: use `sharedValue.set()/get()` (o lint do React Compiler barra `.value = ...`).
+
 ## Organização do backend
 - `Features/<Feature>/`: vertical slices, cada uma com seus endpoints, DTOs e lógica.
 - `Domain/`: entidades e enums.
@@ -83,6 +92,7 @@ Rotas tipadas do Expo Router: os tipos (`.expo/types/router.d.ts`) são gerados 
 ## Armadilhas conhecidas
 - **Migrations com coluna nova não nula** (enum como texto, `bool`): o EF gera `defaultValue: ""`/`false`, e as linhas existentes ficam inválidas (enum vazio quebra a leitura). Sempre confira e ajuste o `defaultValue` da migration para o padrão do domínio (ex.: `"Public"`, `true`) e verifique no banco local.
 - **Encoding no PowerShell 5**: nunca leia um arquivo UTF-8 com `Get-Content -Raw` para regravar (ele lê como ANSI e corrompe os acentos: "título" → "tÃ­tulo"). Use `[IO.File]::ReadAllText(caminho)` com caminho absoluto, ou a ferramenta Edit. O teste `SourceEncodingTests` barra esse tipo de corrupção no código da API.
+- **Scripts PowerShell de troca de texto**: `@(@('a','b'))` vira uma lista plana `('a','b')`; para uma lista com um único par use `,@('a','b')`. Sem isso, cada caractere vira uma "troca" e o arquivo é corrompido.
 - **Rotas tipadas do Expo**: um `index.tsx` dentro de pasta de rota dinâmica gera o tipo `/…/index`. Prefira `pasta.tsx` ao lado da pasta (ex.: `c/[slug]/enciclopedia.tsx` + `c/[slug]/enciclopedia/nova.tsx`).
 
 ## Persistência

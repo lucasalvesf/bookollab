@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
@@ -8,12 +8,14 @@ import type { components } from '@/api/schema';
 
 import { Empty, Row, Section } from './layout';
 import { ChipPicker } from './pickers';
-import { colors, Notice } from './ui';
+import { Notice } from './ui';
+import { makeStyles } from '@/theme';
 
 type Mode = components['schemas']['ChapterApprovalMode'];
 
 /** Staff: who needs chapter approval (nobody, everyone, selected roles) and the pending queue. */
 export function ChapterApprovalAdmin({ slug, canConfigure, canModerate }: { slug: string; canConfigure: boolean; canModerate: boolean }) {
+  const styles = useStyles();
   const router = useRouter();
   const queryClient = useQueryClient();
   const config = useQuery({
@@ -71,7 +73,7 @@ export function ChapterApprovalAdmin({ slug, canConfigure, canModerate }: { slug
                         accessibilityState={{ checked: on }}
                         onPress={() => save.mutate({ mode: 'Roles', roleIds: on ? config.data!.roleIds.filter((x) => x !== r.id) : [...config.data!.roleIds, r.id] })}
                         style={[styles.role, on && styles.roleOn]}>
-                        <Text style={[styles.roleText, on && styles.roleTextOn]}>{on ? '☑' : '☐'} {r.name}</Text>
+                        <Text style={[styles.roleText, on && styles.roleTextOn]}>{r.name}</Text>
                       </Pressable>
                     );
                   })}
@@ -85,7 +87,7 @@ export function ChapterApprovalAdmin({ slug, canConfigure, canModerate }: { slug
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   padded: { padding: 16, gap: 12 },
   roles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   role: { borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
@@ -93,4 +95,4 @@ const styles = StyleSheet.create({
   roleText: { fontSize: 14, color: colors.text },
   roleTextOn: { color: colors.brandText, fontWeight: '600' },
   hint: { fontSize: 13, color: colors.textMuted },
-});
+}));

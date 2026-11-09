@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
@@ -10,9 +10,11 @@ import { CharacterForm } from '@/components/character-form';
 import { FolderPicker } from '@/components/folder-picker';
 import { Loadable, Page, Row, Section } from '@/components/layout';
 import { CharacterMechanics } from '@/components/mechanics';
-import { Button, colors, Notice } from '@/components/ui';
+import { Button, Notice } from '@/components/ui';
+import { makeStyles } from '@/theme';
 
 export default function CharacterScreen() {
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -90,8 +92,8 @@ export default function CharacterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   edit: { width: 100 },
   empty: { padding: 16, color: colors.textMuted },
   muted: { fontSize: 13, color: colors.textMuted },
-});
+}));

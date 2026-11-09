@@ -1,16 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Dices } from 'lucide-react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { ConfirmButton } from '@/components/pickers';
-import { colors } from '@/components/ui';
 import { fileUrl } from '@/lib/files';
 
 import type { SceneAction, SceneDetail } from './types';
+import { makeStyles, useTheme } from '@/theme';
 
 const timeFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -29,6 +30,7 @@ export function MessageBubble({
   grouped: boolean;
   onChanged: (a: SceneAction) => void;
 }) {
+  const styles = useStyles();
   const [menu, setMenu] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(action.content ?? '');
@@ -134,6 +136,8 @@ export function MessageBubble({
 
 /** Dice roll result: expression, each term and the total. */
 function RollCard({ roll }: { roll: NonNullable<SceneAction['roll']> }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const detail = roll.terms
     .map((t, i) => {
       const sign = t.sign < 0 ? '− ' : i > 0 ? '+ ' : '';
@@ -143,15 +147,16 @@ function RollCard({ roll }: { roll: NonNullable<SceneAction['roll']> }) {
     .join(' ');
   return (
     <View style={styles.roll} accessibilityLabel={`Rolagem ${roll.expression}: total ${roll.total}`}>
-      <Text style={styles.rollHeader}>🎲 {roll.expression}</Text>
+      <View style={styles.rollHeaderRow}><Dices size={15} color={colors.brand} /><Text style={styles.rollHeader}>{roll.expression}</Text></View>
       <Text style={styles.rollDetail}>{detail}</Text>
       <Text style={styles.rollTotal}>{roll.total}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  roll: { backgroundColor: '#FFFFFF', borderRadius: 10, padding: 10, gap: 2, alignItems: 'center', minWidth: 160, borderWidth: 1, borderColor: colors.border },
+const useStyles = makeStyles((colors) => ({
+  roll: { backgroundColor: colors.surfaceAlt, borderRadius: 10, padding: 10, gap: 2, alignItems: 'center', minWidth: 160, borderWidth: 1, borderColor: colors.border },
+  rollHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rollHeader: { fontSize: 13, fontWeight: '700', color: colors.text },
   rollDetail: { fontSize: 12, color: colors.textMuted, textAlign: 'center' },
   rollTotal: { fontSize: 28, fontWeight: '800', color: colors.brand },
@@ -161,27 +166,27 @@ const styles = StyleSheet.create({
   avatarSlot: { width: 38 },
   column: { maxWidth: '78%', gap: 3, alignItems: 'flex-start' },
   columnMine: { alignItems: 'flex-end' },
-  name: { fontSize: 13, fontWeight: '700', color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.45)', textShadowRadius: 3, marginLeft: 4 },
-  nameMine: { marginRight: 4, marginLeft: 0 },
+  name: { fontSize: 12, fontWeight: '700', color: colors.textMuted, backgroundColor: colors.surface, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', opacity: 0.92 },
+  nameMine: { color: colors.brand },
   bubble: { borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, gap: 6, minWidth: 64 },
-  bubbleOther: { backgroundColor: 'rgba(255,255,255,0.96)', borderTopLeftRadius: 4 },
+  bubbleOther: { backgroundColor: colors.surface, borderTopLeftRadius: 4 },
   bubbleMine: { backgroundColor: colors.brand, borderTopRightRadius: 4 },
-  bubbleDeleted: { backgroundColor: 'rgba(255,255,255,0.6)' },
+  bubbleDeleted: { backgroundColor: colors.surfaceAlt, opacity: 0.8 },
   text: { fontSize: 15, lineHeight: 21, color: colors.text },
-  textMine: { color: '#FFFFFF' },
+  textMine: { color: colors.brandText },
   image: { width: 260, height: 200, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.1)' },
   meta: { fontSize: 11, color: colors.textMuted, alignSelf: 'flex-end' },
-  metaMine: { color: 'rgba(255,255,255,0.75)' },
+  metaMine: { color: colors.brandText, opacity: 0.75 },
   deleted: { fontSize: 14, color: colors.textMuted, fontStyle: 'italic' },
   editBox: { gap: 8, minWidth: 220 },
-  editInput: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 8, fontSize: 15, color: colors.text, backgroundColor: '#FFFFFF', minHeight: 60, textAlignVertical: 'top' },
+  editInput: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 8, fontSize: 15, color: colors.text, backgroundColor: colors.surfaceAlt, minHeight: 60, textAlignVertical: 'top' },
   inline: { flexDirection: 'row', gap: 14, alignItems: 'center' },
-  menu: { flexDirection: 'row', gap: 14, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
+  menu: { flexDirection: 'row', gap: 14, alignItems: 'center', backgroundColor: colors.surface, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
   menuMine: { alignSelf: 'flex-end' },
   link: { fontSize: 13, color: colors.brand, fontWeight: '600' },
   linkMuted: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
-  error: { fontSize: 12, color: colors.danger, backgroundColor: '#FFFFFF', borderRadius: 6, paddingHorizontal: 6 },
-  history: { backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 10, padding: 10, gap: 4, maxWidth: 360 },
+  error: { fontSize: 12, color: colors.danger, backgroundColor: colors.surface, borderRadius: 6, paddingHorizontal: 6 },
+  history: { backgroundColor: colors.surface, borderRadius: 10, padding: 10, gap: 4, maxWidth: 360 },
   historyItem: { fontSize: 13, color: colors.text },
   historyTime: { fontSize: 11, color: colors.textMuted },
-});
+}));

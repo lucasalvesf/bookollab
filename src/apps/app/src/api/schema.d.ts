@@ -484,6 +484,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/appearance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateCommunityAppearance"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateCommunitySections"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/invites/{code}": {
         parameters: {
             query?: never;
@@ -1258,6 +1290,9 @@ export interface components {
             me: null | components["schemas"]["MyAccess"];
             hasPendingRequest: boolean;
             mechanics?: null | components["schemas"]["MechanicsDto"];
+            iconKey?: null | string;
+            coverKey?: null | string;
+            sections?: null | string[];
         };
         CommunityProfileDto: {
             /** Format: uuid */
@@ -1294,6 +1329,8 @@ export interface components {
             joinPolicy: components["schemas"]["JoinPolicy"];
             /** Format: int32 */
             memberCount: number;
+            iconKey?: null | string;
+            coverKey?: null | string;
         };
         ConfirmEmailRequest: {
             /** Format: uuid */
@@ -1817,6 +1854,10 @@ export interface components {
         TurnOrderRequest: {
             characterIds: string[];
         };
+        UpdateAppearanceRequest: {
+            iconKey: null | string;
+            coverKey: null | string;
+        };
         UpdateChapterRequest: {
             title: string;
             content: string;
@@ -1841,6 +1882,9 @@ export interface components {
             turnTimeLimitMinutes: null | number;
             participation: components["schemas"]["SceneParticipation"];
             archiveVisibility: components["schemas"]["SceneArchiveVisibility"];
+        };
+        UpdateSectionsRequest: {
+            sections: string[];
         };
         UpdateSheetRequest: {
             name: string;
@@ -2658,6 +2702,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SheetFieldDto"][];
+                };
+            };
+        };
+    };
+    UpdateCommunityAppearance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAppearanceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityDetail"];
+                };
+            };
+        };
+    };
+    UpdateCommunitySections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSectionsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityDetail"];
                 };
             };
         };

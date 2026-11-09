@@ -1,20 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Clapperboard, Mail, PenLine, Reply } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { Loadable, Page, Section, Tag } from '@/components/layout';
 import { ConfirmButton } from '@/components/pickers';
-import { Button, colors, Field, Notice } from '@/components/ui';
+import { Button, Field, Notice } from '@/components/ui';
+import { makeStyles, useTheme } from '@/theme';
 
 type Chapter = components['schemas']['ChapterDetail'];
 
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
 export default function ChapterScreen() {
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -150,29 +153,44 @@ const STATUS_LABELS: Partial<Record<Chapter['status'], string>> = { Draft: 'Rasc
 
 /** Where the chapter comes from and who it involves: source scene, reply, co-authors, "@" mentions. */
 function ChapterContext({ chapter: c }: { chapter: Chapter }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const people = [...c.mentionedCharacters, ...c.mentionedUsers];
   if (!c.sourceSceneId && !c.replyToChapterId && c.coauthors.length === 0 && people.length === 0) return null;
   return (
     <View style={styles.context}>
       {c.sourceSceneId ? (
-        <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/cenas/[id]', params: { id: c.sourceSceneId! } })}>
-          <Text style={styles.contextText}>🎭 Da cena <Text style={styles.link}>{c.sourceSceneTitle ?? 'de origem'}</Text></Text>
+        <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/cenas/[id]', params: { id: c.sourceSceneId! } })} style={styles.contextRow}>
+          <Clapperboard size={16} color={colors.brand} />
+          <Text style={styles.contextText}>Da cena <Text style={styles.link}>{c.sourceSceneTitle ?? 'de origem'}</Text></Text>
         </Pressable>
       ) : null}
       {c.replyToChapterId ? (
-        <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/capitulos/[id]', params: { id: c.replyToChapterId! } })}>
-          <Text style={styles.contextText}>↩️ Em resposta a <Text style={styles.link}>{c.replyToChapterTitle ?? 'um capítulo'}</Text></Text>
+        <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/capitulos/[id]', params: { id: c.replyToChapterId! } })} style={styles.contextRow}>
+          <Reply size={16} color={colors.brand} />
+          <Text style={styles.contextText}>Em resposta a <Text style={styles.link}>{c.replyToChapterTitle ?? 'um capítulo'}</Text></Text>
         </Pressable>
       ) : null}
-      {c.coauthors.length > 0 ? <Text style={styles.contextText}>✍️ Com {c.coauthors.map((p) => p.name).join(', ')}</Text> : null}
-      {people.length > 0 ? <Text style={styles.contextText}>✉️ Para {people.map((p) => `@${p.name}`).join(', ')}</Text> : null}
+      {c.coauthors.length > 0 ? (
+        <View style={styles.contextRow}>
+          <PenLine size={16} color={colors.brand} />
+          <Text style={styles.contextText}>Com {c.coauthors.map((p) => p.name).join(', ')}</Text>
+        </View>
+      ) : null}
+      {people.length > 0 ? (
+        <View style={styles.contextRow}>
+          <Mail size={16} color={colors.brand} />
+          <Text style={styles.contextText}>Para {people.map((p) => `@${p.name}`).join(', ')}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 /** Staff: approve or reject (with a reason) a pending chapter. */
 function ModerationBox({ chapterId }: { chapterId: string }) {
+  const styles = useStyles();
   const queryClient = useQueryClient();
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
@@ -203,18 +221,19 @@ function ModerationBox({ chapterId }: { chapterId: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   context: { gap: 4, padding: 12, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   contextText: { fontSize: 14, color: colors.text },
   moderation: { gap: 10, padding: 14, borderRadius: 12, borderWidth: 2, borderColor: colors.brand, backgroundColor: colors.surface },
   moderationTitle: { fontSize: 15, fontWeight: '700', color: colors.brand },
   meta: { fontSize: 13, color: colors.textMuted },
-  paper: { backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 20 },
-  body: { fontSize: 16, lineHeight: 26, color: colors.text },
+  paper: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingVertical: 32, paddingHorizontal: 28 },
+  body: { fontSize: 18, lineHeight: 31, color: colors.text, fontFamily: 'Literata_400Regular' },
+  contextRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   actions: { gap: 10 },
   inline: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 },
   link: { fontSize: 13, color: colors.brand, fontWeight: '600' },
   revision: { padding: 16, gap: 4, borderBottomWidth: 1, borderBottomColor: colors.background },
   revisionTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
   revisionBody: { fontSize: 14, color: colors.text, lineHeight: 20 },
-});
+}));

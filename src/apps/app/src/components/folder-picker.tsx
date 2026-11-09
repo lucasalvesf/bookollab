@@ -5,10 +5,11 @@ import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 
 import { ChipPicker } from './pickers';
-import { colors } from './ui';
+import { useTheme } from '@/theme';
 
 /** Staff-only: choose the encyclopedia folder of a sheet or character. */
 export function FolderPicker({ slug, itemType, itemId, folderId, onMoved }: { slug: string; itemType: 'Sheet' | 'Character'; itemId: string; folderId: string | null | undefined; onMoved: () => void }) {
+  const { colors } = useTheme();
   const queryClient = useQueryClient();
   const encyclopedia = useQuery({
     queryKey: ['encyclopedia', slug, 'all', ''],
@@ -28,7 +29,7 @@ export function FolderPicker({ slug, itemType, itemId, folderId, onMoved }: { sl
   });
 
   if (!encyclopedia.data?.canManage) return null;
-  const options = [{ value: 'none', label: 'Sem pasta' }, ...encyclopedia.data.folders.map((f) => ({ value: f.id, label: `📁 ${f.name}` }))];
+  const options = [{ value: 'none', label: 'Sem pasta' }, ...encyclopedia.data.folders.map((f) => ({ value: f.id, label: f.name }))];
   return (
     <View style={{ gap: 6 }}>
       <ChipPicker label="Pasta na enciclopédia (staff)" options={options} value={folderId ?? 'none'} onChange={(v) => move.mutate(v === 'none' ? null : v)} />

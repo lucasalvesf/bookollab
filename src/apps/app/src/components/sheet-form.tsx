@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { problemMessage } from '@/api/client';
 import { labels } from '@/api/hooks';
@@ -8,7 +8,8 @@ import { fieldKey } from '@/lib/keys';
 
 import { AvatarPicker } from './avatar-picker';
 import { ChipPicker } from './pickers';
-import { Button, colors, Field, Notice } from './ui';
+import { Button, Field, Notice } from './ui';
+import { makeStyles } from '@/theme';
 
 type FieldType = components['schemas']['SheetFieldType'];
 export type BaseField = { key: string; label: string; type: FieldType; required: boolean };
@@ -35,6 +36,7 @@ export function SheetForm({
   submitLabel: string;
   onSubmit: (value: SheetFormValue) => Promise<{ ok: boolean; problem?: unknown }>;
 }) {
+  const styles = useStyles();
   const [name, setName] = useState(initial?.name ?? '');
   const [kind, setKind] = useState(initial?.kind ?? '');
   const [imageKey, setImageKey] = useState<string | null>(initial?.imageKey ?? null);
@@ -126,9 +128,9 @@ export function SheetForm({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   form: { gap: 14 },
   customCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, gap: 10, backgroundColor: colors.surface },
   remove: { fontSize: 13, color: colors.danger, fontWeight: '600' },
   hint: { fontSize: 13, color: colors.textMuted },
-});
+}));

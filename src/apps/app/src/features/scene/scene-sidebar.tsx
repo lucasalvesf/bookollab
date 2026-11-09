@@ -1,18 +1,21 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ChevronDown, ChevronLeft, ChevronRight, NotebookPen, X } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { ConfirmButton } from '@/components/pickers';
-import { colors, Notice } from '@/components/ui';
+import { Tag } from '@/components/layout';
+import { Notice } from '@/components/ui';
 import { BACKGROUND_PRESETS } from '@/lib/backgrounds';
 import { pickAndUploadImage } from '@/lib/files';
 
 import { PARTICIPATION_LABELS, SceneInvitesAndRequests, SceneSettings, SceneTurns } from './scene-settings';
 import type { Character, Presence, SceneDetail } from './types';
+import { makeStyles, useTheme } from '@/theme';
 
 const COLLAPSED_COUNT = 5;
 
@@ -29,6 +32,8 @@ export function SceneSidebar({
   myUserId: string | undefined;
   onClose?: () => void;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
@@ -71,19 +76,19 @@ export function SceneSidebar({
     <ScrollView style={styles.sidebar} contentContainerStyle={styles.content}>
       <View style={styles.topRow}>
         <Pressable accessibilityRole="link" onPress={() => router.replace({ pathname: '/c/[slug]', params: { slug: scene.communitySlug } })} hitSlop={8}>
-          <Text style={styles.back}>‹ {scene.communityName}</Text>
+          <View style={styles.backRow}><ChevronLeft size={18} color={colors.brand} /><Text style={styles.back}>{scene.communityName}</Text></View>
         </Pressable>
         {onClose ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Fechar painel" onPress={onClose} hitSlop={8}>
-            <Text style={styles.closeX}>✕</Text>
+            <X size={22} color={colors.textMuted} />
           </Pressable>
         ) : null}
       </View>
 
       <View style={styles.block}>
         <Text style={styles.title}>{scene.title}</Text>
-        <View style={[styles.status, scene.status === 'Open' ? styles.statusOpen : styles.statusClosed]}>
-          <Text style={styles.statusText}>{scene.status === 'Open' ? '● Ao vivo' : 'Encerrada'}</Text>
+        <View style={styles.status}>
+          <Tag label={scene.status === 'Open' ? 'Ao vivo' : 'Encerrada'} tone={scene.status === 'Open' ? 'live' : 'neutral'} />
         </View>
         {scene.description ? <Text style={styles.description}>{scene.description}</Text> : null}
       </View>
@@ -91,7 +96,7 @@ export function SceneSidebar({
       <View style={styles.block}>
         <Pressable accessibilityRole="button" onPress={() => setExpanded((v) => !v)} style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Participantes · {scene.participants.length}</Text>
-          <Text style={styles.chevron}>{expanded ? '▾' : '▸'}</Text>
+          {expanded ? <ChevronDown size={18} color={colors.textMuted} /> : <ChevronRight size={18} color={colors.textMuted} />}
         </Pressable>
         <Text style={styles.muted}>{online.length} online agora</Text>
         {scene.participants.length === 0 ? <Text style={styles.muted}>Ninguém entrou ainda.</Text> : null}
@@ -185,7 +190,7 @@ export function SceneSidebar({
             accessibilityRole="button"
             onPress={() => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug: scene.communitySlug, sceneId: scene.id } })}
             style={({ pressed }) => [styles.member, styles.joinRow, pressed && styles.pressed]}>
-            <Text style={styles.memberName}>📜 Escrever o capítulo desta cena</Text>
+            <NotebookPen size={18} color={colors.brand} /><Text style={styles.memberName}>Escrever o capítulo desta cena</Text>
           </Pressable>
         </View>
       ) : null}
@@ -200,22 +205,18 @@ export function SceneSidebar({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   sidebar: { flex: 1, backgroundColor: colors.surface },
   content: { padding: 20, gap: 20 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   back: { color: colors.brand, fontSize: 14, fontWeight: '600' },
-  closeX: { fontSize: 18, color: colors.textMuted },
   block: { gap: 10 },
-  title: { fontSize: 22, fontWeight: '700', color: colors.text },
-  status: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
-  statusOpen: { backgroundColor: '#ECFDF3' },
-  statusClosed: { backgroundColor: '#F2F4F7' },
-  statusText: { fontSize: 12, fontWeight: '700', color: colors.text },
+  title: { fontSize: 22, fontWeight: '800', color: colors.text, letterSpacing: -0.4 },
+  status: { alignSelf: 'flex-start' },
   description: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  chevron: { fontSize: 14, color: colors.textMuted },
   muted: { fontSize: 13, color: colors.textMuted },
   member: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   memberText: { flex: 1 },
@@ -231,4 +232,4 @@ const styles = StyleSheet.create({
   swatchSelected: { borderWidth: 3, borderColor: colors.brand },
   inline: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap' },
   error: { fontSize: 13, color: colors.danger },
-});
+}));

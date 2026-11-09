@@ -3,6 +3,16 @@
 > Pedidos e ideias que ainda não foram construídos. Cada item indica a origem e o marco previsto quando já houver um.
 > Ao construir um item, mova a decisão para `visao-produto.md` (se for regra de produto) e marque aqui como feito.
 
+## Pedidos do usuário (2026-11-09)
+
+### Redesign do app (prioridade antes do beta)
+O usuário achou o app feio e "com cara de feito por IA". Pedidos:
+- [x] Identidade visual moderna: cores melhores, tipografia, inspiração em apps parecidos (Amino, Discord, Wattpad/AO3, Instagram/Threads). Decisões em `visao-produto.md` → "Visual e navegação do app".
+- [x] **Ícones de verdade** no lugar de emojis na interface.
+- [x] Animações e transições (entrada de páginas, toque nos botões, esqueleto de carregamento).
+- [x] Menus, barras e navegação: faixa lateral de comunidades (web), barra inferior (celular), página da comunidade no estilo Amino com abas reordenáveis.
+- [ ] Próximas rodadas, conforme o retorno do usuário: telas de formulário (criar cena/personagem/ficha), enciclopédia e perfis no mesmo nível de acabamento; transições entre telas no celular.
+
 ## Pedidos do usuário (2026-11-05)
 
 ### Cenas como chat (no estilo do Amino)

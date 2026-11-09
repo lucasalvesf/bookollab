@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
@@ -10,10 +10,12 @@ import { FolderPicker } from '@/components/folder-picker';
 import { Loadable, Page, Row, Section, Tag } from '@/components/layout';
 import { ConfirmButton } from '@/components/pickers';
 import { SheetForm } from '@/components/sheet-form';
-import { Button, colors, Notice } from '@/components/ui';
+import { Button, Notice } from '@/components/ui';
+import { makeStyles } from '@/theme';
 
 /** An encyclopedia sheet (non-playable): view, edit, delete and (staff) move to a folder. */
 export default function SheetScreen() {
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -87,9 +89,9 @@ export default function SheetScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   edit: { width: 100 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
   tags: { gap: 8 },
   empty: { padding: 16, color: colors.textMuted },
-});
+}));

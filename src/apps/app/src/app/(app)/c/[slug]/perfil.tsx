@@ -2,15 +2,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { AvatarPicker } from '@/components/avatar-picker';
 import { Loadable, Page } from '@/components/layout';
-import { Button, colors, Field, Notice } from '@/components/ui';
+import { Button, Field, Notice } from '@/components/ui';
 import { fileUrl, pickAndUploadImage } from '@/lib/files';
+import { makeStyles, useTheme } from '@/theme';
 
 type Profile = components['schemas']['CommunityProfileDto'];
 type Me = components['schemas']['MeResponse'];
@@ -33,6 +34,8 @@ export default function EditCommunityProfileScreen() {
 }
 
 function Form({ slug, profile, me }: { slug: string; profile: Profile; me: Me }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [nickname, setNickname] = useState(profile.ownNickname ?? '');
@@ -111,7 +114,7 @@ function Form({ slug, profile, me }: { slug: string; profile: Profile; me: Me })
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   block: { gap: 8 },
   coverBox: { gap: 8 },
   label: { fontSize: 14, fontWeight: '600', color: colors.text },
@@ -121,4 +124,4 @@ const styles = StyleSheet.create({
   link: { fontSize: 14, color: colors.brand, fontWeight: '600' },
   muted: { fontSize: 14, color: colors.textMuted, fontWeight: '600' },
   hint: { fontSize: 12, color: colors.textMuted },
-});
+}));

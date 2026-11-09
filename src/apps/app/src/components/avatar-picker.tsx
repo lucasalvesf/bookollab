@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { pickAndUploadImage } from '@/lib/files';
 
 import { Avatar } from './avatar';
-import { colors } from './ui';
+import { makeStyles, useTheme } from '@/theme';
 
 /** Avatar with "change / remove" actions; uploads the chosen image immediately. */
 export function AvatarPicker({ name, imageKey, onChange }: { name: string; imageKey: string | null; onChange: (key: string | null) => void }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string>();
 
@@ -43,11 +45,11 @@ export function AvatarPicker({ name, imageKey, onChange }: { name: string; image
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   actions: { gap: 6, flex: 1 },
   link: { fontSize: 14, color: colors.brand, fontWeight: '600' },
   muted: { fontSize: 14, color: colors.textMuted, fontWeight: '600' },
   hint: { fontSize: 12, color: colors.textMuted },
   error: { fontSize: 12, color: colors.danger },
-});
+}));

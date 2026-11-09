@@ -1,11 +1,11 @@
 import { Image } from 'expo-image';
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { fileUrl } from '@/lib/files';
 
 import { Avatar } from './avatar';
-import { colors } from './ui';
+import { makeStyles } from '@/theme';
 
 /** Cover banner + overlapping avatar + name block, used by global and community profiles. */
 export function ProfileHeader({
@@ -23,6 +23,7 @@ export function ProfileHeader({
   badges?: ReactNode;
   actions?: ReactNode;
 }) {
+  const styles = useStyles();
   const cover = fileUrl(coverKey);
   return (
     <View style={styles.card}>
@@ -44,7 +45,7 @@ export function ProfileHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
   cover: { width: '100%', height: 160 },
   coverFallback: { backgroundColor: colors.brand },
@@ -55,4 +56,4 @@ const styles = StyleSheet.create({
   name: { fontSize: 24, fontWeight: '700', color: colors.text },
   handle: { fontSize: 15, color: colors.textMuted },
   badges: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-});
+}));

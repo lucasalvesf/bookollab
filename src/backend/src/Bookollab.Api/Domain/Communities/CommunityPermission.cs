@@ -14,6 +14,8 @@ public enum CommunityPermission : long
     ManageRoles = 1L << 1,
     ManageMembers = 1L << 2,
     CreateInvites = 1L << 3,
+    /// <summary>Reorder the community sections members see (given by the owner; not in any default role but Owner).</summary>
+    ArrangeSections = 1L << 4,
 
     // Characters (bits 10-19)
     CreateCharacters = 1L << 10,

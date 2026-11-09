@@ -5,9 +5,11 @@ import { Text } from 'react-native';
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Loadable, Page } from '@/components/layout';
-import { Button, colors, Notice } from '@/components/ui';
+import { Button, Notice } from '@/components/ui';
+import { useTheme } from '@/theme';
 
 export default function InviteScreen() {
+  const { colors } = useTheme();
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
