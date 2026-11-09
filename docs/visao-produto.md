@@ -69,6 +69,7 @@ A staff escolhe como a comunidade recebe membros:
 - **Modo de escrita** (escolhido por quem abre a cena):
   - *Escrita livre*: qualquer participante envia ações a qualquer momento.
   - *Turnos*: ordem definida, um jogador por vez. Quem abre define um **tempo limite** por turno (ex.: 24h); passado o prazo, a vez passa para o próximo. Narrador e staff também podem pular a vez manualmente.
+  - **Turnos são uma opção nas configurações do chat da cena** (quem abriu a cena ou a staff liga e desliga a qualquer momento). Desligada = escrita livre, sem ordem. Ligada = a ordem é a de entrada na cena, e quem abriu ou a staff pode reorganizá-la. *(Decidido em 2026-11-09.)*
 - **Abrir e encerrar:** controlado pela flag "abrir cena" (por padrão, Staff e Narrador). Quem abriu a cena sempre pode encerrá-la.
 - **Participação** (escolhida por quem abre a cena):
   - *Pública*: qualquer membro da comunidade entra.
@@ -90,6 +91,7 @@ A staff escolhe como a comunidade recebe membros:
   - *Em estudo:* uma **IA** que monta o Capítulo a partir da cena para o jogador revisar (avaliar custo e viabilidade).
 - **Edição:** o autor pode editar e apagar os próprios Capítulos. O Capítulo fica marcado como "editado", e a staff vê o histórico de versões. Narrador editar Capítulo de outros depende de flag.
 - **Aprovação** (quando ligada por flag; pode valer para a comunidade toda, para cargos ou para jogadores específicos): o Capítulo entra numa fila da staff e **fica oculto até ser aprovado**. Se for recusado, o autor recebe o motivo e pode editar e reenviar.
+  - Entrega em etapas *(decidido em 2026-11-09)*: no Marco 2, para a comunidade toda ou para cargos escolhidos; **por jogador específico** chega junto com as flags por membro, no Marco 3.
 
 ## Perfis
 O jogador tem **dois níveis de perfil**. A conta e o @ são únicos.

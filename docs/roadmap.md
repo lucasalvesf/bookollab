@@ -34,6 +34,7 @@
 
 ## Marco 3 — Staff completa
 - Cargos livres e flags por membro, organizadas por categoria
+- Aprovação de Capítulos por jogador específico (no Marco 2 vale para a comunidade toda ou por cargo)
 - Personalização completa: visual, locais de cena, terminologia
 - Regras de personagem: limites e inatividade com consequência escolhida pela staff
 - Moderação completa: denúncias, silenciar/suspender, banir, registro de moderação
