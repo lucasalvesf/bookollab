@@ -68,6 +68,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{userName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetGlobalProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/members/{userName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCommunityProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateMyCommunityProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/register": {
         parameters: {
             query?: never;
@@ -688,6 +736,31 @@ export interface components {
             me: null | components["schemas"]["MyAccess"];
             hasPendingRequest: boolean;
         };
+        CommunityProfileDto: {
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            communitySlug: string;
+            communityName: string;
+            nickname: string;
+            bio: null | string;
+            avatarKey: null | string;
+            coverKey: null | string;
+            roleName: string;
+            baseKind: components["schemas"]["BaseRoleKind"];
+            /** Format: date-time */
+            joinedAt: string;
+            characters: components["schemas"]["ProfileCharacterDto"][];
+            chapters: components["schemas"]["ProfileChapterDto"][];
+            scenes: components["schemas"]["ProfileSceneDto"][];
+            /** Format: int32 */
+            level: null | number | string;
+            title: null | string;
+            isMe: boolean;
+            ownNickname: null | string;
+            ownBio: null | string;
+            ownAvatarKey: null | string;
+        };
         CommunitySummary: {
             /** Format: uuid */
             id: string;
@@ -733,6 +806,18 @@ export interface components {
         };
         EmailRequest: {
             email: string;
+        };
+        GlobalProfileDto: {
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            displayName: string;
+            bio: null | string;
+            avatarKey: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            showcase: components["schemas"]["ShowcaseCharacterDto"][];
+            isMe: boolean;
         };
         HealthResponse: {
             status: string;
@@ -817,6 +902,28 @@ export interface components {
             roleName: string;
             baseKind: components["schemas"]["BaseRoleKind"];
             permissions: string[];
+        };
+        ProfileChapterDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            characterName: string;
+            /** Format: date-time */
+            publishedAt: null | string;
+        };
+        ProfileCharacterDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            avatarKey: null | string;
+        };
+        ProfileSceneDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         RefreshRequest: {
             refreshToken: string;
@@ -936,6 +1043,14 @@ export interface components {
             key: string;
             value: null | string;
         };
+        ShowcaseCharacterDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            avatarKey: null | string;
+            communitySlug: null | string;
+            communityName: null | string;
+        };
         TokenResponse: {
             accessToken: string;
             /** Format: date-time */
@@ -945,6 +1060,12 @@ export interface components {
         UpdateChapterRequest: {
             title: string;
             content: string;
+        };
+        UpdateCommunityProfileRequest: {
+            nickname: null | string;
+            bio: null | string;
+            avatarKey: null | string;
+            coverKey: null | string;
         };
         UpdateProfileRequest: {
             displayName: string;
@@ -1075,6 +1196,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UploadResponse"];
+                };
+            };
+        };
+    };
+    GetGlobalProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlobalProfileDto"];
+                };
+            };
+        };
+    };
+    GetCommunityProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                userName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityProfileDto"];
+                };
+            };
+        };
+    };
+    UpdateMyCommunityProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCommunityProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityProfileDto"];
                 };
             };
         };

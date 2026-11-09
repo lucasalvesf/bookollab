@@ -5,7 +5,7 @@
 > Preparar um computador novo: [`docs-aux/ambiente-de-desenvolvimento.md`](../docs-aux/ambiente-de-desenvolvimento.md).
 
 ## Em uma frase
-O **Marco 1 está quase completo**: contas, comunidades, cargos, personagens com ficha e avatar, **Cenas ao vivo em formato de chat** e **Capítulos** com histórico já funcionam (API + app web). Falta o **perfil global** com a vitrine de personagens.
+O **Marco 1 está completo**: contas, perfis (global e por comunidade), comunidades, cargos, personagens com ficha e avatar, **Cenas ao vivo em formato de chat** e **Capítulos** com histórico (API + app web). Próximo: a enciclopédia e o Marco 2.
 
 ## Onde está cada decisão
 | Assunto | Documento |
@@ -29,8 +29,9 @@ Tudo na `main`, entregue em 7 Pull Requests com CI verde:
 | #5 | Comunidades (aberta / pedido / convite), membros, ficha definida pela staff, personagens |
 | #6 | Cenas ao vivo (SignalR: ações em tempo real, presença, "digitando") e Capítulos (rascunho, publicação, edição com histórico) |
 | #7 | Cena em formato de chat (barra lateral + chat, fundo, anexos de imagem, emojis), upload de imagens, avatares, tela Meu perfil, backlog |
+| #8 | Perfil global (vitrine) e perfil por comunidade (apelido, avatar, bio e capa próprios; fichas, atividade, cargo) |
 
-**Testes:** 54 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
+**Testes:** 58 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
 
 **Ainda sem testes automatizados:** o app. Ele é conferido com typecheck, lint e testes manuais no navegador.
 
@@ -49,9 +50,7 @@ Tudo na `main`, entregue em 7 Pull Requests com CI verde:
 - **Diagrama do banco (Figma)**: https://www.figma.com/design/NNugvMCOeCmyv09UI9aYBZ. Não se atualiza sozinho e está desatualizado: falta a tabela `uploads` e as colunas `background` e `attachment_key`.
 
 ## Próximos passos (em ordem sugerida)
-1. **Perfis** (últimos itens do Marco 1, ver "Perfis" em `visao-produto.md`):
-   - **perfil global**: página pública do usuário (`/u/[userName]`) com avatar, bio e a vitrine, respeitando "exibir no perfil" e "mostrar comunidade";
-   - **perfil por comunidade**: apelido, avatar, bio e capa próprios, herdando do global; mostra fichas, atividade, cargo e entrada.
+1. ~~Perfis~~: **feitos** (PR #8). Perfil global em `/u/[userName]`; perfil por comunidade em `/c/[slug]/membros/[userName]`, editável em `/c/[slug]/perfil`. Com isso, o **Marco 1 está completo**.
 2. **Enciclopédia** (fichas de qualquer tipo em pastas): planejada para o Marco 3, mas ligada ao perfil da comunidade. Há perguntas em aberto em `visao-produto.md`.
 3. **Teste de ponta a ponta do Marco 1** no navegador, com duas contas, seguindo a lista de verificação do plano do Marco 1.
 4. **Marco 2 — Jogo completo** (antes do beta fechado):

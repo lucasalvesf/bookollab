@@ -42,6 +42,10 @@ internal sealed class MembershipConfiguration : IEntityTypeConfiguration<Members
     {
         b.HasKey(m => new { m.CommunityId, m.UserId });
         b.HasIndex(m => m.UserId);
+        b.Property(m => m.Nickname).HasMaxLength(64);
+        b.Property(m => m.Bio).HasMaxLength(1000);
+        b.Property(m => m.AvatarKey).HasMaxLength(256);
+        b.Property(m => m.CoverKey).HasMaxLength(256);
         b.HasOne(m => m.User).WithMany().HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne(m => m.Role).WithMany().HasForeignKey(m => m.RoleId).OnDelete(DeleteBehavior.Restrict);
     }

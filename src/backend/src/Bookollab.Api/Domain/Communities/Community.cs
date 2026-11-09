@@ -121,6 +121,12 @@ public sealed class Membership
     public Guid RoleId { get; set; }
     public CommunityRole Role { get; set; } = null!;
     public DateTimeOffset JoinedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    // Community profile (OffGame). Null fields inherit from the global profile.
+    public string? Nickname { get; set; }
+    public string? Bio { get; set; }
+    public string? AvatarKey { get; set; }
+    public string? CoverKey { get; set; }
 }
 
 public sealed class JoinRequest
