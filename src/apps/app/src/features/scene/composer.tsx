@@ -16,12 +16,16 @@ export function Composer({
   characters,
   onTyping,
   onSent,
+  diceEnabled = false,
+  attributesEnabled = false,
 }: {
   sceneId: string;
   /** The user's characters that already joined the scene. */
   characters: Character[];
   onTyping: (characterId: string) => void;
   onSent: (a: SceneAction) => void;
+  diceEnabled?: boolean;
+  attributesEnabled?: boolean;
 }) {
   const [characterId, setCharacterId] = useState<string>();
   const [pickingCharacter, setPickingCharacter] = useState(false);
@@ -123,6 +127,15 @@ export function Composer({
         <Pressable accessibilityRole="button" accessibilityLabel="Emojis" onPress={() => setEmojiOpen((v) => !v)} style={styles.iconButton}>
           <Text style={styles.icon}>😊</Text>
         </Pressable>
+        {diceEnabled ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Rolar dados"
+            onPress={() => setText((t) => (t.trim().startsWith('/rolar') ? t : '/rolar 1d20'))}
+            style={styles.iconButton}>
+            <Text style={styles.icon}>🎲</Text>
+          </Pressable>
+        ) : null}
         <TextInput
           value={text}
           onChangeText={(v) => {
@@ -131,7 +144,7 @@ export function Composer({
           }}
           onKeyPress={onKeyPress}
           multiline
-          placeholder="Digite sua ação aqui"
+          placeholder={diceEnabled ? `Digite sua ação aqui (ou /rolar 1d20${attributesEnabled ? '+força' : '+3'})` : 'Digite sua ação aqui'}
           placeholderTextColor={colors.textMuted}
           style={styles.input}
           accessibilityLabel="Digite sua ação aqui"

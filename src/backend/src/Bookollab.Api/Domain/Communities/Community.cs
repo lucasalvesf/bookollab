@@ -63,6 +63,11 @@ public sealed class Community
     /// <summary>Roles whose chapters need approval when the mode is "Roles".</summary>
     public List<Guid> ChapterApprovalRoleIds { get; set; } = [];
 
+    // RPG mechanics, each optional (off = more free and literary play).
+    public bool DiceEnabled { get; set; }
+    public bool AttributesEnabled { get; set; }
+    public bool InventoryEnabled { get; set; }
+
     public Guid OwnerId { get; set; }
     public User Owner { get; set; } = null!;
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;

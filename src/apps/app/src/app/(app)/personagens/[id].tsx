@@ -9,6 +9,7 @@ import { Avatar } from '@/components/avatar';
 import { CharacterForm } from '@/components/character-form';
 import { FolderPicker } from '@/components/folder-picker';
 import { Loadable, Page, Row, Section } from '@/components/layout';
+import { CharacterMechanics } from '@/components/mechanics';
 import { Button, colors, Notice } from '@/components/ui';
 
 export default function CharacterScreen() {
@@ -75,6 +76,7 @@ export default function CharacterScreen() {
               )
             }
           </Loadable>
+          {!editing ? <CharacterMechanics characterId={ch.id} /> : null}
           {!editing ? (
             <Text style={styles.muted}>
               {ch.showOnGlobalProfile

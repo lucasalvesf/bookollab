@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Bookollab.Api.Domain.Characters;
 using Bookollab.Api.Domain.Communities;
+using Bookollab.Api.Domain.Mechanics;
 using Bookollab.Api.Domain.Notifications;
 using Bookollab.Api.Domain.Scenes;
 using Bookollab.Api.Features.Common;
@@ -332,7 +333,7 @@ public static partial class SceneEndpoints
 
     private static async Task<IResult> SendAction(Guid id, SendActionRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, IHubContext<SceneHub> hub, NotificationService notifications, TimeProvider clock, CancellationToken ct)
     {
-        var (scene, _, error) = await LoadAsync(id, user, db, perms, ct);
+        var (scene, access, error) = await LoadAsync(id, user, db, perms, ct);
         if (error is not null) return error;
         if (scene!.Status != SceneStatus.Open) return Problems.Conflict("Esta cena já foi encerrada.", "scene_closed");
         var content = req.Content?.Trim() ?? "";
@@ -351,11 +352,25 @@ public static partial class SceneEndpoints
         if (scene.WritingMode == SceneWritingMode.Turns && scene.CurrentTurnCharacterId != character.Id)
             return Problems.Conflict("Ainda não é a vez deste personagem.", "not_your_turn");
 
+        // "/rolar 1d20+força": the server rolls; the result is stored and can't be edited.
+        string? rollJson = null;
+        var expression = attachment is null ? Dice.ParseCommand(content) : null;
+        if (expression is not null)
+        {
+            if (!access!.Community.DiceEnabled) return Problems.Validation("content", "A rolagem de dados está desligada nesta comunidade.");
+            var attributes = access.Community.AttributesEnabled ? Attributes(access.Community, character) : new Dictionary<string, int>();
+            var (roll, rollError) = Dice.Roll(expression, attributes);
+            if (roll is null) return Problems.Validation("content", rollError!);
+            rollJson = System.Text.Json.JsonSerializer.Serialize(roll);
+        }
+
         var now = clock.GetUtcNow();
-        var action = new SceneAction { SceneId = id, CharacterId = character.Id, AuthorUserId = userId, Content = content, AttachmentKey = attachment };
+        var action = new SceneAction { SceneId = id, CharacterId = character.Id, AuthorUserId = userId, Content = content, AttachmentKey = attachment, RollJson = rollJson };
         character.LastActivityAt = now;
         db.SceneActions.Add(action);
-        if (scene.WritingMode == SceneWritingMode.Turns)
+        // A roll does not use up the turn: the player rolls, then writes what happens.
+        var advances = scene.WritingMode == SceneWritingMode.Turns && rollJson is null;
+        if (advances)
         {
             await db.Entry(scene).Collection(s => s.Participants).LoadAsync(ct);
             scene.AdvanceTurn(now);
@@ -364,8 +379,24 @@ public static partial class SceneEndpoints
 
         var dto = ToDto(action, character.Name, character.AvatarKey);
         await hub.Clients.Group(SceneEvents.Group(id)).SendAsync(SceneEvents.ActionCreated, dto, ct);
-        if (scene.WritingMode == SceneWritingMode.Turns) await TurnChangedAsync(db, hub, notifications, scene, userId, ct);
+        if (advances) await TurnChangedAsync(db, hub, notifications, scene, userId, ct);
         return TypedResults.Created($"/actions/{action.Id}", dto);
+    }
+
+    /// <summary>Numeric sheet fields usable in rolls, by label and key (accent/case-insensitive).</summary>
+    public static Dictionary<string, int> Attributes(Community community, Character character)
+    {
+        var result = new Dictionary<string, int>();
+        foreach (var field in community.SheetFields.Where(f => f.Type == SheetFieldType.Number))
+        {
+            var raw = character.Sheet.FirstOrDefault(v => v.Key == field.Key)?.Value;
+            if (!decimal.TryParse(raw, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var value)
+                && !decimal.TryParse(raw, System.Globalization.NumberStyles.Number, new System.Globalization.CultureInfo("pt-BR"), out value)) continue;
+            var number = (int)Math.Round(value);
+            result[Dice.Normalize(field.Label)] = number;
+            result[Dice.Normalize(field.Key)] = number;
+        }
+        return result;
     }
 
     private static async Task<IResult> EditAction(Guid id, EditActionRequest req, ClaimsPrincipal user, AppDbContext db, IHubContext<SceneHub> hub, TimeProvider clock, CancellationToken ct)
@@ -373,6 +404,7 @@ public static partial class SceneEndpoints
         var action = await db.SceneActions.SingleOrDefaultAsync(a => a.Id == id && a.DeletedAt == null, ct);
         if (action is null) return Problems.NotFound("Ação não encontrada.");
         if (action.AuthorUserId != user.UserId()) return Problems.Forbidden("Só o autor pode editar a ação.");
+        if (action.RollJson is not null) return Problems.Conflict("Rolagens de dados não podem ser editadas.", "roll_immutable");
         if (await db.Scenes.AnyAsync(s => s.Id == action.SceneId && s.Status != SceneStatus.Open, ct))
             return Problems.Conflict("Esta cena já foi encerrada.", "scene_closed");
         var content = req.Content?.Trim() ?? "";
@@ -393,7 +425,8 @@ public static partial class SceneEndpoints
         var action = await db.SceneActions.SingleOrDefaultAsync(a => a.Id == id && a.DeletedAt == null, ct);
         if (action is null) return Problems.NotFound("Ação não encontrada.");
         var userId = user.UserId();
-        if (action.AuthorUserId != userId)
+        // Rolls can only be removed by moderators, so nobody can hide a bad result.
+        if (action.AuthorUserId != userId || action.RollJson is not null)
         {
             var scene = await db.Scenes.SingleAsync(s => s.Id == action.SceneId, ct);
             var access = await perms.GetAccessAsync(scene.CommunityId, userId, ct);
@@ -523,5 +556,6 @@ public static partial class SceneEndpoints
     private static SceneActionDto ToDto(SceneAction a, string characterName, string? characterAvatarKey) => new(
         a.Id, a.SceneId, a.CharacterId, characterName, characterAvatarKey, a.AuthorUserId,
         a.DeletedAt is null ? a.Content : null, a.DeletedAt is null ? a.AttachmentKey : null,
-        a.CreatedAt, a.EditedAt, a.DeletedAt is not null);
+        a.CreatedAt, a.EditedAt, a.DeletedAt is not null,
+        a.DeletedAt is null && a.RollJson is not null ? System.Text.Json.JsonSerializer.Deserialize<DiceRoll>(a.RollJson) : null);
 }

@@ -46,7 +46,8 @@ public sealed record SceneJoinRequestDto(Guid Id, Guid CharacterId, string Chara
 
 public sealed record SceneActionDto(
     Guid Id, Guid SceneId, Guid CharacterId, string CharacterName, string? CharacterAvatarKey, Guid AuthorUserId,
-    string? Content, string? AttachmentKey, DateTimeOffset CreatedAt, DateTimeOffset? EditedAt, bool Deleted);
+    string? Content, string? AttachmentKey, DateTimeOffset CreatedAt, DateTimeOffset? EditedAt, bool Deleted,
+    Domain.Mechanics.DiceRoll? Roll = null);
 
 public sealed record RevisionDto(string Content, DateTimeOffset CreatedAt);
 
