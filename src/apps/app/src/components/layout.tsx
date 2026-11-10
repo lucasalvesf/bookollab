@@ -12,18 +12,30 @@ import { IconButton, Notice } from './ui';
  * Standard page of the logged-in area: scrollable centered column, header with optional back button.
  * Notifications live in the app shell (side rail / bottom bar), not in each page.
  */
-export function Page({ title, subtitle, back, actions, hero, children }: PropsWithChildren<{
+export function Page({ title, subtitle, back, actions, hero, onScroll, overlay, transparent, children }: PropsWithChildren<{
   title: string;
   subtitle?: string;
   back?: boolean;
   actions?: ReactNode;
   /** Full-width content above the column (e.g. a community cover). */
   hero?: ReactNode;
+  /** Vertical scroll offset, e.g. to show a sticky header once the hero is gone. */
+  onScroll?: (y: number) => void;
+  /** Fixed layer on top of the page (sticky headers). */
+  overlay?: ReactNode;
+  /** No page background (something is drawn behind it, e.g. a reading background). */
+  transparent?: boolean;
 }>) {
   const styles = useStyles();
   const router = useRouter();
   return (
-    <ScrollView style={styles.page} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <View style={styles.pageWrap}>
+    <ScrollView
+      style={[styles.page, transparent && styles.pageTransparent]}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      onScroll={onScroll ? (e) => onScroll(e.nativeEvent.contentOffset.y) : undefined}
+      scrollEventThrottle={onScroll ? 32 : undefined}>
       {hero}
       <View style={[styles.column, hero ? styles.columnAfterHero : null]}>
         {!hero ? (
@@ -41,6 +53,8 @@ export function Page({ title, subtitle, back, actions, hero, children }: PropsWi
         </Animated.View>
       </View>
     </ScrollView>
+    {overlay}
+    </View>
   );
 }
 
@@ -179,7 +193,9 @@ export function Loadable<T>({ query, children }: { query: { isPending: boolean; 
 }
 
 const useStyles = makeStyles((colors) => ({
+  pageWrap: { flex: 1 },
   page: { flex: 1, backgroundColor: colors.background },
+  pageTransparent: { backgroundColor: 'transparent' },
   content: { paddingBottom: 40, alignItems: 'center' },
   column: { width: '100%', maxWidth: 760, gap: 12, paddingHorizontal: 20, paddingTop: 20 },
   columnAfterHero: { paddingTop: 0 },

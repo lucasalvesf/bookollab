@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, BookMarked, LayoutGrid, Clapperboard, ImagePlus, LayoutList, NotebookPen, Paintbrush, Trash2, UserRound, Users, type LucideIcon } from 'lucide-react-native';
+import { BookMarked, GalleryHorizontal, LayoutGrid, PanelTop, Clapperboard, ImagePlus, LayoutList, NotebookPen, Paintbrush, Trash2, UserRound, Users, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -11,15 +11,18 @@ import { makeStyles, radius, useTheme } from '@/theme';
 
 import { Avatar } from './avatar';
 import { CommunityCover } from './community';
+import { OptionCards } from './form';
 import { Section } from './layout';
-import { Button, IconButton, Notice } from './ui';
+import { SortableList } from './sortable';
+import { Button, Notice } from './ui';
 
 type Community = components['schemas']['CommunityDetail'];
+type FeedLayout = components['schemas']['FeedLayout'];
 
 export const SECTION_INFO: Record<string, { label: string; icon: LucideIcon }> = {
   overview: { label: 'Visão geral', icon: LayoutGrid },
   scenes: { label: 'Cenas', icon: Clapperboard },
-  chapters: { label: 'Capítulos', icon: NotebookPen },
+  chapters: { label: 'Posts', icon: NotebookPen },
   encyclopedia: { label: 'Enciclopédia', icon: BookMarked },
   characters: { label: 'Personagens', icon: UserRound },
   members: { label: 'Membros', icon: Users },
@@ -67,7 +70,7 @@ export function AppearanceAdmin({ community: c }: { community: Community }) {
             <Button title="Trocar capa" icon={ImagePlus} size="sm" variant="secondary" loading={busy === 'cover'} onPress={() => pick('cover')} />
             {c.iconKey || c.coverKey ? <Button title="Remover imagens" icon={Trash2} size="sm" variant="ghost" onPress={() => save.mutate({ iconKey: null, coverKey: null })} /> : null}
           </View>
-          <Text style={styles.hint}>Sem imagem, a comunidade usa um gradiente gerado a partir do nome.</Text>
+          <Text style={styles.hint}>Sem imagem, a comunidade usa uma cor gerada a partir do nome.</Text>
         </View>
       </View>
     </Section>
@@ -85,31 +88,51 @@ export function SectionsAdmin({ community: c }: { community: Community }) {
     onMutate: (sections) => queryClient.setQueryData<Community>(['community', c.slug], (old) => (old ? { ...old, sections } : old)),
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['community', c.slug] }),
   });
-  const move = (i: number, delta: number) => {
-    const next = [...order];
-    [next[i], next[i + delta]] = [next[i + delta], next[i]];
-    save.mutate(next);
-  };
-
   return (
-    <Section title="Ordem das seções" icon={LayoutList}>
-      {save.isError ? <Notice kind="error">{save.error.message}</Notice> : null}
-      {order.map((key, i) => {
-        const info = SECTION_INFO[key];
-        if (!info) return null;
-        return (
-          <View key={key} style={styles.sectionRow}>
-            <Text style={styles.position}>{i + 1}</Text>
-            <View style={styles.sectionIcon}>
-              <info.icon size={18} color={colors.brandSoftText} />
-            </View>
-            <Text style={styles.sectionLabel}>{info.label}</Text>
-            <IconButton icon={ArrowUp} label={`Subir ${info.label}`} size={34} onPress={() => i > 0 && move(i, -1)} />
-            <IconButton icon={ArrowDown} label={`Descer ${info.label}`} size={34} onPress={() => i < order.length - 1 && move(i, 1)} />
-          </View>
-        );
-      })}
-      <Text style={[styles.hint, styles.padded]}>É a ordem das abas na página da comunidade. A primeira abre por padrão.</Text>
+    <>
+      <Section title="Ordem das seções" icon={LayoutList}>
+        {save.isError ? <Notice kind="error">{save.error.message}</Notice> : null}
+        <SortableList
+          items={order.filter((k) => SECTION_INFO[k])}
+          keyOf={(k) => k}
+          onReorder={(next) => save.mutate(next)}
+          renderItem={(key, i) => {
+            const info = SECTION_INFO[key];
+            return (
+              <View style={styles.sectionRow}>
+                <Text style={styles.position}>{i + 1}</Text>
+                <View style={styles.sectionIcon}>
+                  <info.icon size={18} color={colors.brandSoftText} />
+                </View>
+                <Text style={styles.sectionLabel}>{info.label}</Text>
+              </View>
+            );
+          }}
+        />
+        <Text style={[styles.hint, styles.padded]}>Arraste pela alça para reordenar. É a ordem das abas na página da comunidade; a primeira abre por padrão.</Text>
+      </Section>
+      <FeedLayoutPicker community={c} />
+    </>
+  );
+}
+
+export const FEED_LAYOUTS: { value: FeedLayout; label: string; description: string; icon: LucideIcon }[] = [
+  { value: 'Highlight', label: 'Destaque + lista', description: 'O post mais recente grande em cima e os outros menores abaixo.', icon: PanelTop },
+  { value: 'Carousel', label: 'Carrossel', description: 'Cartões lado a lado, para passar com o dedo ou as setas.', icon: GalleryHorizontal },
+  { value: 'Gallery', label: 'Galeria de capas', description: 'Grade que valoriza a imagem de capa de cada post.', icon: LayoutGrid },
+];
+
+/** Owner: how the latest posts are laid out on the community home. */
+export function FeedLayoutPicker({ community: c }: { community: Community }) {
+  const queryClient = useQueryClient();
+  const save = useMutation({
+    mutationFn: (layout: FeedLayout) => unwrap(api.PUT('/communities/{slug}/feed-layout', { params: { path: { slug: c.slug } }, body: { layout } })),
+    onMutate: (layout) => queryClient.setQueryData<Community>(['community', c.slug], (old) => (old ? { ...old, feedLayout: layout } : old)),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['community', c.slug] }),
+  });
+  return (
+    <Section title="Layout dos posts" icon={PanelTop} plain>
+      <OptionCards<FeedLayout> value={c.feedLayout ?? 'Highlight'} onChange={(v) => save.mutate(v)} options={FEED_LAYOUTS} />
     </Section>
   );
 }

@@ -32,7 +32,7 @@ export function FolderPicker({ slug, itemType, itemId, folderId, onMoved }: { sl
   const options = [{ value: 'none', label: 'Sem pasta' }, ...encyclopedia.data.folders.map((f) => ({ value: f.id, label: f.name }))];
   return (
     <View style={{ gap: 6 }}>
-      <ChipPicker label="Pasta na enciclopédia (staff)" options={options} value={folderId ?? 'none'} onChange={(v) => move.mutate(v === 'none' ? null : v)} />
+      <ChipPicker label="Pasta na enciclopédia (moderação)" options={options} value={folderId ?? 'none'} onChange={(v) => move.mutate(v === 'none' ? null : v)} />
       {move.isError ? <Text style={{ color: colors.danger, fontSize: 13 }}>{move.error.message}</Text> : null}
     </View>
   );

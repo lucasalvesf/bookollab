@@ -1,20 +1,28 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowRight, BookMarked, Folder, Layers, Link2, Plus, Search, Settings, UserRound, X } from 'lucide-react-native';
+import { ArrowRight, ArrowUpDown, BookMarked, Folder as FolderIcon, FolderInput, FolderPlus, Layers, LayoutTemplate, Link2, Pencil, Plus, Search, Trash2, UserRound, X } from 'lucide-react-native';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
+import type { components } from '@/api/schema';
+import { EncyclopediaAdmin } from '@/components/encyclopedia-admin';
 import { EntryTile } from '@/components/feed';
 import { Empty, Loadable, Page } from '@/components/layout';
-import { useCopyLink } from '@/components/menu';
-import { Button, IconButton } from '@/components/ui';
+import { NameLink, useFeatureMenu } from '@/components/links';
+import { ContextMenu, MoreButton, useCopyLink, useMenu, type MenuItem } from '@/components/menu';
+import { DialogModal, PromptModal } from '@/components/prompt';
+import { SortableList } from '@/components/sortable';
+import { Button } from '@/components/ui';
 import { makeStyles, radius, useTheme } from '@/theme';
+
+type Folder = components['schemas']['FolderDto'];
 
 /**
  * Encyclopedia (Amino's wiki): a grid of cover cards, search on top, folders and kinds as filter chips.
- * Staff manage folders/templates from the community settings (gear).
+ * Moderators manage everything right here: create/rename/order/delete folders, move sheets, feature,
+ * templates and rules. Members without the permission don't see these actions.
  */
 export default function EncyclopediaScreen() {
   const styles = useStyles();
@@ -31,6 +39,56 @@ export default function EncyclopediaScreen() {
     placeholderData: keepPreviousData,
     queryFn: () => unwrap(api.GET('/communities/{slug}/encyclopedia', { params: { path: { slug }, query: { folderId, search: term || undefined } } })),
   });
+  const queryClient = useQueryClient();
+  const { openMenu, toast } = useMenu();
+  const canManage = !!encyclopedia.data?.canManage;
+  const featureMenu = useFeatureMenu(slug, canManage);
+  const [prompt, setPrompt] = useState<{ folder?: Folder } | null>(null);
+  const [ordering, setOrdering] = useState(false);
+  const [admin, setAdmin] = useState(false);
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['encyclopedia', slug] });
+  const saveFolder = async (name: string, folder?: Folder) => {
+    const res = folder
+      ? await api.PUT('/folders/{id}', { params: { path: { id: folder.id } }, body: { name, position: folder.position } })
+      : await api.POST('/communities/{slug}/folders', { params: { path: { slug } }, body: { name, position: null } });
+    if (!res.response.ok) return (res.error as { detail?: string } | undefined)?.detail ?? 'Não foi possível salvar a pasta.';
+    await refresh();
+  };
+  const deleteFolder = async (folder: Folder) => {
+    const res = await api.DELETE('/folders/{id}', { params: { path: { id: folder.id } } });
+    toast(res.response.ok ? `Pasta "${folder.name}" apagada; as fichas ficaram sem pasta.` : 'Não foi possível apagar a pasta.');
+    if (folderId === folder.id) setFolderId(undefined);
+    await refresh();
+  };
+  const reorderFolders = async (folders: Folder[]) => {
+    queryClient.setQueryData(['encyclopedia', slug, folderId ?? 'all', term], (old: typeof encyclopedia.data) => (old ? { ...old, folders } : old));
+    await Promise.all(folders.map((f, i) => api.PUT('/folders/{id}', { params: { path: { id: f.id } }, body: { name: f.name, position: i } })));
+    await refresh();
+  };
+  const moveTo = async (item: { id: string; itemType: string }, target: string | null) => {
+    const body = { folderId: target };
+    const res = item.itemType === 'Character'
+      ? await api.PUT('/characters/{id}/folder', { params: { path: { id: item.id } }, body })
+      : await api.PUT('/sheets/{id}/folder', { params: { path: { id: item.id } }, body });
+    toast(res.response.ok ? 'Ficha movida' : 'Não foi possível mover.');
+    await refresh();
+  };
+  const folderMenu = (folder: Folder): MenuItem[] => [
+    { label: 'Renomear pasta', icon: Pencil, onPress: () => setPrompt({ folder }) },
+    { label: 'Organizar pastas', icon: ArrowUpDown, onPress: () => setOrdering(true) },
+    'separator',
+    {
+      label: 'Apagar pasta',
+      icon: Trash2,
+      danger: true,
+      onPress: () => openMenu([{ label: `Apagar "${folder.name}"`, icon: Trash2, danger: true, onPress: () => void deleteFolder(folder) }, { label: 'Cancelar', icon: X, onPress: () => undefined }], undefined, 'As fichas ficam sem pasta. Apagar?'),
+    },
+  ];
+  const manageMenu: MenuItem[] = [
+    { label: 'Nova pasta', icon: FolderPlus, onPress: () => setPrompt({}) },
+    { label: 'Organizar pastas', icon: ArrowUpDown, onPress: () => setOrdering(true) },
+    { label: 'Modelos de ficha e regras', icon: LayoutTemplate, onPress: () => setAdmin(true) },
+  ];
   const kinds = useMemo(() => [...new Set((encyclopedia.data?.items ?? []).map((i) => i.kind).filter(Boolean))].sort(), [encyclopedia.data]);
 
   return (
@@ -40,7 +98,7 @@ export default function EncyclopediaScreen() {
       back
       actions={
         <View style={styles.inline}>
-          {encyclopedia.data?.canManage ? <IconButton icon={Settings} label="Pastas, modelos e regras" onPress={() => router.push({ pathname: '/c/[slug]/staff', params: { slug } })} /> : null}
+          {canManage ? <MoreButton items={manageMenu} title="Moderação da enciclopédia" size={40} label="Gerenciar a enciclopédia" /> : null}
           {encyclopedia.data?.canCreate ? <Button title="Nova ficha" icon={Plus} size="sm" onPress={() => router.push({ pathname: '/c/[slug]/enciclopedia/nova', params: { slug } })} /> : null}
         </View>
       }>
@@ -71,8 +129,11 @@ export default function EncyclopediaScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
                   <Chip icon={Layers} label="Todas as pastas" selected={!folderId} onPress={() => setFolderId(undefined)} />
                   {e.folders.map((f) => (
-                    <Chip key={f.id} icon={Folder} label={f.name} count={f.itemCount} selected={folderId === f.id} onPress={() => setFolderId(f.id)} />
+                    <ContextMenu key={f.id} items={canManage ? folderMenu(f) : []} title={f.name}>
+                      <Chip icon={FolderIcon} label={f.name} count={f.itemCount} selected={folderId === f.id} onPress={() => setFolderId(f.id)} />
+                    </ContextMenu>
                   ))}
+                  {canManage ? <Chip icon={FolderPlus} label="Nova pasta" selected={false} subtle onPress={() => setPrompt({})} /> : null}
                 </ScrollView>
                 {kinds.length > 1 ? (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
@@ -102,12 +163,28 @@ export default function EncyclopediaScreen() {
                           menu={[
                             { label: 'Abrir ficha', icon: ArrowRight, onPress: open },
                             { label: 'Ver o autor', icon: UserRound, onPress: () => router.push({ pathname: '/c/[slug]/membros/[userName]', params: { slug, userName: item.ownerUserName } }) },
+                            ...featureMenu(item.itemType === 'Character' ? 'Character' : 'Sheet', item.id),
+                            ...(canManage
+                              ? ([{
+                                  label: 'Mover para pasta',
+                                  icon: FolderInput,
+                                  onPress: () =>
+                                    openMenu(
+                                      [
+                                        { label: 'Sem pasta', icon: Layers, onPress: () => void moveTo(item, null) },
+                                        ...e.folders.map((fo) => ({ label: fo.name + (fo.id === item.folderId ? '  ✓' : ''), icon: FolderIcon, onPress: () => void moveTo(item, fo.id) })),
+                                      ],
+                                      undefined,
+                                      'Mover para',
+                                    ),
+                                }] as MenuItem[])
+                              : []),
                             'separator',
                             { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(path) },
                           ]}
                           onPress={open}
                         />
-                        <Text style={styles.owner} numberOfLines={1}>@{item.ownerUserName}</Text>
+                        <NameLink label={`@${item.ownerUserName}`} href={{ pathname: '/c/[slug]/membros/[userName]', params: { slug, userName: item.ownerUserName } }} style={styles.owner} />
                       </View>
                     );
                   })}
@@ -117,11 +194,44 @@ export default function EncyclopediaScreen() {
           );
         }}
       </Loadable>
+
+      {prompt ? (
+        <PromptModal
+          title={prompt.folder ? 'Renomear pasta' : 'Nova pasta'}
+          label="Nome da pasta"
+          initial={prompt.folder?.name}
+          submitLabel={prompt.folder ? 'Salvar' : 'Criar pasta'}
+          onSubmit={(name) => saveFolder(name, prompt.folder)}
+          onClose={() => setPrompt(null)}
+        />
+      ) : null}
+      {ordering && encyclopedia.data ? (
+        <DialogModal title="Organizar pastas" onClose={() => setOrdering(false)} maxWidth={480}>
+          <Text style={styles.count}>Arraste pela alça. É a ordem dos filtros de pasta.</Text>
+          <SortableList
+            items={encyclopedia.data.folders}
+            keyOf={(f) => f.id}
+            onReorder={(next) => void reorderFolders(next)}
+            renderItem={(f) => (
+              <View style={styles.folderRow}>
+                <FolderIcon size={16} color={colors.textMuted} />
+                <Text style={styles.folderName}>{f.name}</Text>
+                <Text style={styles.count}>{f.itemCount}</Text>
+              </View>
+            )}
+          />
+        </DialogModal>
+      ) : null}
+      {admin ? (
+        <DialogModal title="Modelos de ficha e regras" onClose={() => setAdmin(false)}>
+          <EncyclopediaAdmin slug={slug} />
+        </DialogModal>
+      ) : null}
     </Page>
   );
 }
 
-function Chip({ label, icon: Icon, count, selected, subtle, onPress }: { label: string; icon?: typeof Folder; count?: number; selected: boolean; subtle?: boolean; onPress: () => void }) {
+function Chip({ label, icon: Icon, count, selected, subtle, onPress }: { label: string; icon?: typeof FolderIcon; count?: number; selected: boolean; subtle?: boolean; onPress: () => void }) {
   const styles = useStyles();
   const { colors } = useTheme();
   const fg = selected ? (subtle ? colors.brandSoftText : colors.brandText) : colors.textMuted;
@@ -155,4 +265,6 @@ const useStyles = makeStyles((colors) => ({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
   tile: { width: 132, gap: 2 },
   owner: { fontSize: 12, color: colors.textSubtle },
+  folderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingRight: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+  folderName: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },
 }));

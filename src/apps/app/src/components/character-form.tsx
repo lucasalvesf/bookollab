@@ -66,7 +66,7 @@ export function CharacterForm({
         <Field label="Nome do personagem" value={name} onChangeText={setName} error={problemMessage(problem, 'name')} placeholder="Ex.: Ayla Venn" />
       </FormSection>
       {fields.length > 0 ? (
-        <FormSection title="Ficha" icon={IdCard} description="Campos definidos pela staff. * = obrigatório. Campos numéricos podem virar atributos nas rolagens.">
+        <FormSection title="Ficha" icon={IdCard} description="Campos definidos pela moderação. * = obrigatório. Campos numéricos podem virar atributos nas rolagens.">
           {fields.map((f) => (
             <Field
               key={f.key}

@@ -40,12 +40,34 @@ public sealed class ChapterMention
     public Guid? UserId { get; set; }
 }
 
-/// <summary>Narrative text ("Capítulo"), always OnGame. Displayed name is configurable per community.</summary>
+/// <summary>Kind of post: a Chapter (OnGame, from a character's point of view) or a Blog (OFF, by the player).</summary>
+public enum PostKind
+{
+    Chapter,
+    Blog,
+}
+
+/// <summary>
+/// A post: "Capítulo" (OnGame, written as a character) or "Blog" (OFF, written as the player).
+/// Both use the blog format: cover, images in the text, reading background and music.
+/// </summary>
 public sealed class Chapter
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid CommunityId { get; set; }
-    public Guid CharacterId { get; set; }
+    public PostKind Kind { get; set; } = PostKind.Chapter;
+
+    /// <summary>Narrator of a chapter. Null for blogs.</summary>
+    public Guid? CharacterId { get; set; }
+
+    /// <summary>Cover image (upload key).</summary>
+    public string? CoverKey { get; set; }
+
+    /// <summary>Background image behind the text while reading (upload key).</summary>
+    public string? BackgroundKey { get; set; }
+
+    /// <summary>Music to listen to while reading (YouTube, Spotify or SoundCloud link).</summary>
+    public string? MusicUrl { get; set; }
     public Guid AuthorUserId { get; set; }
     public required string Title { get; set; }
 

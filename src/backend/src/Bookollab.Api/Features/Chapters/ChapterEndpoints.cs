@@ -14,13 +14,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bookollab.Api.Features.Chapters;
 
+/// <summary>A chapter needs CharacterId; a blog (Kind = Blog) is written as the player and has none.</summary>
 public sealed record CreateChapterRequest(
-    Guid CharacterId, string Title, string Content, bool Publish,
+    Guid? CharacterId, string Title, string Content, bool Publish,
     Guid? SourceSceneId = null, List<Guid>? CoauthorCharacterIds = null,
     List<Guid>? MentionedCharacterIds = null, List<Guid>? MentionedUserIds = null,
-    Guid? ReplyToChapterId = null);
+    Guid? ReplyToChapterId = null,
+    PostKind Kind = PostKind.Chapter, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null);
 
-public sealed record UpdateChapterRequest(string Title, string Content);
+/// <summary>Full replacement of the editable parts (send the current cover/background/music to keep them).</summary>
+public sealed record UpdateChapterRequest(string Title, string Content, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null);
 
 public sealed record RejectChapterRequest(string Reason);
 
@@ -34,12 +37,14 @@ public sealed record ChapterPersonDto(Guid Id, string Name, string? AvatarKey);
 
 public sealed record SceneChapterDraftDto(Guid SceneId, string SceneTitle, string Title, string Content, IReadOnlyList<ChapterPersonDto> Coauthors);
 
+/// <summary>For blogs, CharacterId is null and CharacterName/AvatarKey are the author's (the post is OFF).</summary>
 public sealed record ChapterSummary(
-    Guid Id, string Title, Guid CharacterId, string CharacterName, string AuthorUserName, ChapterStatus Status,
-    DateTimeOffset CreatedAt, DateTimeOffset? PublishedAt, DateTimeOffset? EditedAt, string Excerpt);
+    Guid Id, string Title, Guid? CharacterId, string CharacterName, string AuthorUserName, ChapterStatus Status,
+    DateTimeOffset CreatedAt, DateTimeOffset? PublishedAt, DateTimeOffset? EditedAt, string Excerpt,
+    PostKind Kind = PostKind.Chapter, string? CoverKey = null, string? CharacterAvatarKey = null);
 
 public sealed record ChapterDetail(
-    Guid Id, Guid CommunityId, string CommunitySlug, string CommunityName, Guid CharacterId, string CharacterName,
+    Guid Id, Guid CommunityId, string CommunitySlug, string CommunityName, Guid? CharacterId, string CharacterName,
     Guid AuthorUserId, string AuthorUserName, string Title, string Content, ChapterStatus Status,
     DateTimeOffset CreatedAt, DateTimeOffset? PublishedAt, DateTimeOffset? EditedAt,
     bool CanEdit, bool CanDelete, bool CanViewRevisions,
@@ -47,7 +52,9 @@ public sealed record ChapterDetail(
     Guid? SourceSceneId, string? SourceSceneTitle,
     Guid? ReplyToChapterId, string? ReplyToChapterTitle,
     IReadOnlyList<ChapterPersonDto> Coauthors, IReadOnlyList<ChapterPersonDto> MentionedCharacters, IReadOnlyList<ChapterPersonDto> MentionedUsers,
-    bool MentionsMe);
+    bool MentionsMe,
+    PostKind Kind = PostKind.Chapter, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null,
+    string? CharacterAvatarKey = null, bool CanFeature = false, bool IsFeatured = false);
 
 public sealed record ChapterRevisionDto(string Title, string Content, DateTimeOffset CreatedAt);
 
@@ -81,7 +88,7 @@ public static class ChapterEndpoints
     // ------------------------------------------------------------------ listing
 
     /// <summary>Published chapters, the user's own chapters in any state, and (for moderators) the pending ones.</summary>
-    private static async Task<IResult> List(string slug, Guid? characterId, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
+    private static async Task<IResult> List(string slug, Guid? characterId, PostKind? kind, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
     {
         var (access, error) = await CommunityEndpoints.RequireMemberAsync(slug, user, perms, ct);
         if (error is not null) return error;
@@ -90,6 +97,7 @@ public static class ChapterEndpoints
         var query = db.Chapters.Where(c => c.CommunityId == access.Community.Id && c.DeletedAt == null
             && (c.Status == ChapterStatus.Published || c.AuthorUserId == userId || (moderator && c.Status == ChapterStatus.Pending)));
         if (characterId is not null) query = query.Where(c => c.CharacterId == characterId);
+        if (kind is not null) query = query.Where(c => c.Kind == kind);
         return TypedResults.Ok(await SummariesAsync(db, query, ct));
     }
 
@@ -107,13 +115,15 @@ public static class ChapterEndpoints
         var rows = await ordered.Take(100)
             .Select(c => new
             {
-                c.Id, c.Title, c.CharacterId, c.Status, c.CreatedAt, c.PublishedAt, c.EditedAt,
-                Start = c.Content.Substring(0, Math.Min(c.Content.Length, 200)),
-                Character = db.Characters.Where(ch => ch.Id == c.CharacterId).Select(ch => ch.Name).Single(),
-                Author = db.Users.Where(u => u.Id == c.AuthorUserId).Select(u => u.UserName!).Single(),
+                c.Id, c.Title, c.CharacterId, c.Status, c.CreatedAt, c.PublishedAt, c.EditedAt, c.Kind, c.CoverKey,
+                Start = c.Content.Substring(0, Math.Min(c.Content.Length, 300)),
+                Character = db.Characters.Where(ch => ch.Id == c.CharacterId).Select(ch => new { ch.Name, ch.AvatarKey }).SingleOrDefault(),
+                Author = db.Users.Where(u => u.Id == c.AuthorUserId).Select(u => new { UserName = u.UserName!, u.DisplayName, u.AvatarKey }).Single(),
             })
             .ToListAsync(ct);
-        return rows.Select(r => new ChapterSummary(r.Id, r.Title, r.CharacterId, r.Character, r.Author, r.Status, r.CreatedAt, r.PublishedAt, r.EditedAt, Excerpt(r.Start))).ToList();
+        return rows.Select(r => new ChapterSummary(
+            r.Id, r.Title, r.CharacterId, r.Character?.Name ?? r.Author.DisplayName, r.Author.UserName, r.Status, r.CreatedAt, r.PublishedAt, r.EditedAt, Excerpt(r.Start),
+            r.Kind, r.CoverKey, r.Character is null ? r.Author.AvatarKey : r.Character.AvatarKey)).ToList();
     }
 
     // ------------------------------------------------------------------ approval settings
@@ -196,11 +206,22 @@ public static class ChapterEndpoints
         var communityId = access!.Community.Id;
 
         var userId = user.UserId();
-        var character = await db.Characters.SingleOrDefaultAsync(
-            c => c.Id == req.CharacterId && c.CommunityId == communityId && c.OwnerUserId == userId && c.Status == CharacterStatus.Active, ct);
-        if (character is null) return Problems.Validation("characterId", "Escolha um dos seus personagens desta comunidade.");
+        var blog = req.Kind == PostKind.Blog;
+        Character? character = null;
+        if (!blog)
+        {
+            character = await db.Characters.SingleOrDefaultAsync(
+                c => c.Id == req.CharacterId && c.CommunityId == communityId && c.OwnerUserId == userId && c.Status == CharacterStatus.Active, ct);
+            if (character is null) return Problems.Validation("characterId", "Escolha um dos seus personagens desta comunidade.");
+        }
+        else if (req.SourceSceneId is not null || (req.CoauthorCharacterIds?.Count ?? 0) > 0)
+        {
+            return Problems.Validation("kind", "Blogs são posts OFF: não têm cena de origem nem coautores.");
+        }
+        var media = await ValidateMediaAsync(db, userId, req.CoverKey, req.BackgroundKey, req.MusicUrl, null, ct);
+        if (media is not null) return media;
 
-        var coauthorIds = (req.CoauthorCharacterIds ?? []).Distinct().Where(x => x != character.Id).ToList();
+        var coauthorIds = (req.CoauthorCharacterIds ?? []).Distinct().Where(x => x != character?.Id).ToList();
         if (req.SourceSceneId is { } sceneId)
         {
             var scene = await db.Scenes.SingleOrDefaultAsync(s => s.Id == sceneId && s.CommunityId == communityId, ct);
@@ -227,10 +248,14 @@ public static class ChapterEndpoints
         var chapter = new Chapter
         {
             CommunityId = communityId,
-            CharacterId = character.Id,
+            Kind = req.Kind,
+            CharacterId = character?.Id,
             AuthorUserId = userId,
             Title = req.Title.Trim(),
             Content = req.Content.Trim(),
+            CoverKey = req.CoverKey,
+            BackgroundKey = req.BackgroundKey,
+            MusicUrl = string.IsNullOrWhiteSpace(req.MusicUrl) ? null : req.MusicUrl.Trim(),
             SourceSceneId = req.SourceSceneId,
             ReplyToChapterId = req.ReplyToChapterId,
         };
@@ -259,12 +284,15 @@ public static class ChapterEndpoints
         if (!CanEdit(chapter!, access!, userId)) return Problems.Forbidden();
         var validation = Validate(req.Title, req.Content);
         if (validation is not null) return validation;
+        var media = await ValidateMediaAsync(db, userId, req.CoverKey, req.BackgroundKey, req.MusicUrl, chapter, ct);
+        if (media is not null) return media;
 
         if (req.Title.Trim() != chapter!.Title || req.Content.Trim() != chapter.Content)
-        {
             chapter.Edit(req.Title.Trim(), req.Content.Trim(), clock.GetUtcNow());
-            await db.SaveChangesAsync(ct);
-        }
+        chapter.CoverKey = req.CoverKey;
+        chapter.BackgroundKey = req.BackgroundKey;
+        chapter.MusicUrl = string.IsNullOrWhiteSpace(req.MusicUrl) ? null : req.MusicUrl.Trim();
+        await db.SaveChangesAsync(ct);
         return TypedResults.Ok(await DetailAsync(db, chapter, access!, userId, ct));
     }
 
@@ -277,7 +305,7 @@ public static class ChapterEndpoints
         if (chapter!.AuthorUserId != userId) return Problems.Forbidden("Só o autor pode publicar.");
         if (chapter.Status is ChapterStatus.Draft or ChapterStatus.Rejected)
         {
-            var character = await db.Characters.SingleAsync(c => c.Id == chapter.CharacterId, ct);
+            var character = await db.Characters.SingleOrDefaultAsync(c => c.Id == chapter.CharacterId, ct);
             await SubmitOrPublishAsync(db, notifications, chapter, character, access!, userId, clock, ct);
         }
         return TypedResults.Ok(await DetailAsync(db, chapter, access!, userId, ct));
@@ -291,7 +319,7 @@ public static class ChapterEndpoints
         if (!access!.Has(CommunityPermission.ModerateContent)) return Problems.Forbidden();
         if (chapter!.Status != ChapterStatus.Pending) return Problems.Conflict("Este capítulo não está aguardando aprovação.", "not_pending");
 
-        var character = await db.Characters.SingleAsync(c => c.Id == chapter.CharacterId, ct);
+        var character = await db.Characters.SingleOrDefaultAsync(c => c.Id == chapter.CharacterId, ct);
         await PublishNowAsync(db, notifications, chapter, character, userId, clock, ct);
         await notifications.NotifyAsync(chapter.AuthorUserId, NotificationType.ChapterDecision,
             $"Capítulo aprovado: \"{chapter.Title}\"", "Ele já está visível para a comunidade.", $"/capitulos/{chapter.Id}", chapter.CommunityId, userId, ct);
@@ -338,9 +366,10 @@ public static class ChapterEndpoints
 
     // ------------------------------------------------------------------ publishing
 
-    private static async Task SubmitOrPublishAsync(AppDbContext db, NotificationService notifications, Chapter chapter, Character character, MemberAccess access, Guid userId, TimeProvider clock, CancellationToken ct)
+    /// <summary>Chapters may go to the approval queue; blogs (OFF posts) are always published directly.</summary>
+    private static async Task SubmitOrPublishAsync(AppDbContext db, NotificationService notifications, Chapter chapter, Character? character, MemberAccess access, Guid userId, TimeProvider clock, CancellationToken ct)
     {
-        if (!NeedsApproval(access))
+        if (chapter.Kind == PostKind.Blog || !NeedsApproval(access))
         {
             await PublishNowAsync(db, notifications, chapter, character, userId, clock, ct);
             return;
@@ -349,15 +378,16 @@ public static class ChapterEndpoints
         await db.SaveChangesAsync(ct);
         var moderators = await ModeratorIdsAsync(db, chapter.CommunityId, ct);
         await notifications.NotifyAsync(moderators, NotificationType.ChapterApproval,
-            $"Capítulo aguardando aprovação: \"{chapter.Title}\"", $"De {character.Name}.", $"/capitulos/{chapter.Id}", chapter.CommunityId, userId, ct);
+            $"Capítulo aguardando aprovação: \"{chapter.Title}\"", $"De {character?.Name}.", $"/capitulos/{chapter.Id}", chapter.CommunityId, userId, ct);
     }
 
     /// <summary>Publishes and notifies everyone tagged with "@" (they are expected to answer).</summary>
-    private static async Task PublishNowAsync(AppDbContext db, NotificationService notifications, Chapter chapter, Character character, Guid actorId, TimeProvider clock, CancellationToken ct)
+    private static async Task PublishNowAsync(AppDbContext db, NotificationService notifications, Chapter chapter, Character? character, Guid actorId, TimeProvider clock, CancellationToken ct)
     {
         var now = clock.GetUtcNow();
         chapter.Publish(now);
-        character.LastActivityAt = now;
+        if (character is not null) character.LastActivityAt = now;
+        var who = character?.Name ?? await db.Users.Where(u => u.Id == chapter.AuthorUserId).Select(u => u.DisplayName).SingleAsync(ct);
         await db.SaveChangesAsync(ct);
 
         var mentions = await db.Set<ChapterMention>().Where(m => m.ChapterId == chapter.Id).ToListAsync(ct);
@@ -365,7 +395,7 @@ public static class ChapterEndpoints
         var owners = await db.Characters.Where(c => characterIds.Contains(c.Id)).Select(c => c.OwnerUserId).ToListAsync(ct);
         var targets = owners.Concat(mentions.Where(m => m.UserId != null).Select(m => m.UserId!.Value));
         await notifications.NotifyAsync(targets, NotificationType.Mention,
-            $"{character.Name} marcou você em \"{chapter.Title}\"", "Responda para a história avançar.", $"/capitulos/{chapter.Id}", chapter.CommunityId, chapter.AuthorUserId, ct);
+            $"{who} marcou você em \"{chapter.Title}\"", chapter.Kind == PostKind.Blog ? "Veja o blog." : "Responda para a história avançar.", $"/capitulos/{chapter.Id}", chapter.CommunityId, chapter.AuthorUserId, ct);
     }
 
     private static async Task<List<Guid>> ModeratorIdsAsync(AppDbContext db, Guid communityId, CancellationToken ct)
@@ -405,16 +435,36 @@ public static class ChapterEndpoints
         return null;
     }
 
+    /// <summary>Cover/background must be the author's own uploads; music is a YouTube, Spotify or SoundCloud link.</summary>
+    private static async Task<IResult?> ValidateMediaAsync(AppDbContext db, Guid userId, string? cover, string? background, string? music, Chapter? current, CancellationToken ct)
+    {
+        foreach (var (key, old) in new[] { (cover, current?.CoverKey), (background, current?.BackgroundKey) })
+            if (key is not null && key != old && !await Uploads.UploadEndpoints.OwnsAsync(db, key, userId, ct))
+                return Problems.Validation("image", "Envie a imagem antes de usá-la.");
+        if (!string.IsNullOrWhiteSpace(music) && !IsMusicLink(music.Trim()))
+            return Problems.Validation("musicUrl", "Use um link do YouTube, Spotify ou SoundCloud.");
+        return null;
+    }
+
+    public static bool IsMusicLink(string url) =>
+        url.Length <= 500 && Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps
+        && new[] { "youtube.com", "youtu.be", "spotify.com", "soundcloud.com" }.Any(h => uri.Host == h || uri.Host.EndsWith("." + h));
+
+    /// <summary>Plain-text excerpt: image lines (![...](...)) and markdown marks are dropped.</summary>
     private static string Excerpt(string start)
     {
+        start = System.Text.RegularExpressions.Regex.Replace(start, @"!\[[^\]]*\]\([^)]*\)", " ");
         var flat = string.Join(' ', start.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         return flat.Length <= 160 ? flat : flat[..160].TrimEnd() + "…";
     }
 
     private static async Task<ChapterDetail> DetailAsync(AppDbContext db, Chapter c, MemberAccess access, Guid userId, CancellationToken ct)
     {
-        var characterName = await db.Characters.Where(ch => ch.Id == c.CharacterId).Select(ch => ch.Name).SingleAsync(ct);
-        var author = await db.Users.Where(u => u.Id == c.AuthorUserId).Select(u => u.UserName!).SingleAsync(ct);
+        var character = await db.Characters.Where(ch => ch.Id == c.CharacterId).Select(ch => new { ch.Name, ch.AvatarKey }).SingleOrDefaultAsync(ct);
+        var authorUser = await db.Users.Where(u => u.Id == c.AuthorUserId).Select(u => new { UserName = u.UserName!, u.DisplayName, u.AvatarKey }).SingleAsync(ct);
+        var author = authorUser.UserName;
+        var characterName = character?.Name ?? authorUser.DisplayName;
+        var featured = await db.FeaturedItems.AnyAsync(f => f.CommunityId == c.CommunityId && f.ItemType == FeaturedItemType.Post && f.ItemId == c.Id, ct);
         var sceneTitle = c.SourceSceneId is null ? null : await db.Scenes.Where(s => s.Id == c.SourceSceneId).Select(s => s.Title).SingleOrDefaultAsync(ct);
         var replyTitle = c.ReplyToChapterId is null ? null : await db.Chapters.Where(x => x.Id == c.ReplyToChapterId).Select(x => x.Title).SingleOrDefaultAsync(ct);
         var coauthors = await db.Set<ChapterCoauthor>().Where(x => x.ChapterId == c.Id)
@@ -435,6 +485,8 @@ public static class ChapterEndpoints
             c.AuthorUserId == userId || access.Has(CommunityPermission.ModerateContent) ? c.RejectionReason : null,
             CanModerate: access.Has(CommunityPermission.ModerateContent),
             c.SourceSceneId, sceneTitle, c.ReplyToChapterId, replyTitle,
-            coauthors, mentionedCharacters.Select(x => x.Dto).ToList(), mentionedUsers, mentionsMe);
+            coauthors, mentionedCharacters.Select(x => x.Dto).ToList(), mentionedUsers, mentionsMe,
+            c.Kind, c.CoverKey, c.BackgroundKey, c.MusicUrl, character?.AvatarKey ?? authorUser.AvatarKey,
+            CanFeature: access.Has(CommunityPermission.ModerateContent) && c.Status == ChapterStatus.Published, IsFeatured: featured);
     }
 }

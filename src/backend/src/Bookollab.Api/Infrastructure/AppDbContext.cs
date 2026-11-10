@@ -33,6 +33,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<SceneInvite> SceneInvites => Set<SceneInvite>();
     public DbSet<SceneJoinRequest> SceneJoinRequests => Set<SceneJoinRequest>();
     public DbSet<Domain.Mechanics.InventoryItem> InventoryItems => Set<Domain.Mechanics.InventoryItem>();
+    public DbSet<FeaturedItem> FeaturedItems => Set<FeaturedItem>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configuration)
     {

@@ -50,6 +50,22 @@ Próximas melhorias (a fazer):
 - [ ] Transferência de posse da comunidade (permite ao dono sair).
 - [ ] Cor de marca: o roxo sólido ficou. Se o usuário quiser outra identidade (cor/nome do tema), definir com ele.
 
+### Quarta rodada (2026-11-10)
+- [x] Reordenar por **arrastar e soltar** em todo lugar: seções da comunidade, seções da tela inicial, ordem dos turnos, pastas da enciclopédia e destaques.
+- [x] **Todo nome é link**: comunidade, personagem, membro, cena e post em cartões, perfis, enciclopédia, capítulos e blogs.
+- [x] **Identidade da comunidade** nas configurações (capa, ícone e nome no topo) e no chat da cena (ícone e nome).
+- [x] **"Staff" virou "Moderação"** em todo o app; o cargo base agora se chama "Moderador" (os cargos existentes foram renomeados).
+- [x] **Blog**: novo tipo de post OFF, feito pelo jogador, no mesmo formato do capítulo.
+- [x] **Formato de blog** para capítulos e blogs: capa, imagens no meio do texto, fundo de leitura e música (YouTube, Spotify ou SoundCloud).
+- [x] **Página da comunidade como a do Amino**:
+  - destaques no topo (a moderação destaca capítulo, blog, ficha ou personagem e organiza arrastando);
+  - layout dos posts escolhido pelo dono: destaque com lista, carrossel ou galeria de capas;
+  - cabeçalho que fica fixo ao rolar, com as abas compactas.
+- [x] **Diretismo na enciclopédia**: criar, renomear, ordenar e apagar pastas, mover fichas, destacar, e modelos e regras, tudo na própria tela, para quem tem a permissão.
+- [ ] Levar o diretismo às outras telas: por exemplo, editar os campos da ficha de personagem a partir da própria ficha e aprovar pedidos de entrada a partir da lista de membros.
+- [ ] Editor de texto rico (negrito, itálico, títulos) além das imagens.
+- [ ] Música por upload de áudio, se o link não bastar (decisão do usuário).
+
 ## Pedidos do usuário (2026-11-05)
 
 ### Cenas como chat (no estilo do Amino)

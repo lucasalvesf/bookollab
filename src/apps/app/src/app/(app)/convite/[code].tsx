@@ -36,7 +36,7 @@ export default function InviteScreen() {
           ) : p.usable ? (
             <Button title="Aceitar convite" onPress={() => accept.mutate()} loading={accept.isPending} />
           ) : (
-            <Notice kind="error">Este convite expirou ou atingiu o limite de usos. Peça um novo para a staff.</Notice>
+            <Notice kind="error">Este convite expirou ou atingiu o limite de usos. Peça um novo para a moderação.</Notice>
           )}
         </Page>
       )}

@@ -7,6 +7,7 @@ import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { Avatar } from '@/components/avatar';
 import { ChipPicker } from '@/components/pickers';
+import { SortableList } from '@/components/sortable';
 import { Notice } from '@/components/ui';
 
 import type { SceneDetail } from './types';
@@ -46,37 +47,30 @@ export function SceneTurns({ scene }: { scene: SceneDetail }) {
   const skip = useMutation({ mutationFn: () => unwrap(api.POST('/scenes/{id}/skip-turn', { params: { path: { id: scene.id } } })), onSuccess: setScene });
   if (scene.writingMode !== 'Turns') return null;
 
-  const ids = scene.participants.map((p) => p.characterId);
-  const move = (index: number, delta: number) => {
-    const next = [...ids];
-    const target = index + delta;
-    if (target < 0 || target >= next.length) return;
-    [next[index], next[target]] = [next[target], next[index]];
-    reorder.mutate(next);
-  };
+
 
   return (
     <View style={styles.block}>
       <Text style={styles.title}>Ordem dos turnos</Text>
       {scene.turnDeadline ? <Text style={styles.muted}>Prazo da vez atual: {deadlineFmt.format(new Date(scene.turnDeadline))}</Text> : null}
       {scene.participants.length === 0 ? <Text style={styles.muted}>A ordem começa quando alguém entrar.</Text> : null}
-      {scene.participants.map((p, i) => {
-        const current = p.characterId === scene.currentTurnCharacterId;
-        return (
-          <View key={p.characterId} style={[styles.turnRow, current && styles.turnCurrent]}>
-            <Text style={styles.position}>{i + 1}</Text>
-            <Avatar name={p.characterName} imageKey={p.characterAvatarKey} size={28} />
-            <Text style={[styles.name, current && styles.nameCurrent]} numberOfLines={1}>{p.characterName}</Text>
-            {current ? <Text style={styles.now}>VEZ</Text> : null}
-            {scene.canManage ? (
-              <View style={styles.arrows}>
-                <Pressable accessibilityRole="button" accessibilityLabel="Subir" onPress={() => move(i, -1)} hitSlop={6}><Text style={styles.arrow}>▲</Text></Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel="Descer" onPress={() => move(i, 1)} hitSlop={6}><Text style={styles.arrow}>▼</Text></Pressable>
-              </View>
-            ) : null}
-          </View>
-        );
-      })}
+      <SortableList
+        items={scene.participants}
+        keyOf={(p) => p.characterId}
+        disabled={!scene.canManage}
+        onReorder={(next) => reorder.mutate(next.map((p) => p.characterId))}
+        renderItem={(p, i) => {
+          const current = p.characterId === scene.currentTurnCharacterId;
+          return (
+            <View style={[styles.turnRow, current && styles.turnCurrent]}>
+              <Text style={styles.position}>{i + 1}</Text>
+              <Avatar name={p.characterName} imageKey={p.characterAvatarKey} size={28} />
+              <Text style={[styles.name, current && styles.nameCurrent]} numberOfLines={1}>{p.characterName}</Text>
+              {current ? <Text style={styles.now}>VEZ</Text> : null}
+            </View>
+          );
+        }}
+      />
       {scene.canSkipTurn && scene.currentTurnCharacterId ? (
         <Pressable accessibilityRole="button" onPress={() => skip.mutate()}>
           <Text style={styles.link}>Pular a vez</Text>

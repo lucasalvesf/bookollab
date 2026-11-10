@@ -19,7 +19,7 @@ public sealed record ProfileCharacterDto(Guid Id, string Name, string? AvatarKey
 
 public sealed record ProfileSheetDto(Guid Id, string Name, string? Kind, string? ImageKey);
 
-public sealed record ProfileChapterDto(Guid Id, string Title, string CharacterName, DateTimeOffset? PublishedAt);
+public sealed record ProfileChapterDto(Guid Id, string Title, string CharacterName, DateTimeOffset? PublishedAt, Domain.Chapters.PostKind Kind = Domain.Chapters.PostKind.Chapter, string? CoverKey = null);
 
 public sealed record ProfileSceneDto(Guid Id, string Title, string Status, DateTimeOffset CreatedAt);
 
@@ -125,7 +125,7 @@ public static class PublicProfileEndpoints
         var chapters = await db.Chapters
             .Where(c => c.CommunityId == community.Id && c.AuthorUserId == m.UserId && c.Status == ChapterStatus.Published && c.DeletedAt == null)
             .OrderByDescending(c => c.PublishedAt).Take(20)
-            .Join(db.Characters, c => c.CharacterId, ch => ch.Id, (c, ch) => new ProfileChapterDto(c.Id, c.Title, ch.Name, c.PublishedAt))
+            .Select(c => new ProfileChapterDto(c.Id, c.Title, db.Characters.Where(ch => ch.Id == c.CharacterId).Select(ch => ch.Name).FirstOrDefault() ?? "Blog", c.PublishedAt, c.Kind, c.CoverKey))
             .ToListAsync(ct);
 
         var characterIds = characters.Select(c => c.Id).ToList();

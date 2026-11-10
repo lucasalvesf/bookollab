@@ -33,7 +33,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("author_user_id");
 
-                    b.Property<Guid>("CharacterId")
+                    b.Property<string>("BackgroundKey")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("background_key");
+
+                    b.Property<Guid?>("CharacterId")
                         .HasColumnType("uuid")
                         .HasColumnName("character_id");
 
@@ -47,6 +52,11 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("character varying(200000)")
                         .HasColumnName("content");
 
+                    b.Property<string>("CoverKey")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("cover_key");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -58,6 +68,17 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("EditedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("edited_at");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("MusicUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("music_url");
 
                     b.Property<DateTimeOffset?>("PublishedAt")
                         .HasColumnType("timestamp with time zone")
@@ -304,6 +325,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("dice_enabled");
 
+                    b.Property<string>("FeedLayout")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("feed_layout");
+
                     b.Property<bool>("FreeSheetsEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("free_sheets_enabled");
@@ -401,6 +428,51 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasDatabaseName("ix_community_roles_community_id_name");
 
                     b.ToTable("community_roles", (string)null);
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Communities.FeaturedItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CommunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("community_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("FeaturedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("featured_by_user_id");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("item_type");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.HasKey("Id")
+                        .HasName("pk_featured_items");
+
+                    b.HasIndex("FeaturedByUserId")
+                        .HasDatabaseName("ix_featured_items_featured_by_user_id");
+
+                    b.HasIndex("CommunityId", "ItemType", "ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_featured_items_community_id_item_type_item_id");
+
+                    b.ToTable("featured_items", (string)null);
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Communities.Invite", b =>
@@ -1430,7 +1502,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("fk_chapters_characters_character_id");
 
                     b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
@@ -1610,6 +1681,23 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_community_roles_communities_community_id");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Communities.FeaturedItem", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
+                        .WithMany()
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_featured_items_communities_community_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("FeaturedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_featured_items_users_featured_by_user_id");
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Communities.Invite", b =>

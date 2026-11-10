@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BookMarked, Check, Plus, Dices, FileCheck2, IdCard, LayoutList, Link2, Paintbrush, UserPlus, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -8,7 +8,9 @@ import { Pressable, Text, View } from 'react-native';
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
+import { Avatar } from '@/components/avatar';
 import { ChapterApprovalAdmin } from '@/components/chapter-approval-admin';
+import { CommunityCover } from '@/components/community';
 import { AppearanceAdmin, SectionsAdmin } from '@/components/community-admin';
 import { EncyclopediaAdmin } from '@/components/encyclopedia-admin';
 import { MechanicsAdmin } from '@/components/mechanics';
@@ -22,6 +24,8 @@ type FieldType = components['schemas']['SheetFieldType'];
 const TYPES: FieldType[] = ['Text', 'LongText', 'Number'];
 
 export default function StaffScreen() {
+  const styles = useStyles();
+  const router = useRouter();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const community = useQuery({
     queryKey: ['community', slug],
@@ -59,7 +63,24 @@ export default function StaffScreen() {
           sheet: manage,
           mechanics: manage,
         };
-        return <SettingsLayout title="Configurações" subtitle={c.name} pages={pages.filter((p) => allowed[p.key])} />;
+        return (
+          <SettingsLayout
+            title="Moderação"
+            subtitle="Configurações da comunidade"
+            pages={pages.filter((p) => allowed[p.key])}
+            identity={
+              <Pressable accessibilityRole="link" accessibilityLabel={`Abrir ${c.name}`} onPress={() => router.push({ pathname: '/c/[slug]', params: { slug } })}>
+                <CommunityCover name={c.name} coverKey={c.coverKey} height={84} />
+                <View style={styles.identity}>
+                  <View style={styles.identityIcon}>
+                    <Avatar name={c.name} imageKey={c.iconKey} size={52} shape="rounded" />
+                  </View>
+                  <Text style={styles.identityName} numberOfLines={2}>{c.name}</Text>
+                </View>
+              </Pressable>
+            }
+          />
+        );
       }}
     </Loadable>
   );
@@ -225,6 +246,9 @@ function SheetEditor({ slug, initial }: { slug: string; initial: SheetField[] })
 }
 
 const useStyles = makeStyles((colors) => ({
+  identity: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 16, marginTop: -26, paddingBottom: 6 },
+  identityIcon: { borderRadius: 18, borderWidth: 3, borderColor: colors.surface, backgroundColor: colors.surface },
+  identityName: { flex: 1, fontSize: 15, fontWeight: '800', color: colors.text, paddingBottom: 4 },
   inline: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' },
   smallButton: { width: 96 },
   flex: { flex: 1, minWidth: 140 },

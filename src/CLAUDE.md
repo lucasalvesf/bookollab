@@ -61,6 +61,9 @@ Decisões de produto em `docs/visao-produto.md` → "Visual e navegação do app
 - **Ícones**: `lucide-react-native` (nunca emoji como ícone; emoji só no conteúdo dos usuários).
 - **Componentes base**: `Page` (com `hero` opcional), `Section`, `Row` (`icon`/`left`), `Tag` (tons), `Empty`, `Loadable` (esqueleto), `Button` (variantes e `icon`), `IconButton`, `PressableScale`, `ChipPicker` (`segmented`), `Avatar` (`shape="rounded"` para comunidades), `CommunityCover`/`CommunityCard`.
 - **Moldura do app** (`components/app-shell.tsx`): faixa lateral de comunidades na web larga (≥ 900 px) e barra inferior no celular só nas rotas de topo (`/`, `/descobrir`, `/notificacoes`, `/perfil`).
+- **Reordenar = arrastar**: use `SortableList` (`components/sortable.tsx`), com alça, gesto do RNGH e Reanimated. O app fica dentro de `GestureHandlerRootView`; um `Modal` precisa do seu próprio `GestureHandlerRootView`.
+- **Nomes são links**: `NameChip` / `NameLink` (`components/links.tsx`). Destaques: `useFeatureMenu` devolve o item de menu "Destacar / Tirar dos destaques".
+- **Posts (capítulo/blog)**: o texto guarda imagens como linhas `![legenda](chaveDoUpload)`; quem renderiza é `RichText` e quem edita é `PostEditor` (capa, fundo e música). A música usa `MusicPlayer`, com iframe na web (`music-player.web.tsx`) e link no celular. Arquivo `.web.tsx` nunca importa o próprio nome sem extensão (resolveria para ele mesmo).
 - Animações com Reanimated: use `sharedValue.set()/get()` (o lint do React Compiler barra `.value = ...`).
 
 ## Organização do backend

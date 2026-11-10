@@ -6,6 +6,7 @@ import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from 'exp
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { SessionProvider, useSession } from '@/auth/session';
 import { MenuProvider } from '@/components/menu';
@@ -17,15 +18,17 @@ export default function RootLayout() {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <AppThemeProvider>
-          <NavigationTheme>
-            <RootNavigator />
-          </NavigationTheme>
-        </AppThemeProvider>
-      </SessionProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider>
+          <AppThemeProvider>
+            <NavigationTheme>
+              <RootNavigator />
+            </NavigationTheme>
+          </AppThemeProvider>
+        </SessionProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 

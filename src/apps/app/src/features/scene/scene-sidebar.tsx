@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, NotebookPen, X } from 'lucide-react-native';
@@ -33,6 +33,7 @@ export function SceneSidebar({
   onClose?: () => void;
 }) {
   const styles = useStyles();
+  const community = useQuery({ queryKey: ['community', scene.communitySlug], queryFn: () => unwrap(api.GET('/communities/{slug}', { params: { path: { slug: scene.communitySlug } } })) });
   const { colors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -76,7 +77,7 @@ export function SceneSidebar({
     <ScrollView style={styles.sidebar} contentContainerStyle={styles.content}>
       <View style={styles.topRow}>
         <Pressable accessibilityRole="link" onPress={() => router.replace({ pathname: '/c/[slug]', params: { slug: scene.communitySlug } })} hitSlop={8}>
-          <View style={styles.backRow}><ChevronLeft size={18} color={colors.brand} /><Text style={styles.back}>{scene.communityName}</Text></View>
+          <View style={styles.backRow}><ChevronLeft size={18} color={colors.brand} /><Avatar name={scene.communityName} imageKey={community.data?.iconKey} size={26} shape="rounded" /><Text style={styles.back} numberOfLines={1}>{scene.communityName}</Text></View>
         </Pressable>
         {onClose ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Fechar painel" onPress={onClose} hitSlop={8}>
@@ -209,7 +210,7 @@ const useStyles = makeStyles((colors) => ({
   sidebar: { flex: 1, backgroundColor: colors.surface },
   content: { padding: 20, gap: 20 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  backRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   back: { color: colors.brand, fontSize: 14, fontWeight: '600' },
   block: { gap: 10 },
   title: { fontSize: 22, fontWeight: '800', color: colors.text, letterSpacing: -0.4 },
