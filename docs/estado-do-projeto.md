@@ -37,6 +37,7 @@ Tudo na `main`, entregue em Pull Requests com CI verde:
 | #13 | Comunidades com pedido aparecem no Descobrir (só as só por convite ficam ocultas) |
 | #14 | Redesign: tema claro/escuro com contraste AA, fontes Inter/Literata, ícones Lucide, faixa lateral de comunidades (web) e barra inferior (celular), página da comunidade no estilo Amino (capa, ícone, abas reordenáveis pelo dono) |
 | #15 | UX, segunda rodada: menu de contexto (botão direito) e "⋯", configurações no estilo Discord com busca, Ctrl+K, tela inicial personalizável com carrosséis, aba Visão geral, busca nas listas e no chat, rolagem corrigida, sem degradês, sair da comunidade |
+| #16 | UX, terceira rodada: perfis e personagem no estilo Amino, enciclopédia em grade com filtros, formulários em seções com barra de ações fixa, membros agrupados por cargo |
 
 **Testes:** 102 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
 
