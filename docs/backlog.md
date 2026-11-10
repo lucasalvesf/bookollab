@@ -19,7 +19,8 @@ Princípio pedido pelo usuário: cada tela parte do **propósito** e de **como A
 Feito agora:
 - [x] Rolagem quebrada em várias telas (página dentro de `Loadable` não rolava). Barras de rolagem visíveis e com o estilo do tema na web.
 - [x] Fim do degradê roxo: telas de entrada, avatares e capas usam cores sólidas.
-- [x] Menu de contexto próprio do app (botão direito na web; pressionar e segurar no celular) e menu "⋯" com o mesmo conteúdo.
+- [x] Menu de contexto próprio do app (botão direito na web) e menu "⋯" com o mesmo conteúdo (o caminho no celular por enquanto).
+- [ ] Pressionar e segurar no celular abrindo o mesmo menu de contexto.
   - Na faixa de comunidades: abrir, meu perfil, área da staff, copiar link, sair.
   - Também em comunidades, cenas, capítulos, personagens, membros, ações do chat e notificações.
 - [x] Configurações da comunidade no estilo Discord:
