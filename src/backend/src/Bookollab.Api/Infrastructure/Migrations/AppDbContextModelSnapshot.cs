@@ -1194,6 +1194,11 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("email_confirmed");
 
+                    b.PrimitiveCollection<List<string>>("HomeSections")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("home_sections");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("lockout_enabled");

@@ -1,21 +1,20 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { AlertCircle, BookOpen, CheckCircle2, Info, type LucideIcon } from 'lucide-react-native';
 import { useState, type PropsWithChildren } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View, type TextInputProps } from 'react-native';
 import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { brandGradient, makeStyles, radius, shadow, useTheme } from '@/theme';
+import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
-/** Account screens: brand gradient on the side (wide) or top (narrow), form card in front. */
+/** Account screens: logo, tagline and the form card on a calm neutral background. */
 export function AuthScreen({ title, subtitle, children }: PropsWithChildren<{ title: string; subtitle?: string }>) {
   const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <LinearGradient colors={brandGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradient} />
       <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
         <View style={styles.brandRow}>
           <View style={styles.logo}>
-            <BookOpen size={22} color="#FFFFFF" strokeWidth={2.4} />
+            <BookOpen size={22} color={colors.brandText} strokeWidth={2.4} />
           </View>
           <Text style={styles.brand}>Bookollab</Text>
         </View>
@@ -176,13 +175,12 @@ export function TextLink({ title, onPress }: { title: string; onPress: () => voi
 
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1, backgroundColor: colors.background },
-  gradient: { position: 'absolute', top: 0, left: 0, right: 0, height: 320 },
-  screen: { flexGrow: 1, alignItems: 'center', padding: 24, paddingTop: 48, gap: 8 },
+  screen: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logo: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  brand: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
-  tagline: { fontSize: 15, color: 'rgba(255,255,255,0.9)', marginBottom: 20 },
-  card: { width: '100%', maxWidth: 440, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 28, ...shadow(colors, 3) },
+  logo: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
+  brand: { fontSize: 28, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
+  tagline: { fontSize: 15, color: colors.textMuted, marginBottom: 20 },
+  card: { width: '100%', maxWidth: 440, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 28, borderWidth: 1, borderColor: colors.border, ...shadow(colors, 2) },
   title: { fontSize: 24, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
   subtitle: { fontSize: 15, color: colors.textMuted, marginTop: 6, lineHeight: 21 },
   body: { marginTop: 22, gap: 16 },

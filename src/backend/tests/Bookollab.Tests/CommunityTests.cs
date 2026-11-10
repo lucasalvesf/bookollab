@@ -95,11 +95,11 @@ public sealed class CommunityTests(ApiFactory factory) : IClassFixture<ApiFactor
         Assert.Equal(HttpStatusCode.Forbidden, (await staff.PutJsonAsync($"/communities/{community.Slug}/sections", new UpdateSectionsRequest(["members"]))).StatusCode);
 
         var updated = await (await owner.PutJsonAsync($"/communities/{community.Slug}/sections", new UpdateSectionsRequest(["encyclopedia", "scenes"]))).ReadAsync<CommunityDetail>();
-        Assert.Equal(["encyclopedia", "scenes", "chapters", "characters", "members"], updated.Sections); // missing ones keep their place at the end
+        Assert.Equal(["overview", "encyclopedia", "scenes", "chapters", "characters", "members"], updated.Sections); // overview stays first when omitted; missing ones go to the end
         Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutJsonAsync($"/communities/{community.Slug}/sections", new UpdateSectionsRequest(["shop"]))).StatusCode);
 
         var seen = await (await staff.GetAsync($"/communities/{community.Slug}")).ReadAsync<CommunityDetail>();
-        Assert.Equal("encyclopedia", seen.Sections![0]);
+        Assert.Equal("encyclopedia", seen.Sections![1]);
     }
 
     [Fact]

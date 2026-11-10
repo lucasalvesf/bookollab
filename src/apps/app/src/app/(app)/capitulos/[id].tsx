@@ -1,16 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Clapperboard, Mail, PenLine, Reply } from 'lucide-react-native';
+import { Clapperboard, Compass, History, Link2, Mail, Pencil, PenLine, Reply, Send, Trash2, X, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
+import { Avatar } from '@/components/avatar';
 import { Loadable, Page, Section, Tag } from '@/components/layout';
-import { ConfirmButton } from '@/components/pickers';
+import { ContextMenu, MoreButton, useCopyLink, useMenu, type MenuItem } from '@/components/menu';
 import { Button, Field, Notice } from '@/components/ui';
-import { makeStyles, useTheme } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 
 type Chapter = components['schemas']['ChapterDetail'];
 
@@ -20,6 +21,8 @@ export default function ChapterScreen() {
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const copyLink = useCopyLink();
+  const { openMenu } = useMenu();
   const queryClient = useQueryClient();
   const key = ['chapter', id];
   const chapter = useQuery({ queryKey: key, queryFn: () => unwrap(api.GET('/chapters/{id}', { params: { path: { id } } }), 'Capítulo não encontrado.') });
@@ -64,14 +67,43 @@ export default function ChapterScreen() {
     },
   });
 
+  const startEditing = (c: Chapter) => {
+    setTitle(c.title);
+    setContent(c.content);
+    setProblem(undefined);
+    setEditing(true);
+  };
+  const chapterMenu = (c: Chapter): MenuItem[] => [
+    { label: 'Responder com um capítulo', icon: Reply, hidden: c.status !== 'Published', onPress: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug: c.communitySlug, replyTo: c.id, mention: c.characterId } }) },
+    { label: 'Editar', icon: Pencil, hidden: !c.canEdit, onPress: () => startEditing(c) },
+    { label: showHistory ? 'Ocultar histórico de edições' : 'Histórico de edições', icon: History, hidden: !(c.canViewRevisions && c.editedAt), onPress: () => setShowHistory((v) => !v) },
+    { label: 'Abrir a comunidade', icon: Compass, onPress: () => router.push({ pathname: '/c/[slug]', params: { slug: c.communitySlug } }) },
+    'separator',
+    { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/capitulos/${c.id}`) },
+    ...(c.canDelete
+      ? (['separator', {
+          label: 'Apagar capítulo',
+          icon: Trash2,
+          danger: true,
+          onPress: () => openMenu([{ label: 'Apagar de vez', icon: Trash2, danger: true, onPress: () => remove.mutate() }, { label: 'Cancelar', icon: X, onPress: () => undefined }], undefined, 'Apagar este capítulo?'),
+        }] as MenuItem[])
+      : []),
+  ];
+
   return (
     <Loadable query={chapter}>
       {(c) => (
         <Page
           title={editing ? 'Editar capítulo' : c.title}
-          subtitle={`${c.characterName} · por @${c.authorUserName} · ${c.communityName}`}
           back
-          actions={<Tag label={STATUS_LABELS[c.status] ?? (c.editedAt ? 'Editado' : 'Publicado')} />}>
+          actions={
+            editing ? undefined : (
+              <View style={styles.inline}>
+                {STATUS_LABELS[c.status] ? <Tag label={STATUS_LABELS[c.status]!} tone={c.status === 'Rejected' ? 'danger' : c.status === 'Pending' ? 'warning' : 'neutral'} /> : null}
+                <MoreButton items={chapterMenu(c)} title={c.title} size={38} />
+              </View>
+            )
+          }>
           {editing ? (
             <>
               {problem && !problemMessage(problem, 'title') && !problemMessage(problem, 'content') ? <Notice kind="error">{problemMessage(problem)}</Notice> : null}
@@ -87,49 +119,52 @@ export default function ChapterScreen() {
               ) : null}
               {c.status === 'Rejected' ? <Notice kind="error">{`Recusado pela staff${c.rejectionReason ? `: ${c.rejectionReason}` : '.'} Edite e reenvie.`}</Notice> : null}
               {c.mentionsMe && c.status === 'Published' ? <Notice kind="success">Você foi marcado neste capítulo. Responda para a história avançar!</Notice> : null}
-              <Text style={styles.meta}>
-                {c.publishedAt ? `Publicado em ${dateFmt.format(new Date(c.publishedAt))}` : 'Ainda não publicado'}
-                {c.editedAt ? ` · editado em ${dateFmt.format(new Date(c.editedAt))}` : ''}
-              </Text>
-              <ChapterContext chapter={c} />
-              <View style={styles.paper}>
-                <Text style={styles.body}>{c.content}</Text>
-              </View>
+              {c.status === 'Draft' || c.status === 'Rejected' ? (
+                <View style={styles.draftBar}>
+                  <Text style={styles.draftText}>{c.status === 'Draft' ? 'Rascunho: só você vê.' : 'Faça os ajustes e reenvie para a staff.'}</Text>
+                  {c.canEdit ? <Button title="Editar" icon={Pencil} size="sm" variant="ghost" onPress={() => startEditing(c)} /> : null}
+                  <Button title={c.status === 'Rejected' ? 'Reenviar' : 'Publicar'} icon={Send} size="sm" onPress={() => publish.mutate()} loading={publish.isPending} />
+                </View>
+              ) : null}
+              {c.status === 'Pending' && c.canModerate ? <ModerationBox chapterId={c.id} /> : null}
+
+              <ContextMenu items={chapterMenu(c)} title={c.title}>
+                <View style={styles.byline}>
+                  <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/personagens/[id]', params: { id: c.characterId } })}>
+                    <Avatar name={c.characterName} size={42} />
+                  </Pressable>
+                  <View style={styles.flex}>
+                    <Text style={styles.bylineName}>{c.characterName}</Text>
+                    <Text style={styles.meta}>
+                      {`por @${c.authorUserName} · `}
+                      {c.publishedAt ? dateFmt.format(new Date(c.publishedAt)) : 'não publicado'}
+                      {c.editedAt ? ' · editado' : ''}
+                    </Text>
+                  </View>
+                  <Pressable accessibilityRole="link" onPress={() => router.push({ pathname: '/c/[slug]', params: { slug: c.communitySlug } })} style={styles.communityChip}>
+                    <Text style={styles.communityChipText} numberOfLines={1}>{c.communityName}</Text>
+                  </Pressable>
+                </View>
+                <ChapterContext chapter={c} />
+                <View style={styles.paper}>
+                  <Text style={styles.body}>{c.content}</Text>
+                </View>
+              </ContextMenu>
               {publish.isError ? <Notice kind="error">{publish.error.message}</Notice> : null}
               {remove.isError ? <Notice kind="error">{remove.error.message}</Notice> : null}
-              <View style={styles.actions}>
-                {c.status === 'Pending' && c.canModerate ? <ModerationBox chapterId={c.id} /> : null}
-                {c.status === 'Draft' || c.status === 'Rejected' ? (
-                  <Button title={c.status === 'Rejected' ? 'Reenviar para aprovação' : 'Publicar'} onPress={() => publish.mutate()} loading={publish.isPending} />
-                ) : null}
-                {c.status === 'Published' ? (
-                  <Button
-                    title="Responder com um capítulo"
-                    variant="secondary"
+
+              {c.status === 'Published' ? (
+                <View style={styles.actionBar}>
+                  <ActionChip
+                    icon={Reply}
+                    label="Responder"
                     onPress={() => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug: c.communitySlug, replyTo: c.id, mention: c.characterId } })}
                   />
-                ) : null}
-                {c.canEdit ? (
-                  <Button
-                    title="Editar"
-                    variant="secondary"
-                    onPress={() => {
-                      setTitle(c.title);
-                      setContent(c.content);
-                      setProblem(undefined);
-                      setEditing(true);
-                    }}
-                  />
-                ) : null}
-                <View style={styles.inline}>
-                  {c.canDelete ? <ConfirmButton label="Apagar capítulo" confirmLabel="Confirmar exclusão" onConfirm={() => remove.mutate()} /> : null}
-                  {c.canViewRevisions && c.editedAt ? (
-                    <Pressable accessibilityRole="button" onPress={() => setShowHistory((v) => !v)}>
-                      <Text style={styles.link}>{showHistory ? 'Ocultar histórico' : 'Ver histórico de edições'}</Text>
-                    </Pressable>
-                  ) : null}
+                  <ActionChip icon={Link2} label="Compartilhar" onPress={() => void copyLink(`/capitulos/${c.id}`)} />
+                  <View style={styles.flex} />
+                  <MoreButton items={chapterMenu(c)} title={c.title} />
                 </View>
-              </View>
+              ) : null}
               {showHistory && history.data ? (
                 <Section title="Histórico de edições">
                   {history.data.map((r, i) => (
@@ -146,6 +181,18 @@ export default function ChapterScreen() {
         </Page>
       )}
     </Loadable>
+  );
+}
+
+/** Small pill action (icon + short label), like the action row under a post. */
+function ActionChip({ icon: Icon, label, onPress }: { icon: LucideIcon; label: string; onPress: () => void }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ hovered, pressed }) => [styles.actionChip, (hovered || pressed) && styles.actionChipActive]}>
+      <Icon size={17} color={colors.textMuted} />
+      <Text style={styles.actionChipText}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -230,8 +277,18 @@ const useStyles = makeStyles((colors) => ({
   paper: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingVertical: 32, paddingHorizontal: 28 },
   body: { fontSize: 18, lineHeight: 31, color: colors.text, fontFamily: 'Literata_400Regular' },
   contextRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  actions: { gap: 10 },
-  inline: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 },
+  inline: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  flex: { flex: 1 },
+  draftBar: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: 12, borderRadius: radius.md, backgroundColor: colors.warningBg },
+  draftText: { flex: 1, minWidth: 160, fontSize: 14, color: colors.warning, fontWeight: '600' },
+  byline: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+  bylineName: { fontSize: 15, fontWeight: '700', color: colors.text },
+  communityChip: { backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 5, maxWidth: 200 },
+  communityChipText: { fontSize: 12, fontWeight: '600', color: colors.textMuted },
+  actionBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  actionChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  actionChipActive: { backgroundColor: colors.surfaceAlt },
+  actionChipText: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
   link: { fontSize: 13, color: colors.brand, fontWeight: '600' },
   revision: { padding: 16, gap: 4, borderBottomWidth: 1, borderBottomColor: colors.background },
   revisionTitle: { fontSize: 15, fontWeight: '700', color: colors.text },

@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Users } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
@@ -7,10 +6,11 @@ import { Text, View } from 'react-native';
 import { fileUrl } from '@/lib/files';
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
-import { Avatar, gradientFor } from './avatar';
+import { Avatar, colorFor } from './avatar';
+import { ContextMenu, type MenuItem } from './menu';
 import { PressableScale } from './ui';
 
-/** Community cover: the uploaded image, or a gradient derived from the name. Darkened at the bottom for legible text. */
+/** Community cover: the uploaded image, or a solid color derived from the name. */
 export function CommunityCover({ name, coverKey, height, children }: { name: string; coverKey?: string | null; height: number; children?: ReactNode }) {
   const styles = useStyles();
   const url = fileUrl(coverKey);
@@ -19,23 +19,25 @@ export function CommunityCover({ name, coverKey, height, children }: { name: str
       {url ? (
         <Image source={{ uri: url }} style={styles.fill} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
       ) : (
-        <LinearGradient colors={gradientFor(name)} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fill} />
+        <View style={[styles.fill, { backgroundColor: colorFor(name) }]} />
       )}
-      <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']} style={styles.fill} />
       {children}
     </View>
   );
 }
 
 /** Card for community lists (home, discover): cover, icon, name, members. */
-export function CommunityCard({ community: c, right, onPress }: {
+export function CommunityCard({ community: c, right, menu, onPress }: {
   community: { name: string; description?: string | null; memberCount: number; iconKey?: string | null; coverKey?: string | null };
   right?: ReactNode;
+  /** Right-click actions (see useCommunityMenu). */
+  menu?: MenuItem[];
   onPress: () => void;
 }) {
   const styles = useStyles();
   const { colors } = useTheme();
   return (
+    <ContextMenu items={menu ?? []} title={c.name} style={styles.cardWrap}>
     <PressableScale onPress={onPress} accessibilityLabel={c.name} style={styles.card}>
       <CommunityCover name={c.name} coverKey={c.coverKey} height={84} />
       <View style={styles.iconWrap}>
@@ -52,6 +54,7 @@ export function CommunityCard({ community: c, right, onPress }: {
         </View>
       </View>
     </PressableScale>
+    </ContextMenu>
   );
 }
 
@@ -66,7 +69,8 @@ const useStyles = makeStyles((colors) => ({
   fill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   cover: { width: '100%', overflow: 'hidden', backgroundColor: colors.surfaceAlt },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, width: '100%' },
-  card: { flexGrow: 1, flexShrink: 1, flexBasis: 260, minWidth: 0, maxWidth: '100%', backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow(colors, 1) },
+  cardWrap: { flexGrow: 1, flexShrink: 1, flexBasis: 260, minWidth: 0, maxWidth: '100%' },
+  card: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow(colors, 1) },
   iconWrap: { marginTop: -28, marginLeft: 14, borderRadius: 18, borderWidth: 3, borderColor: colors.surface, alignSelf: 'flex-start', backgroundColor: colors.surface },
   body: { paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14, gap: 4 },
   name: { fontSize: 16, fontWeight: '700', color: colors.text },

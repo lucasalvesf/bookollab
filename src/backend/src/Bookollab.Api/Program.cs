@@ -11,6 +11,7 @@ using Bookollab.Api.Features.Characters;
 using Bookollab.Api.Features.Common;
 using Bookollab.Api.Features.Communities;
 using Bookollab.Api.Features.Encyclopedia;
+using Bookollab.Api.Features.Home;
 using Bookollab.Api.Features.Mechanics;
 using Bookollab.Api.Features.Notifications;
 using Bookollab.Api.Infrastructure;
@@ -142,6 +143,7 @@ app.MapPublicProfileEndpoints();
 app.MapEncyclopediaEndpoints();
 app.MapNotificationEndpoints();
 app.MapMechanicsEndpoints();
+app.MapHomeEndpoints();
 app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();

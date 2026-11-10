@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, BookMarked, Clapperboard, ImagePlus, LayoutList, NotebookPen, Paintbrush, Trash2, UserRound, Users, type LucideIcon } from 'lucide-react-native';
+import { ArrowDown, ArrowUp, BookMarked, LayoutGrid, Clapperboard, ImagePlus, LayoutList, NotebookPen, Paintbrush, Trash2, UserRound, Users, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -17,6 +17,7 @@ import { Button, IconButton, Notice } from './ui';
 type Community = components['schemas']['CommunityDetail'];
 
 export const SECTION_INFO: Record<string, { label: string; icon: LucideIcon }> = {
+  overview: { label: 'Visão geral', icon: LayoutGrid },
   scenes: { label: 'Cenas', icon: Clapperboard },
   chapters: { label: 'Capítulos', icon: NotebookPen },
   encyclopedia: { label: 'Enciclopédia', icon: BookMarked },

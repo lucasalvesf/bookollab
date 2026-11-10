@@ -4,7 +4,7 @@ namespace Bookollab.Api.Features.Communities;
 
 public sealed record CreateCommunityRequest(string Name, string? Slug, string? Description, JoinPolicy JoinPolicy);
 
-public sealed record CommunitySummary(Guid Id, string Slug, string Name, string? Description, JoinPolicy JoinPolicy, int MemberCount, string? IconKey = null, string? CoverKey = null);
+public sealed record CommunitySummary(Guid Id, string Slug, string Name, string? Description, JoinPolicy JoinPolicy, int MemberCount, string? IconKey = null, string? CoverKey = null, IReadOnlyList<string>? MyPermissions = null);
 
 public sealed record MyAccess(string RoleName, BaseRoleKind BaseKind, IReadOnlyList<string> Permissions);
 

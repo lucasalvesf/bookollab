@@ -16,5 +16,8 @@ public sealed class User : IdentityUser<Guid>
 
     public string? AvatarKey { get; set; }
 
+    /// <summary>Sections of the start screen, in order (empty = default). See Features/Home.</summary>
+    public List<string> HomeSections { get; set; } = [];
+
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }

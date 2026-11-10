@@ -5,8 +5,10 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { SessionProvider, useSession } from '@/auth/session';
+import { MenuProvider } from '@/components/menu';
 import { AppThemeProvider, useTheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -34,10 +36,27 @@ function NavigationTheme({ children }: { children: React.ReactNode }) {
     const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
     return { ...base, colors: { ...base.colors, primary: colors.brand, background: colors.background, card: colors.surface, text: colors.text, border: colors.border } };
   }, [scheme, colors]);
+  // Web: visible, themed scrollbars (the browser default is invisible on some systems and clashes with dark mode).
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    let tag = document.getElementById('bookollab-scrollbars') as HTMLStyleElement | null;
+    if (!tag) {
+      tag = document.createElement('style');
+      tag.id = 'bookollab-scrollbars';
+      document.head.appendChild(tag);
+    }
+    tag.textContent = `
+      * { scrollbar-width: thin; scrollbar-color: ${colors.borderStrong} transparent; }
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background-color: ${colors.borderStrong}; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+      ::-webkit-scrollbar-thumb:hover { background-color: ${colors.textSubtle}; }
+    `;
+  }, [colors]);
   return (
     <ThemeProvider value={value}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      {children}
+      <MenuProvider>{children}</MenuProvider>
     </ThemeProvider>
   );
 }
