@@ -40,10 +40,10 @@ Feito agora:
 
 Próximas melhorias (a fazer):
 - [ ] Curtidas e comentários nos Capítulos, com contadores no cartão e na tela (Marco 4, já pedido).
-- [ ] Revisar com o mesmo princípio as telas de formulário: criar cena, personagem, ficha e capítulo. Hoje são uma coluna de campos e botões grandes.
-- [ ] Perfil global e perfil na comunidade no estilo Amino: capa, destaques e abas de conteúdo.
-- [ ] Enciclopédia em grade de cartões com imagem, com filtros por pasta/tipo como chips e busca fixa no topo.
-- [ ] Lista de membros com cabeçalhos por cargo (como a lista de membros do Discord) e menu de contexto com ações de moderação.
+- [x] Telas de formulário (criar cena, comunidade, personagem, ficha e capítulo, e editar perfil na comunidade): seções em cartões, escolhas em cartões com ícone e explicação, barra de ações fixa no rodapé (Cancelar + ação principal); editor de capítulo com cara de livro e contador de palavras. (2026-11-10)
+- [x] Perfil global e perfil na comunidade no estilo Amino: capa, avatar sobreposto, contadores, abas de conteúdo e ações em ícones e no menu "⋯". Tela do personagem com retrato e ficha em cartão. (2026-11-10)
+- [x] Enciclopédia em grade de cartões com imagem, com filtros por pasta e por tipo como chips e busca no topo. (2026-11-10)
+- [x] Lista de membros agrupada por cargo (como no Discord), com menu de contexto e ações de moderação. (2026-11-10)
 - [ ] Atalhos de teclado na web (Esc fecha menus/modais, setas no carrossel, Enter envia) e foco visível para acessibilidade.
 - [ ] Transições entre telas no celular e gestos (deslizar para voltar, puxar para atualizar).
 - [ ] Busca global de conteúdo (capítulos, fichas, cenas) no servidor; hoje a busca filtra o que já foi carregado.

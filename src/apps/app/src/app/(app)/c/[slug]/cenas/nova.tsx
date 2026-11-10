@@ -1,17 +1,26 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Clapperboard, Globe, Hourglass, MailPlus, PenLine, Settings2, UserCheck } from 'lucide-react-native';
 import { useState } from 'react';
 
 import { api, problemMessage } from '@/api/client';
 import type { components } from '@/api/schema';
-import { Page } from '@/components/layout';
+import { FormScreen, FormSection, OptionCards } from '@/components/form';
 import { ChipPicker } from '@/components/pickers';
-import { Button, Field, Notice } from '@/components/ui';
-import { PARTICIPATION_LABELS } from '@/features/scene/scene-settings';
+import { Field, Notice } from '@/components/ui';
 
 type Participation = components['schemas']['SceneParticipation'];
 type WritingMode = components['schemas']['SceneWritingMode'];
 
+const TURN_LIMITS = [
+  { value: '60', label: '1 h' },
+  { value: '360', label: '6 h' },
+  { value: '1440', label: '24 h' },
+  { value: '4320', label: '3 dias' },
+  { value: 'none', label: 'Sem limite' },
+];
+
+/** Open a scene: what it is about, then who can join and how people write (Discord's "create channel" flow). */
 export default function NewSceneScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
@@ -20,6 +29,7 @@ export default function NewSceneScreen() {
   const [description, setDescription] = useState('');
   const [participation, setParticipation] = useState<Participation>('Public');
   const [writingMode, setWritingMode] = useState<WritingMode>('Free');
+  const [turnLimit, setTurnLimit] = useState('1440');
   const [loading, setLoading] = useState(false);
   const [problem, setProblem] = useState<unknown>();
 
@@ -29,7 +39,7 @@ export default function NewSceneScreen() {
     try {
       const { data, error } = await api.POST('/communities/{slug}/scenes', {
         params: { path: { slug } },
-        body: { title, description, participation, writingMode, turnTimeLimitMinutes: writingMode === 'Turns' ? 1440 : null },
+        body: { title, description, participation, writingMode, turnTimeLimitMinutes: writingMode === 'Turns' && turnLimit !== 'none' ? Number(turnLimit) : null },
       });
       if (data) {
         await queryClient.invalidateQueries({ queryKey: ['scenes', slug] });
@@ -46,23 +56,42 @@ export default function NewSceneScreen() {
 
   const fieldError = problemMessage(problem, 'title') || problemMessage(problem, 'description');
   return (
-    <Page title="Abrir cena" subtitle="Uma cena é jogada ao vivo, com os outros jogadores." back>
+    <FormScreen title="Abrir cena" subtitle="Uma cena é jogada ao vivo, com os outros jogadores." submitLabel="Abrir cena" onSubmit={submit} loading={loading} disabled={!title.trim()}>
       {problem && !fieldError ? <Notice kind="error">{problemMessage(problem) ?? 'Não foi possível abrir a cena.'}</Notice> : null}
-      <Field label="Título" value={title} onChangeText={setTitle} error={problemMessage(problem, 'title')} placeholder="Ex.: Noite de chuva na taverna" />
-      <Field label="Descrição (opcional)" value={description} onChangeText={setDescription} error={problemMessage(problem, 'description')} multiline numberOfLines={4} placeholder="Onde e quando acontece, o clima, o gancho inicial" />
-      <ChipPicker
-        label="Quem participa"
-        options={(Object.keys(PARTICIPATION_LABELS) as Participation[]).map((p) => ({ value: p, label: PARTICIPATION_LABELS[p] }))}
-        value={participation}
-        onChange={setParticipation}
-      />
-      <ChipPicker
-        label="Escrita"
-        options={[{ value: 'Free' as WritingMode, label: 'Livre' }, { value: 'Turns' as WritingMode, label: 'Por turnos (24 h por vez)' }]}
-        value={writingMode}
-        onChange={setWritingMode}
-      />
-      <Button title="Abrir cena" onPress={submit} loading={loading} />
-    </Page>
+      <FormSection title="Sobre a cena" icon={Clapperboard}>
+        <Field label="Título" value={title} onChangeText={setTitle} error={problemMessage(problem, 'title')} placeholder="Ex.: Noite de chuva na taverna" />
+        <Field
+          label="Descrição (opcional)"
+          value={description}
+          onChangeText={setDescription}
+          error={problemMessage(problem, 'description')}
+          multiline
+          numberOfLines={4}
+          placeholder="Onde e quando acontece, o clima, o gancho inicial"
+        />
+      </FormSection>
+      <FormSection title="Quem participa" icon={UserCheck} description="Dá para mudar depois nas configurações do chat.">
+        <OptionCards<Participation>
+          value={participation}
+          onChange={setParticipation}
+          options={[
+            { value: 'Public', label: 'Pública', description: 'Qualquer membro entra com um personagem.', icon: Globe },
+            { value: 'Request', label: 'Com pedido', description: 'Membros pedem para entrar e você aprova.', icon: UserCheck },
+            { value: 'InviteOnly', label: 'Só convidados', description: 'Só entram os personagens que você convidar.', icon: MailPlus },
+          ]}
+        />
+      </FormSection>
+      <FormSection title="Escrita" icon={Settings2}>
+        <OptionCards<WritingMode>
+          value={writingMode}
+          onChange={setWritingMode}
+          options={[
+            { value: 'Free', label: 'Livre', description: 'Todos escrevem quando quiserem, como num chat.', icon: PenLine },
+            { value: 'Turns', label: 'Por turnos', description: 'Um personagem por vez, numa ordem. Bom para cenas com muita gente.', icon: Hourglass },
+          ]}
+        />
+        {writingMode === 'Turns' ? <ChipPicker label="Tempo de cada vez" segmented value={turnLimit} onChange={setTurnLimit} options={TURN_LIMITS} /> : null}
+      </FormSection>
+    </FormScreen>
   );
 }
