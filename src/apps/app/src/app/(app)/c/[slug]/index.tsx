@@ -441,10 +441,18 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
         <Loadable query={members}>
           {(list) => {
             const items = list.filter((m) => match(m.displayName, m.userName, m.roleName));
+            // Grouped by role, highest first, like Discord's member list ("Staff — 2").
+            const rank: Record<string, number> = { Owner: 0, Staff: 1, Narrator: 2, Custom: 3, Player: 4 };
+            const groups = new Map<string, typeof items>();
+            for (const m of [...items].sort((a, b) => (rank[a.baseKind] ?? 9) - (rank[b.baseKind] ?? 9) || a.displayName.localeCompare(b.displayName, 'pt-BR')))
+              groups.set(m.roleName, [...(groups.get(m.roleName) ?? []), m]);
             return items.length === 0 ? (
               <Empty icon={Users}>Nenhum membro encontrado.</Empty>
             ) : (
-              items.map((m) => {
+              [...groups.entries()].map(([role, group]) => (
+                <View key={role}>
+                  <Text style={styles.groupHeader}>{`${role} — ${group.length}`}</Text>
+                  {group.map((m) => {
                 const menu: MenuItem[] = [
                   { label: 'Ver perfil na comunidade', icon: UserRound, onPress: () => router.push({ pathname: '/c/[slug]/membros/[userName]', params: { slug, userName: m.userName } }) },
                   { label: 'Ver perfil global', icon: ArrowRight, onPress: () => router.push({ pathname: '/u/[userName]', params: { userName: m.userName } }) },
@@ -468,7 +476,9 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
                     />
                   </ContextMenu>
                 );
-              })
+                  })}
+                </View>
+              ))
             );
           }}
         </Loadable>
@@ -503,6 +513,7 @@ const useStyles = makeStyles((colors) => ({
   search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surfaceAlt, borderRadius: radius.sm, paddingHorizontal: 10 },
   searchInput: { flex: 1, fontSize: 14, color: colors.text, paddingVertical: 8 },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  groupHeader: { fontSize: 11, fontWeight: '700', color: colors.textSubtle, textTransform: 'uppercase', letterSpacing: 0.6, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6, backgroundColor: colors.surfaceAlt },
   encyclopedia: { padding: 16, gap: 8 },
   chapter: { padding: 16, gap: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
   chapterActive: { backgroundColor: colors.surfaceAlt },

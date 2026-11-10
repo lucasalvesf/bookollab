@@ -22,6 +22,7 @@ export default function NewCharacterScreen() {
           <CharacterForm
             fields={c.sheetFields}
             submitLabel="Criar personagem"
+            onCancel={() => (router.canGoBack() ? router.back() : router.replace({ pathname: '/c/[slug]', params: { slug } }))}
             onSubmit={async (input) => {
               const { data, error } = await api.POST('/communities/{slug}/characters', { params: { path: { slug } }, body: input });
               if (!data) return { ok: false, problem: error };

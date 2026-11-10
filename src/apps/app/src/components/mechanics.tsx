@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Backpack, Dices, Gauge } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -27,7 +28,7 @@ export function MechanicsAdmin({ slug }: { slug: string }) {
   const m = mechanics.data;
   if (!m) return null;
   return (
-    <Section title="Mecânicas de RPG">
+    <Section title="Mecânicas de RPG" icon={Dices}>
       {save.isError ? <Notice kind="error">{save.error.message}</Notice> : null}
       <ToggleRow label="Rolagem de dados" hint="Nas cenas: /rolar 1d20+3. O servidor rola e o resultado não pode ser editado." value={m.diceEnabled} onChange={(v) => save.mutate({ ...m, diceEnabled: v })} />
       <ToggleRow label="Atributos na ficha" hint="Os campos numéricos da ficha (ex.: Força) viram atributos e podem entrar nas rolagens: /rolar 1d20+força." value={m.attributesEnabled} onChange={(v) => save.mutate({ ...m, attributesEnabled: v })} />
@@ -72,7 +73,7 @@ export function CharacterMechanics({ characterId }: { characterId: string }) {
   return (
     <>
       {d.mechanics.attributesEnabled ? (
-        <Section title="Atributos">
+        <Section title="Atributos" icon={Gauge}>
           {d.attributes.length === 0 ? (
             <Empty>A staff ainda não criou campos numéricos na ficha.</Empty>
           ) : (
@@ -88,7 +89,7 @@ export function CharacterMechanics({ characterId }: { characterId: string }) {
         </Section>
       ) : null}
       {d.mechanics.inventoryEnabled ? (
-        <Section title="Inventário">
+        <Section title="Inventário" icon={Backpack}>
           {change.isError ? <Notice kind="error">{change.error.message}</Notice> : null}
           {d.inventory.length === 0 ? <Empty>Nenhum item.</Empty> : null}
           {d.inventory.map((i) => (

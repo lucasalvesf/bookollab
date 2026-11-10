@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronRight, FilePlus2, LayoutTemplate, UserRound, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -9,7 +10,7 @@ import type { components } from '@/api/schema';
 import { Loadable, Page } from '@/components/layout';
 import { SheetForm } from '@/components/sheet-form';
 import { Notice } from '@/components/ui';
-import { makeStyles } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 
 type Template = components['schemas']['TemplateDto'];
 type Choice = { kind: 'template'; template: Template } | { kind: 'free' };
@@ -32,21 +33,25 @@ export default function NewSheetScreen() {
         {(e) =>
           !choice ? (
             <View style={styles.options}>
+              <Text style={styles.groupTitle}>Jogável</Text>
               <Option
+                icon={UserRound}
                 title="Personagem"
                 description="Ficha jogável: entra em cenas e escreve capítulos. Segue a ficha de personagem da comunidade."
                 onPress={() => router.replace({ pathname: '/c/[slug]/personagens/novo', params: { slug } })}
               />
+              {e.templates.length > 0 ? <Text style={styles.groupTitle}>Modelos da staff</Text> : null}
               {e.templates.map((t) => (
                 <Option
                   key={t.id}
+                  icon={LayoutTemplate}
                   title={t.name}
                   description={[t.description, `${t.fields.length} ${t.fields.length === 1 ? 'campo' : 'campos'}`].filter(Boolean).join(' · ')}
                   onPress={() => setChoice({ kind: 'template', template: t })}
                 />
               ))}
               {e.settings.freeSheetsEnabled ? (
-                <Option title="Ficha livre" description="Comece do zero e crie os campos que quiser." onPress={() => setChoice({ kind: 'free' })} />
+                <Option icon={FilePlus2} title="Ficha livre" description="Comece do zero e crie os campos que quiser." onPress={() => setChoice({ kind: 'free' })} />
               ) : (
                 <Notice kind="info">Nesta comunidade, as fichas precisam seguir um dos modelos da staff.</Notice>
               )}
@@ -78,20 +83,30 @@ export default function NewSheetScreen() {
   );
 }
 
-function Option({ title, description, onPress }: { title: string; description: string; onPress: () => void }) {
+function Option({ title, description, icon: Icon, onPress }: { title: string; description: string; icon: LucideIcon; onPress: () => void }) {
   const styles = useStyles();
+  const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.option, pressed && styles.pressed]}>
-      <Text style={styles.optionTitle}>{title}</Text>
-      <Text style={styles.optionDescription}>{description}</Text>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed, hovered }) => [styles.option, (pressed || hovered) && styles.optionActive]}>
+      <View style={styles.optionIcon}>
+        <Icon size={20} color={colors.brandSoftText} />
+      </View>
+      <View style={styles.flex}>
+        <Text style={styles.optionTitle}>{title}</Text>
+        <Text style={styles.optionDescription}>{description}</Text>
+      </View>
+      <ChevronRight size={18} color={colors.textSubtle} />
     </Pressable>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
+  flex: { flex: 1 },
   options: { gap: 10 },
-  option: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 16, gap: 4, backgroundColor: colors.surface },
+  groupTitle: { fontSize: 12, fontWeight: '700', color: colors.textSubtle, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 14, backgroundColor: colors.surface },
+  optionActive: { borderColor: colors.brand, backgroundColor: colors.brandSoft },
+  optionIcon: { width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.brandSoft, alignItems: 'center', justifyContent: 'center' },
   optionTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
-  optionDescription: { fontSize: 13, color: colors.textMuted },
-  pressed: { opacity: 0.6 },
+  optionDescription: { fontSize: 13, color: colors.textMuted, marginTop: 2, lineHeight: 18 },
 }));
