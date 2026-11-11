@@ -145,6 +145,24 @@ Cada comunidade tem uma **enciclopédia**, no estilo da wiki do Amino. Ela evolu
 - **Comunidade:** a primeira aba padrão é a "Visão geral", com os destaques das outras seções.
 - **Sair da comunidade**: qualquer membro pode sair; o dono não, até existir transferência de posse.
 
+### Decisões de 2026-11-10
+- **Terminologia: "Staff" passa a ser "Moderação".** O cargo base se chama **Moderador** (plural: Moderadores), a "Área da staff" vira **Moderação** e a Staff Global vira **Moderação Global**. Onde este documento ainda disser "staff", leia-se moderação. Internamente, o código mantém o nome técnico do cargo.
+- **Reordenar é sempre arrastar e soltar** (seções da comunidade, seções da tela inicial, pastas, destaques, ordem dos turnos…).
+- **Todo nome é link**: etiquetas com nome de comunidade, cena, personagem, ficha, capítulo ou membro levam ao conteúdo correspondente.
+- **Identidade da comunidade sempre visível** dentro dela: configurações e chats mostram no topo o ícone e o nome da comunidade.
+- **Diretismo**: quem tem a permissão faz a ação na própria tela (ex.: criar, renomear, ordenar pastas e mover fichas dentro da enciclopédia). Quem não tem a permissão não vê o botão.
+- **Novo tipo de post: Blog.** É como um Capítulo, mas OFF: o post é do jogador, não de um personagem, e serve para qualquer assunto.
+- **Capítulos e blogs no formato de blog**: imagem de capa, imagens no meio do texto, imagem de fundo para a leitura e música para ouvir enquanto lê.
+- **Página da comunidade como a do Amino**:
+  - **Destaques**: a moderação destaca capítulos, blogs e fichas, que aparecem maiores no topo ao entrar na comunidade.
+  - **Layout dos posts**: o dono escolhe como os posts lançados são distribuídos: carrossel, "um grande em cima e os outros menores abaixo" ou galeria que valoriza a capa.
+  - **Cabeçalho**: fica fixo ao rolar e as abas se compactam nele.
+- *Decisões de implementação, a confirmar pelo usuário:*
+  - a música é um **link** (YouTube, Spotify ou SoundCloud), tocado embutido na web e aberto no app no celular;
+  - blogs **não** passam pela aprovação de capítulos;
+  - pode postar blog quem pode escrever capítulos;
+  - quem destaca é quem tem a permissão de moderar conteúdo.
+
 ## Personalização da comunidade
 Tudo disponível desde o lançamento:
 - **Visual:** capa, ícone, cores/tema, fonte.

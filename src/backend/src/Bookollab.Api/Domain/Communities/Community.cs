@@ -70,6 +70,9 @@ public sealed class Community
     /// <summary>Order of the sections members see on the community home (see <see cref="CommunitySections"/>).</summary>
     public List<string> Sections { get; set; } = [.. CommunitySections.Default];
 
+    /// <summary>How the community's latest posts are laid out on its home (chosen by the owner).</summary>
+    public FeedLayout FeedLayout { get; set; } = FeedLayout.Highlight;
+
     // RPG mechanics, each optional (off = more free and literary play).
     public bool DiceEnabled { get; set; }
     public bool AttributesEnabled { get; set; }
@@ -111,7 +114,7 @@ public sealed class Community
     private static string DefaultRoleName(BaseRoleKind kind) => kind switch
     {
         BaseRoleKind.Owner => "Dono",
-        BaseRoleKind.Staff => "Staff",
+        BaseRoleKind.Staff => "Moderador",
         BaseRoleKind.Narrator => "Narrador",
         _ => "Jogador",
     };
@@ -199,4 +202,36 @@ public static class CommunitySections
         known.AddRange(Default.Where(s => !known.Contains(s)));
         return known;
     }
+}
+/// <summary>Layout of the posts on the community home (Amino-like front page).</summary>
+public enum FeedLayout
+{
+    /// <summary>Swipeable carousel of cards.</summary>
+    Carousel,
+
+    /// <summary>One big post on top, the others smaller below.</summary>
+    Highlight,
+
+    /// <summary>Grid that puts the cover images first.</summary>
+    Gallery,
+}
+
+public enum FeaturedItemType
+{
+    /// <summary>A post (chapter or blog).</summary>
+    Post,
+    Sheet,
+    Character,
+}
+
+/// <summary>Content featured by the moderation on the community home (bigger, on top).</summary>
+public sealed class FeaturedItem
+{
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid CommunityId { get; set; }
+    public FeaturedItemType ItemType { get; set; }
+    public Guid ItemId { get; set; }
+    public int Position { get; set; }
+    public Guid FeaturedByUserId { get; set; }
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }

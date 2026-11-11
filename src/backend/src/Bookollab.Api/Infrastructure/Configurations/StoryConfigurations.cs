@@ -76,6 +76,9 @@ internal sealed class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
         b.HasOne<User>().WithMany().HasForeignKey(c => c.AuthorUserId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(c => c.Revisions).WithOne().HasForeignKey(r => r.ChapterId).OnDelete(DeleteBehavior.Cascade);
         b.Property(c => c.RejectionReason).HasMaxLength(1000);
+        b.Property(c => c.CoverKey).HasMaxLength(256);
+        b.Property(c => c.BackgroundKey).HasMaxLength(256);
+        b.Property(c => c.MusicUrl).HasMaxLength(500);
         b.HasOne<Scene>().WithMany().HasForeignKey(c => c.SourceSceneId).OnDelete(DeleteBehavior.SetNull);
         b.HasOne<Chapter>().WithMany().HasForeignKey(c => c.ReplyToChapterId).OnDelete(DeleteBehavior.SetNull);
         b.HasMany(c => c.Coauthors).WithOne().HasForeignKey(x => x.ChapterId).OnDelete(DeleteBehavior.Cascade);

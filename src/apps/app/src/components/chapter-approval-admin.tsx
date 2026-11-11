@@ -79,7 +79,7 @@ export function ChapterApprovalAdmin({ slug, canConfigure, canModerate }: { slug
                   })}
               </View>
             ) : null}
-            <Text style={styles.hint}>A staff (quem modera) nunca precisa de aprovação: é ela quem aprova. Aprovação por jogador específico chega no Marco 3.</Text>
+            <Text style={styles.hint}>A moderação nunca precisa de aprovação: é ela quem aprova. Aprovação por jogador específico chega no Marco 3.</Text>
           </View>
         </Section>
       ) : null}

@@ -33,6 +33,16 @@ internal sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Doma
     }
 }
 
+internal sealed class FeaturedItemConfiguration : IEntityTypeConfiguration<FeaturedItem>
+{
+    public void Configure(EntityTypeBuilder<FeaturedItem> b)
+    {
+        b.HasIndex(f => new { f.CommunityId, f.ItemType, f.ItemId }).IsUnique();
+        b.HasOne<Community>().WithMany().HasForeignKey(f => f.CommunityId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<User>().WithMany().HasForeignKey(f => f.FeaturedByUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 internal sealed class SceneInviteConfiguration : IEntityTypeConfiguration<SceneInvite>
 {
     public void Configure(EntityTypeBuilder<SceneInvite> b)

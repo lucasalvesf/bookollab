@@ -66,7 +66,7 @@ export default function NewCommunityScreen() {
           onChange={setJoinPolicy}
           options={[
             { value: 'Open', label: 'Aberta', description: 'Aparece na busca e qualquer pessoa entra direto.', icon: Globe },
-            { value: 'Request', label: 'Com pedido', description: 'Aparece na busca; a staff aprova cada pedido de entrada.', icon: UserCheck },
+            { value: 'Request', label: 'Com pedido', description: 'Aparece na busca; a moderação aprova cada pedido de entrada.', icon: UserCheck },
             { value: 'InviteOnly', label: 'Só por convite', description: 'Privada: fora da busca, só entra quem recebe um link.', icon: Lock },
           ]}
         />

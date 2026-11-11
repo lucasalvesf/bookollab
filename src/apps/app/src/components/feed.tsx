@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import type { Href } from 'expo-router';
 import { ChevronLeft, ChevronRight, Radio, Users, X, type LucideIcon } from 'lucide-react-native';
 import { useRef, useState, type ReactNode } from 'react';
 import { Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
@@ -7,6 +8,7 @@ import { fileUrl } from '@/lib/files';
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
 import { Avatar, colorFor } from './avatar';
+import { NameChip } from './links';
 import { ContextMenu, type MenuItem } from './menu';
 import { IconButton, PressableScale } from './ui';
 
@@ -75,28 +77,40 @@ export function Carousel({ itemWidth, gap = 12, children }: { itemWidth: number;
   );
 }
 
-export function ChapterCard({ chapter: c, community, menu, onPress }: {
-  chapter: { title: string; excerpt: string; characterName: string; characterAvatarKey?: string | null; publishedAt?: string | null };
-  community?: { name: string; iconKey?: string | null };
+export function ChapterCard({ chapter: c, community, authorHref, menu, onPress }: {
+  chapter: { title: string; excerpt: string; characterName: string; characterAvatarKey?: string | null; publishedAt?: string | null; kind?: string | null; coverKey?: string | null };
+  /** With a slug, the community name is a link. */
+  community?: { name: string; iconKey?: string | null; slug?: string };
+  /** Link of the author (character, or the player for blogs). */
+  authorHref?: Href;
   menu?: MenuItem[];
   onPress: () => void;
 }) {
   const styles = useStyles();
+  const cover = fileUrl(c.coverKey);
   return (
     <ContextMenu items={menu ?? []} style={styles.fill}>
       <PressableScale onPress={onPress} accessibilityLabel={c.title} style={styles.chapterCard}>
-        {community ? (
-          <View style={styles.chip}>
-            <Avatar name={community.name} imageKey={community.iconKey} size={16} shape="rounded" />
-            <Text style={styles.chipText} numberOfLines={1}>{community.name}</Text>
-          </View>
-        ) : null}
+        {cover ? <Image source={{ uri: cover }} style={styles.chapterCover} contentFit="cover" transition={150} /> : null}
+        <View style={styles.chapterTop}>
+          {community?.slug ? (
+            <NameChip label={community.name} avatar={{ name: community.name, imageKey: community.iconKey }} shape="rounded" href={{ pathname: '/c/[slug]', params: { slug: community.slug } }} />
+          ) : null}
+          {c.kind === 'Blog' ? <Text style={styles.blogTag}>BLOG</Text> : null}
+        </View>
         <Text style={styles.chapterTitle} numberOfLines={2}>{c.title}</Text>
-        <Text style={styles.chapterExcerpt} numberOfLines={4}>{c.excerpt}</Text>
+        <Text style={styles.chapterExcerpt} numberOfLines={cover ? 2 : 4}>{c.excerpt}</Text>
         <View style={styles.flex} />
         <View style={styles.author}>
-          <Avatar name={c.characterName} imageKey={c.characterAvatarKey} size={22} />
-          <Text style={styles.authorName} numberOfLines={1}>{c.characterName}</Text>
+          {authorHref ? (
+            <NameChip label={c.characterName} avatar={{ name: c.characterName, imageKey: c.characterAvatarKey }} href={authorHref} />
+          ) : (
+            <>
+              <Avatar name={c.characterName} imageKey={c.characterAvatarKey} size={22} />
+              <Text style={styles.authorName} numberOfLines={1}>{c.characterName}</Text>
+            </>
+          )}
+          <View style={styles.flex} />
           {c.publishedAt ? <Text style={styles.time}>{new Date(c.publishedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</Text> : null}
         </View>
       </PressableScale>
@@ -106,7 +120,7 @@ export function ChapterCard({ chapter: c, community, menu, onPress }: {
 
 export function SceneCard({ scene: s, community, menu, onPress }: {
   scene: { title: string; participantCount: number; lastActionAt?: string | null };
-  community?: { name: string; iconKey?: string | null };
+  community?: { name: string; iconKey?: string | null; slug?: string };
   menu?: MenuItem[];
   onPress: () => void;
 }) {
@@ -124,11 +138,8 @@ export function SceneCard({ scene: s, community, menu, onPress }: {
           <Users size={13} color={colors.textSubtle} />
           <Text style={styles.time}>{`${s.participantCount} ${s.participantCount === 1 ? 'personagem' : 'personagens'}`}</Text>
         </View>
-        {community ? (
-          <View style={styles.author}>
-            <Avatar name={community.name} imageKey={community.iconKey} size={16} shape="rounded" />
-            <Text style={styles.time} numberOfLines={1}>{community.name}</Text>
-          </View>
+        {community?.slug ? (
+          <NameChip label={community.name} avatar={{ name: community.name, imageKey: community.iconKey }} shape="rounded" href={{ pathname: '/c/[slug]', params: { slug: community.slug } }} />
         ) : null}
       </PressableScale>
     </ContextMenu>
@@ -198,7 +209,10 @@ const useStyles = makeStyles((colors) => ({
   arrow: { position: 'absolute', top: '50%', marginTop: -18, borderRadius: 18, ...shadow(colors, 2) },
   arrowLeft: { left: -12 },
   arrowRight: { right: -12 },
-  chapterCard: { height: 236, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 16, gap: 8, ...shadow(colors, 1) },
+  chapterTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  chapterCover: { height: 96, marginHorizontal: -16, marginTop: -16, marginBottom: 4 },
+  blogTag: { fontSize: 10, fontWeight: '800', color: colors.warning, letterSpacing: 0.6 },
+  chapterCard: { overflow: 'hidden', height: 260, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 16, gap: 8, ...shadow(colors, 1) },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, paddingLeft: 4, paddingRight: 10, paddingVertical: 3, maxWidth: '100%' },
   chipText: { fontSize: 12, fontWeight: '600', color: colors.textMuted, flexShrink: 1 },
   chapterTitle: { fontSize: 18, lineHeight: 24, color: colors.text, fontFamily: 'Literata_600SemiBold' },

@@ -24,7 +24,7 @@ export default function DiscoverScreen() {
   });
 
   return (
-    <Page title="Descobrir" subtitle="Comunidades públicas: algumas você entra direto, outras pedem aprovação da staff.">
+    <Page title="Descobrir" subtitle="Comunidades públicas: algumas você entra direto, outras pedem aprovação da moderação.">
       <View style={styles.search}>
         <Search size={18} color={colors.textSubtle} />
         <TextInput

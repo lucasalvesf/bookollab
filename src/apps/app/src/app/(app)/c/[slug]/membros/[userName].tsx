@@ -8,6 +8,7 @@ import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { EntryTile } from '@/components/feed';
 import { Empty, Loadable, Page, Row, Tag } from '@/components/layout';
+import { NameChip } from '@/components/links';
 import { MoreButton, useCopyLink, useMenu, type MenuItem } from '@/components/menu';
 import { ProfileHero, StatRow, TabBar } from '@/components/profile-header';
 import { IconButton } from '@/components/ui';
@@ -77,7 +78,7 @@ export default function CommunityProfileScreen() {
                   <>
                     <Tag label={p.roleName} tone={p.baseKind === 'Player' ? 'neutral' : 'brand'} />
                     <Tag label={p.level ? `Nível ${p.level}${p.title ? ` · ${p.title}` : ''}` : 'Nível em breve'} tone="neutral" />
-                    <Tag label={p.communityName} tone="neutral" />
+                    <NameChip label={p.communityName} href={{ pathname: '/c/[slug]', params: { slug } }} />
                   </>
                 }
                 actions={

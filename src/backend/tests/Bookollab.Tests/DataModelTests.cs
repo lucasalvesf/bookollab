@@ -43,7 +43,7 @@ public sealed class DataModelTests(ApiFactory factory) : IClassFixture<ApiFactor
         var roles = await db.CommunityRoles.Where(r => r.CommunityId == community.Id).OrderBy(r => r.Position).ToListAsync();
         var membership = await db.Memberships.Include(m => m.Role).SingleAsync(m => m.CommunityId == community.Id);
 
-        Assert.Equal(["Dono", "Staff", "Narrador", "Jogador"], roles.Select(r => r.Name));
+        Assert.Equal(["Dono", "Moderador", "Narrador", "Jogador"], roles.Select(r => r.Name));
         Assert.Equal(owner.Id, membership.UserId);
         Assert.Equal(BaseRoleKind.Owner, membership.Role.BaseKind);
         Assert.Equal(CommunityPermission.All, membership.Role.Permissions);

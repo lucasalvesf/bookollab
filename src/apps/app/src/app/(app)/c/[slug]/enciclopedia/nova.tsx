@@ -40,7 +40,7 @@ export default function NewSheetScreen() {
                 description="Ficha jogável: entra em cenas e escreve capítulos. Segue a ficha de personagem da comunidade."
                 onPress={() => router.replace({ pathname: '/c/[slug]/personagens/novo', params: { slug } })}
               />
-              {e.templates.length > 0 ? <Text style={styles.groupTitle}>Modelos da staff</Text> : null}
+              {e.templates.length > 0 ? <Text style={styles.groupTitle}>Modelos da moderação</Text> : null}
               {e.templates.map((t) => (
                 <Option
                   key={t.id}
@@ -53,10 +53,10 @@ export default function NewSheetScreen() {
               {e.settings.freeSheetsEnabled ? (
                 <Option icon={FilePlus2} title="Ficha livre" description="Comece do zero e crie os campos que quiser." onPress={() => setChoice({ kind: 'free' })} />
               ) : (
-                <Notice kind="info">Nesta comunidade, as fichas precisam seguir um dos modelos da staff.</Notice>
+                <Notice kind="info">Nesta comunidade, as fichas precisam seguir um dos modelos da moderação.</Notice>
               )}
               {e.templates.length === 0 && !e.settings.freeSheetsEnabled ? (
-                <Notice kind="info">A staff ainda não criou modelos de ficha.</Notice>
+                <Notice kind="info">A moderação ainda não criou modelos de ficha.</Notice>
               ) : null}
             </View>
           ) : (

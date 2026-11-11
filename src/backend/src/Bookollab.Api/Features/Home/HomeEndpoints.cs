@@ -8,10 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bookollab.Api.Features.Home;
 
+/// <summary>A post (chapter or blog). For blogs, CharacterId is null and Character* are the author's.</summary>
 public sealed record HomeChapterDto(
     Guid Id, string Title, string Excerpt, DateTimeOffset PublishedAt,
-    Guid CharacterId, string CharacterName, string? CharacterAvatarKey,
-    string CommunitySlug, string CommunityName, string? CommunityIconKey);
+    Guid? CharacterId, string CharacterName, string? CharacterAvatarKey,
+    string CommunitySlug, string CommunityName, string? CommunityIconKey,
+    Domain.Chapters.PostKind Kind = Domain.Chapters.PostKind.Chapter, string? CoverKey = null, string? AuthorUserName = null);
 
 public sealed record HomeSceneDto(
     Guid Id, string Title, int ParticipantCount, DateTimeOffset? LastActionAt,
@@ -59,9 +61,11 @@ public static class HomeEndpoints
             .Take(limit)
             .Select(c => new
             {
-                c.Id, c.Title, c.PublishedAt, c.CharacterId,
+                c.Id, c.Title, c.PublishedAt, c.CharacterId, c.Kind, c.CoverKey,
+                AuthorUserName = db.Users.Where(u => u.Id == c.AuthorUserId).Select(u => u.UserName!).Single(),
                 Start = c.Content.Substring(0, Math.Min(c.Content.Length, 260)),
-                Character = db.Characters.Where(ch => ch.Id == c.CharacterId).Select(ch => new { ch.Name, ch.AvatarKey }).Single(),
+                Character = db.Characters.Where(ch => ch.Id == c.CharacterId).Select(ch => new { ch.Name, ch.AvatarKey }).SingleOrDefault()
+                    ?? db.Users.Where(u => u.Id == c.AuthorUserId).Select(u => new { Name = u.DisplayName, u.AvatarKey }).Single(),
                 Community = db.Communities.Where(x => x.Id == c.CommunityId).Select(x => new { x.Slug, x.Name, x.IconKey }).Single(),
             })
             .ToListAsync(ct);
@@ -99,7 +103,7 @@ public static class HomeEndpoints
 
         return TypedResults.Ok(new HomeDto(
             Normalize(me.HomeSections),
-            chapters.Select(c => new HomeChapterDto(c.Id, c.Title, Excerpt(c.Start), c.PublishedAt!.Value, c.CharacterId, c.Character.Name, c.Character.AvatarKey, c.Community.Slug, c.Community.Name, c.Community.IconKey)).ToList(),
+            chapters.Select(c => new HomeChapterDto(c.Id, c.Title, Excerpt(c.Start), c.PublishedAt!.Value, c.CharacterId, c.Character.Name, c.Character.AvatarKey, c.Community.Slug, c.Community.Name, c.Community.IconKey, c.Kind, c.CoverKey, c.AuthorUserName)).ToList(),
             scenes.Select(s => new HomeSceneDto(s.Id, s.Title, s.Count, s.Last, s.Community.Slug, s.Community.Name, s.Community.IconKey)).ToList(),
             entries));
     }
@@ -117,6 +121,7 @@ public static class HomeEndpoints
 
     private static string Excerpt(string start)
     {
+        start = System.Text.RegularExpressions.Regex.Replace(start, @"!\[[^\]]*\]\([^)]*\)", " ");
         var flat = string.Join(' ', start.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         return flat.Length <= 220 ? flat : flat[..220].TrimEnd() + "…";
     }

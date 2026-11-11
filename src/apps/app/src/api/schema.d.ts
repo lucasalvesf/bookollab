@@ -1204,6 +1204,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/featured": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListFeatured"];
+        put?: never;
+        post: operations["FeatureItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/featured/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["UnfeatureItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/featured/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ReorderFeatured"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/feed-layout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateFeedLayout"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1234,7 +1298,7 @@ export interface components {
             communitySlug: string;
             communityName: string;
             /** Format: uuid */
-            characterId: string;
+            characterId: null | string;
             characterName: string;
             /** Format: uuid */
             authorUserId: string;
@@ -1263,6 +1327,15 @@ export interface components {
             mentionedCharacters: components["schemas"]["ChapterPersonDto"][];
             mentionedUsers: components["schemas"]["ChapterPersonDto"][];
             mentionsMe: boolean;
+            kind?: components["schemas"]["PostKind"];
+            coverKey?: null | string;
+            backgroundKey?: null | string;
+            musicUrl?: null | string;
+            characterAvatarKey?: null | string;
+            /** @default false */
+            canFeature: boolean;
+            /** @default false */
+            isFeatured: boolean;
         };
         ChapterPersonDto: {
             /** Format: uuid */
@@ -1283,7 +1356,7 @@ export interface components {
             id: string;
             title: string;
             /** Format: uuid */
-            characterId: string;
+            characterId: null | string;
             characterName: string;
             authorUserName: string;
             status: components["schemas"]["ChapterStatus"];
@@ -1294,6 +1367,9 @@ export interface components {
             /** Format: date-time */
             editedAt: null | string;
             excerpt: string;
+            kind?: components["schemas"]["PostKind"];
+            coverKey?: null | string;
+            characterAvatarKey?: null | string;
         };
         CharacterDto: {
             /** Format: uuid */
@@ -1341,6 +1417,7 @@ export interface components {
             iconKey?: null | string;
             coverKey?: null | string;
             sections?: null | string[];
+            feedLayout?: components["schemas"]["FeedLayout"];
         };
         CommunityProfileDto: {
             /** Format: uuid */
@@ -1390,7 +1467,7 @@ export interface components {
         ContentRating: "Free" | "Sixteen" | "Eighteen";
         CreateChapterRequest: {
             /** Format: uuid */
-            characterId: string;
+            characterId: null | string;
             title: string;
             content: string;
             publish: boolean;
@@ -1401,6 +1478,10 @@ export interface components {
             mentionedUserIds?: null | string[];
             /** Format: uuid */
             replyToChapterId?: null | string;
+            kind?: components["schemas"]["PostKind"];
+            coverKey?: null | string;
+            backgroundKey?: null | string;
+            musicUrl?: null | string;
         };
         CreateCommunityRequest: {
             name: string;
@@ -1477,6 +1558,38 @@ export interface components {
             freeSheetsEnabled: boolean;
             templateMode: components["schemas"]["TemplateMode"];
         };
+        FeaturedDto: {
+            /** Format: uuid */
+            id: string;
+            itemType: components["schemas"]["FeaturedItemType"];
+            /** Format: uuid */
+            itemId: string;
+            /** Format: int32 */
+            position: number;
+            title: string;
+            subtitle: null | string;
+            excerpt: null | string;
+            imageKey: null | string;
+            postKind: null | components["schemas"]["PostKind"];
+        };
+        /** @enum {unknown} */
+        FeaturedItemType: "Post" | "Sheet" | "Character";
+        FeaturedOrderRequest: {
+            ids: string[];
+        };
+        FeatureRequest: {
+            itemType: components["schemas"]["FeaturedItemType"];
+            /** Format: uuid */
+            itemId: string;
+        };
+        /**
+         * @default Highlight
+         * @enum {unknown}
+         */
+        FeedLayout: "Carousel" | "Highlight" | "Gallery";
+        FeedLayoutRequest: {
+            layout: components["schemas"]["FeedLayout"];
+        };
         FolderDto: {
             /** Format: uuid */
             id: string;
@@ -1509,12 +1622,15 @@ export interface components {
             /** Format: date-time */
             publishedAt: string;
             /** Format: uuid */
-            characterId: string;
+            characterId: null | string;
             characterName: string;
             characterAvatarKey: null | string;
             communitySlug: string;
             communityName: string;
             communityIconKey: null | string;
+            kind?: components["schemas"]["PostKind"];
+            coverKey?: null | string;
+            authorUserName?: null | string;
         };
         HomeDto: {
             sections: string[];
@@ -1668,6 +1784,11 @@ export interface components {
         };
         /** @enum {unknown} */
         NotificationType: "YourTurn" | "SceneInvite" | "SceneJoinRequest" | "SceneJoinDecision" | "Mention" | "ChapterApproval" | "ChapterDecision" | "RemovedFromCommunity";
+        /**
+         * @default Chapter
+         * @enum {unknown}
+         */
+        PostKind: "Chapter" | "Blog";
         ProfileChapterDto: {
             /** Format: uuid */
             id: string;
@@ -1675,6 +1796,8 @@ export interface components {
             characterName: string;
             /** Format: date-time */
             publishedAt: null | string;
+            kind?: components["schemas"]["PostKind"];
+            coverKey?: null | string;
         };
         ProfileCharacterDto: {
             /** Format: uuid */
@@ -1953,6 +2076,9 @@ export interface components {
         UpdateChapterRequest: {
             title: string;
             content: string;
+            coverKey?: null | string;
+            backgroundKey?: null | string;
+            musicUrl?: null | string;
         };
         UpdateCommunityProfileRequest: {
             nickname: null | string;
@@ -3444,6 +3570,7 @@ export interface operations {
         parameters: {
             query?: {
                 characterId?: string;
+                kind?: components["schemas"]["PostKind"];
             };
             header?: never;
             path: {
@@ -4182,6 +4309,127 @@ export interface operations {
                 content: {
                     "application/json": string[];
                 };
+            };
+        };
+    };
+    ListFeatured: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeaturedDto"][];
+                };
+            };
+        };
+    };
+    FeatureItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeatureRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeaturedDto"][];
+                };
+            };
+        };
+    };
+    UnfeatureItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeaturedDto"][];
+                };
+            };
+        };
+    };
+    ReorderFeatured: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeaturedOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeaturedDto"][];
+                };
+            };
+        };
+    };
+    UpdateFeedLayout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedLayoutRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

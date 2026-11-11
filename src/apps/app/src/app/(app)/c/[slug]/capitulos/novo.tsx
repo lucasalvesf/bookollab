@@ -9,6 +9,7 @@ import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { FormScreen, FormSection } from '@/components/form';
 import { Loadable, Page } from '@/components/layout';
+import { PostEditor, type PostDraft } from '@/components/post-editor';
 import { Button, Notice } from '@/components/ui';
 import { makeStyles, radius, useTheme } from '@/theme';
 
@@ -21,7 +22,8 @@ import { makeStyles, radius, useTheme } from '@/theme';
 export default function NewChapterScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
-  const { slug, sceneId, replyTo, mention } = useLocalSearchParams<{ slug: string; sceneId?: string; replyTo?: string; mention?: string }>();
+  const { slug, sceneId, replyTo, mention, kind } = useLocalSearchParams<{ slug: string; sceneId?: string; replyTo?: string; mention?: string; kind?: string }>();
+  const blog = kind === 'blog';
   const router = useRouter();
   const queryClient = useQueryClient();
   const myCharacters = useQuery({
@@ -39,8 +41,7 @@ export default function NewChapterScreen() {
   });
 
   const [characterId, setCharacterId] = useState<string>();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [post, setPost] = useState<PostDraft>({ title: '', content: '', coverKey: null, backgroundKey: null, musicUrl: '' });
   const [coauthors, setCoauthors] = useState<string[] | null>(null);
   const [mentions, setMentions] = useState<string[]>(mention ? [mention] : []);
   const [mentionTerm, setMentionTerm] = useState('');
@@ -52,16 +53,20 @@ export default function NewChapterScreen() {
   const writer = characterId ?? myCharacters.data?.[0]?.id;
 
   async function submit(publish: boolean) {
-    if (!writer) return;
+    if (!blog && !writer) return;
     setSaving(publish ? 'publish' : 'draft');
     setProblem(undefined);
     try {
       const { data, error } = await api.POST('/communities/{slug}/chapters', {
         params: { path: { slug } },
         body: {
-          characterId: writer,
-          title,
-          content,
+          kind: blog ? 'Blog' : 'Chapter',
+          characterId: blog ? null : writer!,
+          title: post.title,
+          content: post.content,
+          coverKey: post.coverKey,
+          backgroundKey: post.backgroundKey,
+          musicUrl: post.musicUrl.trim() || null,
           publish,
           sourceSceneId: sceneId ?? null,
           coauthorCharacterIds: sceneId ? selectedCoauthors.filter((id) => id !== writer) : null,
@@ -83,9 +88,9 @@ export default function NewChapterScreen() {
     }
   }
 
-  const subtitle = sceneId ? `A partir da cena${draft.data ? ` "${draft.data.sceneTitle}"` : ''}` : replyTo ? 'Resposta a um capítulo' : 'Um texto narrativo do ponto de vista de um dos seus personagens.';
+  const subtitle = blog ? 'Um post OFF, seu como jogador: avisos, bastidores, artes, o que quiser.' : sceneId ? `A partir da cena${draft.data ? ` "${draft.data.sceneTitle}"` : ''}` : replyTo ? 'Resposta a um capítulo' : 'Um texto narrativo do ponto de vista de um dos seus personagens.';
 
-  if (myCharacters.data && myCharacters.data.length === 0) {
+  if (!blog && myCharacters.data && myCharacters.data.length === 0) {
     return (
       <Page title="Escrever capítulo" subtitle={subtitle} back>
         <Notice kind="info">Crie um personagem nesta comunidade antes de escrever um capítulo.</Notice>
@@ -101,12 +106,12 @@ export default function NewChapterScreen() {
 
   return (
     <FormScreen
-      title="Escrever capítulo"
+      title={blog ? 'Escrever blog' : 'Escrever capítulo'}
       subtitle={subtitle}
       submitLabel="Publicar"
       onSubmit={() => submit(true)}
       loading={saving === 'publish'}
-      disabled={!writer || !title.trim() || !content.trim()}
+      disabled={(!blog && !writer) || !post.title.trim() || !post.content.trim()}
       secondary={{ label: 'Salvar rascunho', onPress: () => submit(false), loading: saving === 'draft' }}>
       <Loadable query={myCharacters}>
         {(chars) => (
@@ -119,6 +124,7 @@ export default function NewChapterScreen() {
               </View>
             ) : null}
 
+            {!blog ? (
             <FormSection title="Quem escreve" icon={UserRound} description="O capítulo é narrado do ponto de vista deste personagem.">
               <View style={styles.people}>
                 {chars.map((c) => {
@@ -132,6 +138,7 @@ export default function NewChapterScreen() {
                 })}
               </View>
             </FormSection>
+            ) : null}
 
             {sceneId && draft.data ? (
               <FormSection
@@ -140,8 +147,8 @@ export default function NewChapterScreen() {
                 description="O rascunho automático junta as ações da cena em ordem; você edita à vontade."
                 right={
                   <View style={styles.inline}>
-                    <Button title="Usar rascunho" icon={FilePlus2} size="sm" variant="secondary" onPress={() => { setTitle(draft.data.title); setContent(draft.data.content); }} />
-                    <Button title="Do zero" icon={PenLine} size="sm" variant="ghost" onPress={() => { setTitle(''); setContent(''); }} />
+                    <Button title="Usar rascunho" icon={FilePlus2} size="sm" variant="secondary" onPress={() => setPost({ ...post, title: draft.data.title, content: draft.data.content })} />
+                    <Button title="Do zero" icon={PenLine} size="sm" variant="ghost" onPress={() => setPost({ ...post, title: '', content: '' })} />
                   </View>
                 }>
                 <Text style={styles.label}>Coautores</Text>
@@ -160,29 +167,14 @@ export default function NewChapterScreen() {
             ) : null}
             {sceneId && draft.isError ? <Notice kind="error">{draft.error.message}</Notice> : null}
 
-            <View style={styles.editor}>
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                placeholder="Título do capítulo"
-                placeholderTextColor={colors.textSubtle}
-                style={styles.titleInput}
-                accessibilityLabel="Título"
-              />
-              {problemMessage(problem, 'title') ? <Text style={styles.error}>{problemMessage(problem, 'title')}</Text> : null}
-              <View style={styles.divider} />
-              <TextInput
-                value={content}
-                onChangeText={setContent}
-                placeholder="Era uma vez…"
-                placeholderTextColor={colors.textSubtle}
-                multiline
-                style={styles.contentInput}
-                accessibilityLabel="Texto do capítulo"
-              />
-              {problemMessage(problem, 'content') ? <Text style={styles.error}>{problemMessage(problem, 'content')}</Text> : null}
-              <Text style={styles.counter}>{`${content.trim() ? content.trim().split(/\s+/).length : 0} palavras`}</Text>
-            </View>
+            <PostEditor
+              value={post}
+              onChange={setPost}
+              titleError={problemMessage(problem, 'title')}
+              contentError={problemMessage(problem, 'content')}
+              musicError={problemMessage(problem, 'musicUrl')}
+              placeholder={blog ? 'Escreva o seu post…' : 'Era uma vez…'}
+            />
 
             <FormSection title="Marcar personagens" icon={AtSign} description={'Quem for marcado recebe um aviso para responder (ex.: uma carta "Para @John").'}>
               {mentions.length > 0 ? (

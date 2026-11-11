@@ -31,7 +31,14 @@ function normalize(s: string) {
  * Discord-like settings: grouped topics in a sidebar with search (wide), or a grouped list that opens
  * each topic (narrow). Esc / the close button leave the settings.
  */
-export function SettingsLayout({ title, subtitle, pages, onClose }: { title: string; subtitle?: string; pages: SettingsPage[]; onClose?: () => void }) {
+export function SettingsLayout({ title, subtitle, pages, onClose, identity }: {
+  title: string;
+  subtitle?: string;
+  pages: SettingsPage[];
+  onClose?: () => void;
+  /** Whose settings these are (e.g. the community: cover, icon and name stay visible). */
+  identity?: ReactNode;
+}) {
   const styles = useStyles();
   const { colors } = useTheme();
   const router = useRouter();
@@ -126,6 +133,7 @@ export function SettingsLayout({ title, subtitle, pages, onClose }: { title: str
     return (
       <View style={styles.wide}>
         <View style={styles.sidebar}>
+          {identity}
           <ScrollView contentContainerStyle={styles.sidebarContent}>
             <Text style={styles.title} numberOfLines={1}>{title}</Text>
             {subtitle ? <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text> : null}
@@ -146,6 +154,7 @@ export function SettingsLayout({ title, subtitle, pages, onClose }: { title: str
 
   return (
     <ScrollView style={styles.narrow} contentContainerStyle={styles.narrowContent} keyboardShouldPersistTaps="handled">
+      {!current ? identity : null}
       <View style={styles.narrowHeader}>
         <IconButton icon={ChevronLeft} label="Voltar" size={38} onPress={() => (current ? setSelected(undefined) : close())} />
         <View style={styles.flex}>

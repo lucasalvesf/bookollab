@@ -7,6 +7,8 @@ import {
   Clapperboard,
   Clock,
   LayoutGrid,
+  LayoutTemplate,
+  PenSquare,
   Link2,
   NotebookPen,
   Plus,
@@ -20,16 +22,20 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, Text, TextInput, View, type ViewInstance } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import { Avatar } from '@/components/avatar';
 import { CommunityCover } from '@/components/community';
+import { FEED_LAYOUTS } from '@/components/community-admin';
+import { FeaturedShowcase, ManageFeaturedModal, PostAuthorChip, PostFeed, type FeedLayout } from '@/components/community-feed';
 import { useCommunityMenu } from '@/components/community-menu';
-import { Carousel, ChapterCard, EntryTile, FeedSection, SceneCard } from '@/components/feed';
+import { useFeatureMenu } from '@/components/links';
+import { Carousel, EntryTile, FeedSection, SceneCard } from '@/components/feed';
 import { Empty, Loadable, Page, Row, Tag } from '@/components/layout';
 import { ContextMenu, MoreButton, useCopyLink, useMenu, type MenuItem } from '@/components/menu';
 import { Button, IconButton, Notice } from '@/components/ui';
@@ -37,11 +43,12 @@ import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
 type SectionKey = 'overview' | 'scenes' | 'chapters' | 'encyclopedia' | 'characters' | 'members';
 type Community = components['schemas']['CommunityDetail'];
+type Post = components['schemas']['ChapterSummary'];
 
 const SECTIONS: Record<SectionKey, { label: string; icon: LucideIcon }> = {
   overview: { label: 'Visão geral', icon: LayoutGrid },
   scenes: { label: 'Cenas', icon: Clapperboard },
-  chapters: { label: 'Capítulos', icon: NotebookPen },
+  chapters: { label: 'Posts', icon: NotebookPen },
   encyclopedia: { label: 'Enciclopédia', icon: BookMarked },
   characters: { label: 'Personagens', icon: UserRound },
   members: { label: 'Membros', icon: Users },
@@ -65,6 +72,7 @@ export default function CommunityScreen() {
     queryFn: () => unwrap(api.GET('/communities/{slug}', { params: { path: { slug } } }), 'Comunidade não encontrada.'),
   });
   const [tab, setTab] = useState<SectionKey>();
+  const [scrolled, setScrolled] = useState(false);
   const join = useMutation({
     mutationFn: () => unwrap(api.POST('/communities/{slug}/join', { params: { path: { slug } } })),
     onSuccess: () => {
@@ -87,7 +95,7 @@ export default function CommunityScreen() {
               <View style={styles.heroTop}>
                 <IconButton icon={ChevronLeft} label="Voltar" tone="onImage" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
                 <View style={styles.flex} />
-                {isStaff ? <IconButton icon={Settings} label="Configurações da comunidade" tone="onImage" onPress={() => router.push({ pathname: '/c/[slug]/staff', params: { slug } })} /> : null}
+                {isStaff ? <IconButton icon={Settings} label="Moderação e configurações" tone="onImage" onPress={() => router.push({ pathname: '/c/[slug]/staff', params: { slug } })} /> : null}
                 <MoreButton items={menu} title={c.name} size={40} tone="onImage" />
               </View>
             </CommunityCover>
@@ -109,14 +117,22 @@ export default function CommunityScreen() {
         );
 
         return (
-          <Page title={c.name} hero={hero}>
+          <Page
+            title={c.name}
+            hero={hero}
+            onScroll={(y) => setScrolled(y > 250)}
+            overlay={
+              scrolled ? (
+                <StickyHeader community={c} order={c.me ? order : []} current={current} onTab={setTab} isStaff={isStaff} />
+              ) : null
+            }>
             {c.description ? <Text style={styles.description}>{c.description}</Text> : null}
 
             {!c.me ? (
               <View style={styles.joinBox}>
                 {join.isError ? <Notice kind="error">{join.error.message}</Notice> : null}
                 {c.hasPendingRequest || join.data?.status === 'pending' ? (
-                  <Notice kind="info">Seu pedido de entrada foi enviado. Aguarde a aprovação da staff.</Notice>
+                  <Notice kind="info">Seu pedido de entrada foi enviado. Aguarde a aprovação da moderação.</Notice>
                 ) : c.joinPolicy === 'InviteOnly' ? (
                   <Notice kind="info">Esta comunidade só aceita membros por convite.</Notice>
                 ) : (
@@ -159,12 +175,84 @@ export default function CommunityScreen() {
   );
 }
 
+/** "Escrever": choose between a chapter (as a character) and a blog (OFF, as the player). */
+function WriteButton({ slug }: { slug: string }) {
+  const router = useRouter();
+  const ref = useRef<ViewInstance>(null);
+  const { openMenu } = useMenu();
+  return (
+    <View ref={ref} collapsable={false}>
+      <Button
+        title="Escrever"
+        icon={Plus}
+        size="sm"
+        onPress={() =>
+          ref.current?.measureInWindow((x, y, w, h) =>
+            openMenu(
+              [
+                { label: 'Capítulo (como personagem)', icon: NotebookPen, onPress: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug } }) },
+                { label: 'Blog (post OFF)', icon: PenSquare, onPress: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug, kind: 'blog' } }) },
+              ],
+              { x: x + w - 248, y: y + h + 4 },
+              'Escrever',
+            ),
+          )
+        }
+      />
+    </View>
+  );
+}
+
+/** Compact header that sticks to the top once the cover scrolls away: identity + tabs. */
+function StickyHeader({ community: c, order, current, onTab, isStaff }: { community: Community; order: SectionKey[]; current: SectionKey; onTab: (k: SectionKey) => void; isStaff: boolean }) {
+  const styles = useStyles();
+  const router = useRouter();
+  return (
+    <Animated.View entering={FadeInDown.duration(160)} style={styles.sticky}>
+      <View style={styles.stickyInner}>
+        <Avatar name={c.name} imageKey={c.iconKey} size={30} shape="rounded" />
+        <Text style={styles.stickyName} numberOfLines={1}>{c.name}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stickyTabs} style={styles.flex}>
+          {order.map((key) => {
+            const active = key === current;
+            return (
+              <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={() => onTab(key)} style={[styles.stickyTab, active && styles.stickyTabActive]}>
+                <Text style={[styles.stickyTabText, active && styles.stickyTabTextActive]}>{SECTIONS[key].label}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+        {isStaff ? <IconButton icon={Settings} label="Moderação e configurações" size={34} onPress={() => router.push({ pathname: '/c/[slug]/staff', params: { slug: c.slug } })} /> : null}
+      </View>
+    </Animated.View>
+  );
+}
+
 /** First tab: highlights of every section, each with "Ver mais" (Amino's community front page). */
 function Overview({ community: c, onSeeAll }: { community: Community; onSeeAll: (s: SectionKey) => void }) {
   const styles = useStyles();
   const router = useRouter();
   const copyLink = useCopyLink();
+  const { openMenu } = useMenu();
   const slug = c.slug;
+  const perms = new Set(c.me?.permissions ?? []);
+  const canFeature = perms.has('ModerateContent');
+  const featureMenu = useFeatureMenu(slug, canFeature);
+  const [managing, setManaging] = useState(false);
+  const featured = useQuery({ queryKey: ['featured', slug], queryFn: () => unwrap(api.GET('/communities/{slug}/featured', { params: { path: { slug } } })) });
+  const layoutMenu: MenuItem[] = FEED_LAYOUTS.map((l) => ({ label: l.label + (l.value === (c.feedLayout ?? 'Highlight') ? '  ✓' : ''), icon: l.icon, onPress: () => void setLayout(l.value) }));
+  const queryClient = useQueryClient();
+  const setLayout = async (layout: FeedLayout) => {
+    queryClient.setQueryData<Community>(['community', slug], (old) => (old ? { ...old, feedLayout: layout } : old));
+    await api.PUT('/communities/{slug}/feed-layout', { params: { path: { slug } }, body: { layout } });
+  };
+  const postMenu = (p: Post): MenuItem[] => [
+    { label: p.kind === 'Blog' ? 'Ler blog' : 'Ler capítulo', icon: ArrowRight, onPress: () => router.push({ pathname: '/capitulos/[id]', params: { id: p.id } }) },
+    { label: 'Responder com um capítulo', icon: Reply, onPress: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug, replyTo: p.id, ...(p.characterId ? { mention: p.characterId } : {}) } }) },
+    ...featureMenu('Post', p.id),
+    'separator',
+    { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/capitulos/${p.id}`) },
+  ];
   const chapters = useQuery({ queryKey: ['chapters', slug], queryFn: () => unwrap(api.GET('/communities/{slug}/chapters', { params: { path: { slug }, query: {} } })) });
   const scenes = useQuery({ queryKey: ['scenes', slug], queryFn: () => unwrap(api.GET('/communities/{slug}/scenes', { params: { path: { slug } } })) });
   const encyclopedia = useQuery({
@@ -177,26 +265,32 @@ function Overview({ community: c, onSeeAll }: { community: Community; onSeeAll: 
 
   return (
     <View style={styles.overview}>
-      <FeedSection title="Últimos capítulos" icon={NotebookPen} onSeeAll={() => onSeeAll('chapters')}>
-        {published.length ? (
-          <Carousel itemWidth={280}>
-            {published.map((ch) => (
-              <ChapterCard
-                key={ch.id}
-                chapter={{ ...ch, characterAvatarKey: null }}
-                menu={[
-                  { label: 'Ler capítulo', icon: ArrowRight, onPress: () => router.push({ pathname: '/capitulos/[id]', params: { id: ch.id } }) },
-                  { label: 'Responder com um capítulo', icon: Reply, onPress: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug, replyTo: ch.id, mention: ch.characterId } }) },
-                  'separator',
-                  { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/capitulos/${ch.id}`) },
-                ]}
-                onPress={() => router.push({ pathname: '/capitulos/[id]', params: { id: ch.id } })}
+      <FeaturedShowcase items={featured.data ?? []} onManage={canFeature ? () => setManaging(true) : undefined} />
+      {managing ? <ManageFeaturedModal slug={slug} items={featured.data ?? []} onClose={() => setManaging(false)} /> : null}
+      <FeedSection
+        title="Últimos posts"
+        icon={NotebookPen}
+        onSeeAll={() => onSeeAll('chapters')}
+        actions={
+          <View style={styles.rowRight}>
+            {perms.has('ManageCommunity') ? (
+              <IconButton
+                icon={LayoutTemplate}
+                label="Layout dos posts"
+                size={34}
+                onPress={() => openMenu(layoutMenu, undefined, 'Layout dos posts')}
               />
-            ))}
-          </Carousel>
-        ) : (
-          <Empty icon={NotebookPen}>Nenhum capítulo publicado ainda.</Empty>
-        )}
+            ) : null}
+            {perms.has('WriteChapters') ? <WriteButton slug={slug} /> : null}
+          </View>
+        }>
+        <PostFeed
+          posts={published}
+          slug={slug}
+          layout={c.feedLayout ?? 'Highlight'}
+          menuFor={postMenu}
+          onOpen={(p) => router.push({ pathname: '/capitulos/[id]', params: { id: p.id } })}
+        />
       </FeedSection>
       <FeedSection title="Cenas ao vivo" icon={Radio} onSeeAll={() => onSeeAll('scenes')}>
         {live.length ? (
@@ -229,6 +323,7 @@ function Overview({ community: c, onSeeAll }: { community: Community; onSeeAll: 
                   entry={e}
                   menu={[
                     { label: 'Abrir ficha', icon: ArrowRight, onPress: open },
+                    ...featureMenu(e.itemType === 'Character' ? 'Character' : 'Sheet', e.id),
                     { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(e.itemType === 'Character' ? `/personagens/${e.id}` : `/fichas/${e.id}`) },
                   ]}
                   onPress={open}
@@ -254,6 +349,8 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
   const queryClient = useQueryClient();
   const slug = c.slug;
   const [term, setTerm] = useState('');
+  const [kind, setKind] = useState<'all' | 'Chapter' | 'Blog'>('all');
+  const featureMenu = useFeatureMenu(slug, perms.has('ModerateContent'));
   const q = normalize(term.trim());
   const match = (...parts: (string | null | undefined)[]) => !q || normalize(parts.filter(Boolean).join(' ')).includes(q);
 
@@ -281,7 +378,7 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
       case 'scenes':
         return { placeholder: 'Buscar cenas', action: perms.has('OpenScenes') ? { title: 'Abrir cena', go: () => router.push({ pathname: '/c/[slug]/cenas/nova', params: { slug } }) } : null };
       case 'chapters':
-        return { placeholder: 'Buscar capítulos', action: perms.has('WriteChapters') ? { title: 'Escrever', go: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug } }) } : null };
+        return { placeholder: 'Buscar posts', action: null };
       case 'characters':
         return { placeholder: 'Buscar personagens', action: perms.has('CreateCharacters') ? { title: 'Novo personagem', go: () => router.push({ pathname: '/c/[slug]/personagens/novo', params: { slug } }) } : null };
       case 'members':
@@ -295,7 +392,7 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
     return (
       <View style={styles.panel}>
         <View style={styles.encyclopedia}>
-          <Empty icon={BookMarked}>Personagens, lugares, facções e tudo do mundo da comunidade, organizado em pastas pela staff.</Empty>
+          <Empty icon={BookMarked}>Personagens, lugares, facções e tudo do mundo da comunidade, organizado em pastas pela moderação.</Empty>
           <View style={styles.center}>
             <Button title="Abrir a enciclopédia" icon={BookMarked} onPress={() => router.push({ pathname: '/c/[slug]/enciclopedia', params: { slug } })} />
           </View>
@@ -317,6 +414,7 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
           ) : null}
         </View>
         {config.action ? <Button title={config.action.title} icon={Plus} size="sm" onPress={config.action.go} /> : null}
+        {section === 'chapters' && perms.has('WriteChapters') ? <WriteButton slug={slug} /> : null}
       </View>
 
       {section === 'scenes' ? (
@@ -358,19 +456,34 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
       {section === 'chapters' ? (
         <Loadable query={chapters}>
           {(list) => {
-            const items = list.filter((ch) => match(ch.title, ch.excerpt, ch.characterName, ch.authorUserName));
+            const items = list.filter((ch) => (kind === 'all' || ch.kind === kind) && match(ch.title, ch.excerpt, ch.characterName, ch.authorUserName));
+            const filters = (
+              <View style={styles.filters}>
+                {([['all', 'Todos'], ['Chapter', 'Capítulos'], ['Blog', 'Blogs']] as const).map(([k, label]) => (
+                  <Pressable key={k} accessibilityRole="radio" accessibilityState={{ checked: kind === k }} onPress={() => setKind(k)} style={[styles.filter, kind === k && styles.filterOn]}>
+                    <Text style={[styles.filterText, kind === k && styles.filterTextOn]}>{label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            );
             return items.length === 0 ? (
-              <Empty icon={NotebookPen}>{q ? 'Nenhum capítulo encontrado.' : 'Nenhum capítulo ainda.'}</Empty>
+              <>
+                {filters}
+                <Empty icon={NotebookPen}>{q || kind !== 'all' ? 'Nenhum post encontrado.' : 'Nenhum post ainda.'}</Empty>
+              </>
             ) : (
-              items.map((ch) => {
+              <>
+              {filters}
+              {items.map((ch) => {
                 const menu: MenuItem[] = [
-                  { label: 'Ler capítulo', icon: ArrowRight, onPress: () => router.push({ pathname: '/capitulos/[id]', params: { id: ch.id } }) },
+                  { label: ch.kind === 'Blog' ? 'Ler blog' : 'Ler capítulo', icon: ArrowRight, onPress: () => router.push({ pathname: '/capitulos/[id]', params: { id: ch.id } }) },
                   {
                     label: 'Responder com um capítulo',
                     icon: Reply,
                     hidden: ch.status !== 'Published',
-                    onPress: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug, replyTo: ch.id, mention: ch.characterId } }),
+                    onPress: () => router.push({ pathname: '/c/[slug]/capitulos/novo', params: { slug, replyTo: ch.id, ...(ch.characterId ? { mention: ch.characterId } : {}) } }),
                   },
+                  ...(ch.status === 'Published' ? featureMenu('Post', ch.id) : []),
                   'separator',
                   { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/capitulos/${ch.id}`) },
                 ];
@@ -393,14 +506,16 @@ function SectionList({ section, community: c, perms }: { section: Exclude<Sectio
                       </View>
                       <Text style={styles.chapterExcerpt} numberOfLines={3}>{ch.excerpt}</Text>
                       <View style={styles.chapterMeta}>
-                        <Text style={styles.chapterAuthor}>{ch.characterName}</Text>
+                        <PostAuthorChip post={ch} slug={slug} />
+                        {ch.kind === 'Blog' ? <Tag label="Blog" tone="warning" /> : null}
                         <Clock size={12} color={colors.textSubtle} />
                         <Text style={styles.chapterTime}>{new Date(ch.publishedAt ?? ch.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</Text>
                       </View>
                     </Pressable>
                   </ContextMenu>
                 );
-              })
+              })}
+              </>
             );
           }}
         </Loadable>
@@ -513,6 +628,19 @@ const useStyles = makeStyles((colors) => ({
   search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surfaceAlt, borderRadius: radius.sm, paddingHorizontal: 10 },
   searchInput: { flex: 1, fontSize: 14, color: colors.text, paddingVertical: 8 },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  filters: { flexDirection: 'row', gap: 6, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 4 },
+  filter: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt },
+  filterOn: { backgroundColor: colors.brandSoft },
+  filterText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+  filterTextOn: { color: colors.brandSoftText },
+  sticky: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border, ...shadow(colors, 2), zIndex: 20 },
+  stickyInner: { width: '100%', maxWidth: 760, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 8 },
+  stickyName: { fontSize: 15, fontWeight: '700', color: colors.text, maxWidth: 180 },
+  stickyTabs: { gap: 2, alignItems: 'center' },
+  stickyTab: { paddingHorizontal: 10, paddingVertical: 8, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  stickyTabActive: { borderBottomColor: colors.brand },
+  stickyTabText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+  stickyTabTextActive: { color: colors.brand },
   groupHeader: { fontSize: 11, fontWeight: '700', color: colors.textSubtle, textTransform: 'uppercase', letterSpacing: 0.6, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6, backgroundColor: colors.surfaceAlt },
   encyclopedia: { padding: 16, gap: 8 },
   chapter: { padding: 16, gap: 6, borderBottomWidth: 1, borderBottomColor: colors.border },

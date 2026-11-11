@@ -32,7 +32,7 @@ export function MechanicsAdmin({ slug }: { slug: string }) {
       {save.isError ? <Notice kind="error">{save.error.message}</Notice> : null}
       <ToggleRow label="Rolagem de dados" hint="Nas cenas: /rolar 1d20+3. O servidor rola e o resultado não pode ser editado." value={m.diceEnabled} onChange={(v) => save.mutate({ ...m, diceEnabled: v })} />
       <ToggleRow label="Atributos na ficha" hint="Os campos numéricos da ficha (ex.: Força) viram atributos e podem entrar nas rolagens: /rolar 1d20+força." value={m.attributesEnabled} onChange={(v) => save.mutate({ ...m, attributesEnabled: v })} />
-      <ToggleRow label="Inventário" hint="Itens dos personagens. Só a staff dá ou tira itens." value={m.inventoryEnabled} onChange={(v) => save.mutate({ ...m, inventoryEnabled: v })} />
+      <ToggleRow label="Inventário" hint="Itens dos personagens. Só a moderação dá ou tira itens." value={m.inventoryEnabled} onChange={(v) => save.mutate({ ...m, inventoryEnabled: v })} />
     </Section>
   );
 }
@@ -75,7 +75,7 @@ export function CharacterMechanics({ characterId }: { characterId: string }) {
       {d.mechanics.attributesEnabled ? (
         <Section title="Atributos" icon={Gauge}>
           {d.attributes.length === 0 ? (
-            <Empty>A staff ainda não criou campos numéricos na ficha.</Empty>
+            <Empty>A moderação ainda não criou campos numéricos na ficha.</Empty>
           ) : (
             <View style={styles.attributes}>
               {d.attributes.map((a) => (

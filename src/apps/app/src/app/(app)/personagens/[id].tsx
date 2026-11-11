@@ -10,6 +10,7 @@ import { Avatar } from '@/components/avatar';
 import { CharacterForm } from '@/components/character-form';
 import { FolderPicker } from '@/components/folder-picker';
 import { Empty, Loadable, Page, Section } from '@/components/layout';
+import { NameLink } from '@/components/links';
 import { CharacterMechanics } from '@/components/mechanics';
 import { ContextMenu, MoreButton, useCopyLink, type MenuItem } from '@/components/menu';
 import { IconButton, Notice } from '@/components/ui';
@@ -87,7 +88,12 @@ export default function CharacterScreen() {
                       <View style={styles.identityText}>
                         <Text style={styles.kind}>Personagem</Text>
                         <Text style={styles.name}>{ch.name}</Text>
-                        <Text style={styles.meta}>{`de @${ch.ownerUserName}${community.data ? ` · ${community.data.name}` : ''}`}</Text>
+                        <Text style={styles.meta}>
+                          {'de '}
+                          <NameLink label={`@${ch.ownerUserName}`} href={{ pathname: '/c/[slug]/membros/[userName]', params: { slug: ch.communitySlug, userName: ch.ownerUserName } }} />
+                          {community.data ? ' · ' : ''}
+                          {community.data ? <NameLink label={community.data.name} href={{ pathname: '/c/[slug]', params: { slug: ch.communitySlug } }} /> : null}
+                        </Text>
                         <View style={styles.visibility}>
                           {ch.showOnGlobalProfile ? <Eye size={14} color={colors.textSubtle} /> : <EyeOff size={14} color={colors.textSubtle} />}
                           <Text style={styles.visibilityText}>

@@ -39,7 +39,7 @@ export function useCommunityMenu() {
         hidden: !isMember || !me.data,
         onPress: () => router.push({ pathname: '/c/[slug]/membros/[userName]', params: { slug: c.slug, userName: me.data!.userName } }),
       },
-      { label: 'Área da staff', icon: Shield, hidden: !STAFF_PERMISSIONS.some((p) => perms.has(p)), onPress: () => router.push({ pathname: '/c/[slug]/staff', params: { slug: c.slug } }) },
+      { label: 'Moderação e configurações', icon: Shield, hidden: !STAFF_PERMISSIONS.some((p) => perms.has(p)), onPress: () => router.push({ pathname: '/c/[slug]/staff', params: { slug: c.slug } }) },
       'separator',
       { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/c/${c.slug}`) },
       ...(isMember
