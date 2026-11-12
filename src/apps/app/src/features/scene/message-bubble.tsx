@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useRef, useState } from 'react';
 import * as Clipboard from 'expo-clipboard';
-import { Copy, Dices, History, Pencil, Trash2, X } from 'lucide-react-native';
+import { Copy, Dices, History, Pencil, Trash2, VenetianMask, X } from 'lucide-react-native';
 import { Pressable, Text, TextInput, View, type ViewInstance } from 'react-native';
 
 import { api } from '@/api/client';
@@ -32,6 +32,7 @@ export function MessageBubble({
   onChanged: (a: SceneAction) => void;
 }) {
   const styles = useStyles();
+  const { colors } = useTheme();
   const { openMenu, toast } = useMenu();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(action.content ?? '');
@@ -90,7 +91,15 @@ export function MessageBubble({
     <View style={[styles.row, mine && styles.rowMine, grouped && styles.rowGrouped]}>
       {!mine ? <View style={styles.avatarSlot}>{!grouped ? <Avatar name={action.characterName} imageKey={action.characterAvatarKey} size={38} /> : null}</View> : null}
       <View style={[styles.column, mine && styles.columnMine]}>
-        {!grouped ? <Text style={[styles.name, mine && styles.nameMine]}>{action.characterName}</Text> : null}
+        {!grouped ? (
+          // ON (a character speaks) gets the mask and the community tint; OFF (the player speaks) stays neutral.
+          <View style={[styles.nameRow, mine && styles.nameRowMine]} accessibilityLabel={action.characterId ? `Personagem ${action.characterName} (ON)` : `Jogador ${action.characterName} (OFF)`}>
+            <View style={[styles.namePill, action.characterId ? styles.namePillOn : null]}>
+              {action.characterId ? <VenetianMask size={12} color={colors.brandSoftText} strokeWidth={2.4} /> : null}
+              <Text style={[styles.name, action.characterId ? styles.nameOn : null]}>{action.characterName}</Text>
+            </View>
+          </View>
+        ) : null}
         <ContextMenu items={editing ? [] : items} title={action.characterName}>
         <Pressable
           ref={bubbleRef}
@@ -171,7 +180,12 @@ const useStyles = makeStyles((colors) => ({
   avatarSlot: { width: 38 },
   column: { maxWidth: '78%', gap: 3, alignItems: 'flex-start' },
   columnMine: { alignItems: 'flex-end' },
-  name: { fontSize: 12, fontWeight: '700', color: colors.textMuted, backgroundColor: colors.surface, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', opacity: 0.92 },
+  nameRow: { flexDirection: 'row' },
+  nameRowMine: { justifyContent: 'flex-end' },
+  namePill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surface, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, opacity: 0.94 },
+  namePillOn: { backgroundColor: colors.brandSoft, opacity: 1 },
+  name: { fontSize: 12, fontWeight: '700', color: colors.textMuted },
+  nameOn: { color: colors.brandSoftText },
   nameMine: { color: colors.brand },
   bubble: { borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, gap: 6, minWidth: 64 },
   bubbleOther: { backgroundColor: colors.surface, borderTopLeftRadius: 4 },

@@ -20,6 +20,7 @@ import {
   Search,
   Settings,
   UserMinus,
+  VenetianMask,
   UserRound,
   Users,
   X,
@@ -132,7 +133,7 @@ export default function CommunityScreen() {
 
         const hero = (
           <View style={styles.heroWrap}>
-            <CommunityCover name={c.name} coverKey={c.coverKey} height={split ? 240 : 190}>
+            <CommunityCover name={c.name} coverKey={c.coverKey} height={split ? 168 : 148}>
               <View style={styles.heroTop}>
                 <IconButton icon={ChevronLeft} label="Voltar" tone="onImage" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
                 <View style={styles.flex} />
@@ -186,6 +187,7 @@ export default function CommunityScreen() {
               </View>
             ) : (
               <>
+                <LiveNow slug={c.slug} />
                 <PillScroller>
                   {order.map((key) => {
                     const s = SECTION_INFO[key];
@@ -239,6 +241,59 @@ export default function CommunityScreen() {
         );
       }}
     </Loadable>
+  );
+}
+
+/** "Acontecendo agora": the live chats right under the header, the heart of the product, one tap from joining. */
+function LiveNow({ slug }: { slug: string }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const router = useRouter();
+  const scenes = useQuery({ queryKey: ['scenes', slug], queryFn: () => unwrap(api.GET('/communities/{slug}/scenes', { params: { path: { slug } } })) });
+  // Reference time taken once per visit (render must stay pure).
+  const [now] = useState(() => Date.now());
+  const live = (scenes.data ?? [])
+    .filter((s) => s.status === 'Open' && (s.kind !== 'Chat' || (s.lastActionAt && now - new Date(s.lastActionAt).getTime() < 48 * 3600_000)))
+    .sort((a, b) => new Date(b.lastActionAt ?? b.createdAt).getTime() - new Date(a.lastActionAt ?? a.createdAt).getTime())
+    .slice(0, 6);
+  if (!live.length) return null;
+  const since = (iso?: string | null) => {
+    if (!iso) return 'sem mensagens ainda';
+    const min = Math.max(1, Math.round((now - new Date(iso).getTime()) / 60000));
+    return min < 60 ? `há ${min} min` : min < 1440 ? `há ${Math.round(min / 60)} h` : `há ${Math.round(min / 1440)} d`;
+  };
+  return (
+    <View style={styles.live}>
+      <View style={styles.liveHead}>
+        <View style={styles.liveDot} />
+        <Text style={styles.liveTitle}>Acontecendo agora</Text>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveRow}>
+        {live.map((s) => {
+          const off = s.kind === 'Chat';
+          const open = () => router.push({ pathname: '/cenas/[id]', params: { id: s.id } });
+          return (
+            <Pressable key={s.id} accessibilityRole="link" accessibilityLabel={`${s.title}, ${off ? 'chat público' : 'cena'}, ${since(s.lastActionAt)}`} onPress={open} style={({ hovered }) => [styles.liveItem, hovered && styles.liveItemHover]}>
+              <Avatar name={s.title} imageKey={s.coverKey} size={46} shape="rounded" />
+              <View style={styles.liveText}>
+                <Text style={styles.liveName} numberOfLines={1}>{s.title}</Text>
+                <View style={styles.liveMetaRow}>
+                  <View style={[styles.liveKind, off ? styles.liveKindOff : styles.liveKindOn]}>
+                    {off ? null : <VenetianMask size={11} color={colors.brandText} strokeWidth={2.4} />}
+                    <Text style={[styles.liveKindText, off ? styles.liveKindTextOff : styles.liveKindTextOn]}>{off ? 'Off' : 'On'}</Text>
+                  </View>
+                  <Text style={styles.liveMeta} numberOfLines={1}>{`${s.participantCount} ${off ? 'na conversa' : 'em cena'} · ${since(s.lastActionAt)}`}</Text>
+                </View>
+              </View>
+              <View style={styles.liveEnter}>
+                <Text style={styles.liveEnterText}>Entrar</Text>
+                <ArrowRight size={14} color={colors.brand} />
+              </View>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -360,13 +415,11 @@ function Overview({ community: c, onSeeAll, pins, hideFeatured }: { community: C
     { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/capitulos/${p.id}`) },
   ];
   const chapters = useQuery({ queryKey: ['chapters', slug], queryFn: () => unwrap(api.GET('/communities/{slug}/chapters', { params: { path: { slug }, query: {} } })) });
-  const scenes = useQuery({ queryKey: ['scenes', slug], queryFn: () => unwrap(api.GET('/communities/{slug}/scenes', { params: { path: { slug } } })) });
   const encyclopedia = useQuery({
     queryKey: ['encyclopedia', slug, 'all', ''],
     queryFn: () => unwrap(api.GET('/communities/{slug}/encyclopedia', { params: { path: { slug }, query: {} } })),
   });
   const published = (chapters.data ?? []).filter((ch) => ch.status === 'Published').slice(0, 10);
-  const live = (scenes.data ?? []).filter((s) => s.status === 'Open').slice(0, 12);
   const entries = (encyclopedia.data?.items ?? []).slice(0, 16);
 
   return (
@@ -384,25 +437,6 @@ function Overview({ community: c, onSeeAll, pins, hideFeatured }: { community: C
           </View>
         }>
         <PostFeed posts={published} slug={slug} layout={c.feedLayout ?? 'Highlight'} menuFor={postMenu} onOpen={(p) => router.push({ pathname: '/capitulos/[id]', params: { id: p.id } })} />
-      </FeedSection>
-      <FeedSection title="Chats ao vivo" icon={MessagesSquare} onSeeAll={() => onSeeAll('scenes')}>
-        {live.length ? (
-          <Carousel itemWidth={240}>
-            {live.map((s) => (
-              <ChatCard
-                key={s.id}
-                chat={s}
-                menu={[
-                  { label: 'Abrir chat', icon: ArrowRight, onPress: () => router.push({ pathname: '/cenas/[id]', params: { id: s.id } }) },
-                  { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/cenas/${s.id}`) },
-                ]}
-                onPress={() => router.push({ pathname: '/cenas/[id]', params: { id: s.id } })}
-              />
-            ))}
-          </Carousel>
-        ) : (
-          <Empty icon={MessagesSquare}>Nenhum chat aberto agora.</Empty>
-        )}
       </FeedSection>
       <FeedSection title={`Da ${sectionTitle(c, 'encyclopedia').toLowerCase()}`} icon={BookMarked} onSeeAll={() => router.push({ pathname: '/c/[slug]/enciclopedia', params: { slug } })}>
         {entries.length ? (
@@ -688,7 +722,26 @@ const useStyles = makeStyles((colors) => ({
   pinnedWide: { maxWidth: 1320 },
   pinnedCompact: { maxWidth: '100%', marginBottom: 0, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border },
   pinnedRow: { gap: 8 },
-  pin: { flexDirection: 'row', alignItems: 'center', gap: 8, maxWidth: 340, paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.md, backgroundColor: colors.brandSoft, borderLeftWidth: 3, borderLeftColor: colors.brand },
+  pin: { flexDirection: 'row', alignItems: 'center', gap: 8, maxWidth: 340, paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.md, backgroundColor: colors.brandSoft },
+  live: { gap: 8 },
+  liveHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success },
+  liveTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
+  liveRow: { gap: 10, paddingVertical: 2 },
+  liveItem: { width: 360, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, ...shadow(colors, 1) },
+  liveItemHover: { borderColor: colors.brand },
+  liveText: { flex: 1, gap: 4 },
+  liveName: { fontSize: 15, fontWeight: '700', color: colors.text },
+  liveMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liveKind: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 1 },
+  liveKindOn: { backgroundColor: colors.brand },
+  liveKindOff: { backgroundColor: colors.surfaceAlt },
+  liveKindText: { fontSize: 11, fontWeight: '800' },
+  liveKindTextOn: { color: colors.brandText },
+  liveKindTextOff: { color: colors.textMuted },
+  liveMeta: { flexShrink: 1, fontSize: 12, color: colors.textMuted },
+  liveEnter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 4 },
+  liveEnterText: { fontSize: 13, fontWeight: '700', color: colors.brand },
   pinHover: { opacity: 0.85 },
   pinText: { flexShrink: 1, fontSize: 14, fontWeight: '700', color: colors.brandSoftText },
   description: { fontSize: 15, color: colors.textMuted, lineHeight: 22, maxWidth: 900 },
