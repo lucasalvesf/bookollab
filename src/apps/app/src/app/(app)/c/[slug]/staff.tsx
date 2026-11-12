@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BookMarked, Check, Plus, Dices, FileCheck2, IdCard, LayoutList, Link2, Paintbrush, UserPlus, X } from 'lucide-react-native';
+import { BookMarked, Check, Plus, Dices, FileCheck2, IdCard, LayoutList, Link2, Paintbrush, Pin, UserPlus, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -11,7 +11,7 @@ import type { components } from '@/api/schema';
 import { Avatar } from '@/components/avatar';
 import { ChapterApprovalAdmin } from '@/components/chapter-approval-admin';
 import { CommunityCover } from '@/components/community';
-import { AppearanceAdmin, SectionsAdmin } from '@/components/community-admin';
+import { AppearanceAdmin, PinsAdmin, SectionsAdmin, ThemeAdmin } from '@/components/community-admin';
 import { EncyclopediaAdmin } from '@/components/encyclopedia-admin';
 import { MechanicsAdmin } from '@/components/mechanics';
 import { Empty, Loadable, Row, Section, ToggleRow } from '@/components/layout';
@@ -44,10 +44,16 @@ export default function StaffScreen() {
         const perms = new Set(c.me?.permissions ?? []);
         const manage = perms.has('ManageCommunity');
         const pages: SettingsPage[] = [
-          { key: 'appearance', group: 'Comunidade', title: 'Aparência', icon: Paintbrush, keywords: 'capa ícone imagem foto visual cor', description: 'Ícone e capa que aparecem na faixa lateral, nos cartões e no topo da comunidade.', render: () => <AppearanceAdmin community={c} /> },
+          { key: 'appearance', group: 'Comunidade', title: 'Aparência', icon: Paintbrush, keywords: 'capa ícone imagem foto visual cor', description: 'Ícone e capa que aparecem na faixa lateral, nos cartões e no topo da comunidade.', render: () => (
+            <>
+              <AppearanceAdmin community={c} />
+              <ThemeAdmin community={c} />
+            </>
+          ) },
           { key: 'sections', group: 'Comunidade', title: 'Seções e ordem', icon: LayoutList, keywords: 'abas ordem menu visão geral reordenar', description: 'A ordem das abas que os membros veem.', render: () => <SectionsAdmin community={c} /> },
           { key: 'requests', group: 'Membros', title: 'Pedidos de entrada', icon: UserPlus, keywords: 'aprovar entrada pedidos aceitar recusar', description: 'Quem pediu para entrar na comunidade.', badge: requests.data?.length, render: () => <JoinRequests slug={slug} /> },
           { key: 'invites', group: 'Membros', title: 'Convites', icon: Link2, keywords: 'link convite validade usos', description: 'Links para entrar na comunidade, com validade e limite de usos.', render: () => <Invites slug={slug} /> },
+          ...(perms.has('PinPosts') ? [{ key: 'pins', group: 'Conteúdo', title: 'Posts fixados', icon: Pin, keywords: 'fixar alfinete topo destaque barra', description: 'Posts que ficam fixados logo abaixo do cabeçalho da comunidade.', render: () => <PinsAdmin slug={slug} /> } as SettingsPage] : []),
           { key: 'chapters', group: 'Conteúdo', title: 'Aprovação de capítulos', icon: FileCheck2, keywords: 'fila moderação aprovar recusar capítulos cargos', description: 'Quem precisa de aprovação e a fila de capítulos pendentes.', render: () => <ChapterApprovalAdmin slug={slug} canConfigure={manage} canModerate={perms.has('ModerateContent')} /> },
           { key: 'encyclopedia', group: 'Conteúdo', title: 'Enciclopédia', icon: BookMarked, keywords: 'pastas modelos fichas livres wiki', description: 'Pastas, modelos de ficha e regras da enciclopédia.', render: () => <EncyclopediaAdmin slug={slug} /> },
           { key: 'sheet', group: 'Conteúdo', title: 'Ficha de personagem', icon: IdCard, keywords: 'campos ficha personagem atributos raça classe', description: 'Campos que todo personagem desta comunidade preenche. Campos numéricos viram atributos.', render: () => <SheetEditor slug={slug} initial={c.sheetFields} /> },
@@ -59,6 +65,7 @@ export default function StaffScreen() {
           requests: perms.has('ManageMembers'),
           invites: perms.has('CreateInvites'),
           chapters: manage || perms.has('ModerateContent'),
+          pins: perms.has('PinPosts'),
           encyclopedia: manage,
           sheet: manage,
           mechanics: manage,

@@ -43,6 +43,17 @@ internal sealed class FeaturedItemConfiguration : IEntityTypeConfiguration<Featu
     }
 }
 
+internal sealed class PinnedPostConfiguration : IEntityTypeConfiguration<PinnedPost>
+{
+    public void Configure(EntityTypeBuilder<PinnedPost> b)
+    {
+        b.HasIndex(p => new { p.CommunityId, p.ChapterId }).IsUnique();
+        b.HasOne<Community>().WithMany().HasForeignKey(p => p.CommunityId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<Domain.Chapters.Chapter>().WithMany().HasForeignKey(p => p.ChapterId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<User>().WithMany().HasForeignKey(p => p.PinnedByUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 internal sealed class SceneInviteConfiguration : IEntityTypeConfiguration<SceneInvite>
 {
     public void Configure(EntityTypeBuilder<SceneInvite> b)

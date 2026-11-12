@@ -7,7 +7,7 @@ import { unwrap } from '@/api/hooks';
 
 import { useCopyLink, useMenu, type MenuItem } from './menu';
 
-const STAFF_PERMISSIONS = ['ManageMembers', 'CreateInvites', 'ManageCommunity', 'ModerateContent', 'ArrangeSections'];
+const STAFF_PERMISSIONS = ['ManageMembers', 'CreateInvites', 'ManageCommunity', 'ModerateContent', 'ArrangeSections', 'PinPosts'];
 
 /** Actions of a community (rail icon, cards, community header). Leaving asks for confirmation in a second menu. */
 export function useCommunityMenu() {

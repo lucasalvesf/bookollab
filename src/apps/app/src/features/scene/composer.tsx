@@ -19,11 +19,14 @@ export function Composer({
   onSent,
   diceEnabled = false,
   attributesEnabled = false,
+  self,
 }: {
   sceneId: string;
   /** The user's characters that already joined the scene. */
   characters: Character[];
-  onTyping: (characterId: string) => void;
+  onTyping: (characterId?: string) => void;
+  /** OffGame chat: the member writes as themselves (no character). */
+  self?: { name: string; avatarKey?: string | null };
   onSent: (a: SceneAction) => void;
   diceEnabled?: boolean;
   attributesEnabled?: boolean;
@@ -40,7 +43,7 @@ export function Composer({
   const [error, setError] = useState<string>();
 
   const current = characters.find((c) => c.id === characterId) ?? characters[0];
-  const canSend = !!current && (text.trim().length > 0 || !!attachment) && !sending && !uploading;
+  const canSend = (!!self || !!current) && (text.trim().length > 0 || !!attachment) && !sending && !uploading;
 
   async function attach() {
     setError(undefined);
@@ -61,7 +64,8 @@ export function Composer({
     setError(undefined);
     try {
       const action = await unwrap(
-        api.POST('/scenes/{id}/actions', { params: { path: { id: sceneId } }, body: { characterId: current.id, content: text, attachmentKey: attachment ?? null } }),
+        api.POST('/scenes/{id}/actions', { params: { path: { id: sceneId } }, body: { characterId: self ? null : current.id, content: text, attachmentKey: attachment ?? null } }),
+
       );
       onSent(action);
       setText('');
@@ -121,9 +125,15 @@ export function Composer({
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <View style={styles.bar}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Jogando como ${current?.name}`} onPress={() => setPickingCharacter((v) => !v)} style={styles.iconButton}>
-          {current ? <Avatar name={current.name} imageKey={current.avatarKey} size={34} /> : null}
-        </Pressable>
+        {self ? (
+          <View accessibilityLabel={`Escrevendo como ${self.name}`} style={styles.iconButton}>
+            <Avatar name={self.name} imageKey={self.avatarKey} size={34} />
+          </View>
+        ) : (
+          <Pressable accessibilityRole="button" accessibilityLabel={`Jogando como ${current?.name}`} onPress={() => setPickingCharacter((v) => !v)} style={styles.iconButton}>
+            {current ? <Avatar name={current.name} imageKey={current.avatarKey} size={34} /> : null}
+          </Pressable>
+        )}
         <Pressable accessibilityRole="button" accessibilityLabel="Anexar imagem" onPress={attach} disabled={uploading} style={styles.iconButton}>
           {uploading ? <ActivityIndicator size="small" color={colors.brand} /> : <Paperclip size={20} color={colors.textMuted} />}
         </Pressable>
@@ -143,7 +153,8 @@ export function Composer({
           value={text}
           onChangeText={(v) => {
             setText(v);
-            if (current && v) onTyping(current.id);
+            if (self && v) onTyping();
+    else if (current && v) onTyping(current.id);
           }}
           onKeyPress={onKeyPress}
           multiline

@@ -146,6 +146,55 @@ export function SceneCard({ scene: s, community, menu, onPress }: {
   );
 }
 
+/**
+ * Chat in the community list: cover image (or a solid color with the initial), On/Off pill
+ * (scene with characters / public OffGame chat), live dot and how many take part.
+ */
+export function ChatCard({ chat: s, menu, onPress }: {
+  chat: { title: string; description?: string | null; kind?: string | null; coverKey?: string | null; status: string; participantCount: number; lastActionAt?: string | null };
+  menu?: MenuItem[];
+  onPress: () => void;
+}) {
+  const styles = useStyles();
+  const cover = fileUrl(s.coverKey);
+  const off = s.kind === 'Chat';
+  const live = s.status === 'Open';
+  return (
+    <ContextMenu items={menu ?? []} style={styles.fill}>
+      <PressableScale onPress={onPress} accessibilityLabel={s.title} style={styles.chatCard}>
+        {cover ? (
+          <Image source={{ uri: cover }} style={styles.chatCover} contentFit="cover" transition={150} />
+        ) : (
+          <View style={[styles.chatCover, styles.chatCoverPlain, { backgroundColor: colorFor(s.title) }]}>
+            <Text style={styles.chatInitial}>{s.title.trim()[0]?.toUpperCase() ?? '?'}</Text>
+          </View>
+        )}
+        <View style={styles.chatShade} />
+        <View style={styles.chatTop}>
+          <View style={[styles.onOff, off ? styles.off : styles.on]}>
+            <Text style={[styles.onOffText, off ? styles.offText : styles.onText]}>{off ? 'Off' : 'On'}</Text>
+          </View>
+          {live ? (
+            <View style={styles.chatLive}>
+              <View style={styles.chatLiveDot} />
+              <Text style={styles.chatLiveText}>Ao vivo</Text>
+            </View>
+          ) : (
+            <Text style={styles.chatClosed}>Encerrado</Text>
+          )}
+        </View>
+        <View style={styles.chatBottom}>
+          <Text style={styles.chatTitle} numberOfLines={2}>{s.title}</Text>
+          <View style={styles.author}>
+            <Users size={12} color="rgba(255,255,255,0.85)" />
+            <Text style={styles.chatMeta}>{`${s.participantCount} ${off ? (s.participantCount === 1 ? 'pessoa' : 'pessoas') : s.participantCount === 1 ? 'personagem' : 'personagens'}`}</Text>
+          </View>
+        </View>
+      </PressableScale>
+    </ContextMenu>
+  );
+}
+
 /** Encyclopedia thumbnail (sheet or character): image, or the initial on a solid color. */
 export function EntryTile({ entry: e, menu, onPress }: { entry: { name: string; kind?: string | null; imageKey?: string | null }; menu?: MenuItem[]; onPress: () => void }) {
   const styles = useStyles();
@@ -197,6 +246,25 @@ export function SeeAllModal({ title, visible, onClose, minItemWidth, children }:
 }
 
 const useStyles = makeStyles((colors) => ({
+  chatCard: { height: 190, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.surfaceAlt, ...shadow(colors, 1) },
+  chatCover: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  chatCoverPlain: { alignItems: 'center', justifyContent: 'center' },
+  chatInitial: { fontSize: 54, fontWeight: '800', color: 'rgba(255,255,255,0.35)' },
+  chatShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '65%', backgroundColor: 'rgba(0,0,0,0.5)' },
+  chatTop: { position: 'absolute', top: 10, left: 10, right: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  onOff: { borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 3 },
+  on: { backgroundColor: colors.brand },
+  off: { backgroundColor: 'rgba(255,255,255,0.92)' },
+  onOffText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.4 },
+  onText: { color: colors.brandText },
+  offText: { color: '#1B1830' },
+  chatLive: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
+  chatLiveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#22C55E' },
+  chatLiveText: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
+  chatClosed: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
+  chatBottom: { position: 'absolute', left: 12, right: 12, bottom: 12, gap: 4 },
+  chatTitle: { fontSize: 17, fontWeight: '700', color: '#FFFFFF', lineHeight: 22 },
+  chatMeta: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
   flex: { flex: 1 },
   fill: { flex: 1 },
   section: { gap: 12 },

@@ -6,6 +6,16 @@ public enum SceneWritingMode
     Turns,
 }
 
+/// <summary>
+/// Scene = OnGame chat (members write as their characters). Chat = public OffGame chat
+/// (members write as themselves). Both appear under "Chats" in the community.
+/// </summary>
+public enum SceneKind
+{
+    Scene,
+    Chat,
+}
+
 public enum SceneStatus
 {
     Open,
@@ -40,6 +50,11 @@ public sealed class Scene
     public Guid CommunityId { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
+    public SceneKind Kind { get; set; } = SceneKind.Scene;
+
+    /// <summary>Cover image shown in the chat list (upload key).</summary>
+    public string? CoverKey { get; set; }
+
     public Guid OpenedByUserId { get; set; }
     public SceneWritingMode WritingMode { get; set; } = SceneWritingMode.Free;
     public SceneStatus Status { get; set; } = SceneStatus.Open;
@@ -122,7 +137,9 @@ public sealed class SceneAction
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid SceneId { get; set; }
-    public Guid CharacterId { get; set; }
+
+    /// <summary>Character speaking. Null in OffGame chats (Kind = Chat): the author speaks as themselves.</summary>
+    public Guid? CharacterId { get; set; }
     public Guid AuthorUserId { get; set; }
     /// <summary>Text of the action. May be empty when the action is only an image.</summary>
     public required string Content { get; set; }

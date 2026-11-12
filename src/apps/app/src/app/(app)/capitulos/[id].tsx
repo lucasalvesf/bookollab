@@ -16,6 +16,7 @@ import { ContextMenu, MoreButton, useCopyLink, useMenu, type MenuItem } from '@/
 import { MusicPlayer } from '@/components/music-player';
 import { PostEditor, type PostDraft } from '@/components/post-editor';
 import { RichText } from '@/components/rich-text';
+import { useDeclareCommunity } from '@/components/community-context';
 import { Button, Field, IconButton, Notice } from '@/components/ui';
 import { fileUrl } from '@/lib/files';
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
@@ -37,6 +38,7 @@ export default function ChapterScreen() {
   const queryClient = useQueryClient();
   const key = ['chapter', id];
   const chapter = useQuery({ queryKey: key, queryFn: () => unwrap(api.GET('/chapters/{id}', { params: { path: { id } } }), 'Post não encontrado.') });
+  useDeclareCommunity(chapter.data?.communitySlug);
   const featureMenu = useFeatureMenu(chapter.data?.communitySlug, !!chapter.data?.canFeature);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<PostDraft>({ title: '', content: '', coverKey: null, backgroundKey: null, musicUrl: '' });
@@ -201,7 +203,7 @@ export default function ChapterScreen() {
               <ChapterContext chapter={c} />
               {c.musicUrl ? <MusicPlayer url={c.musicUrl} /> : null}
               <View style={[styles.paper, background && styles.paperOnBackground]}>
-                <RichText content={c.content} textStyle={styles.body} />
+                <RichText content={c.content} textStyle={styles.body} slug={c.communitySlug} />
               </View>
             </ContextMenu>
             {publish.isError ? <Notice kind="error">{publish.error.message}</Notice> : null}

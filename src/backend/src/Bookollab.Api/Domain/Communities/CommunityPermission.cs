@@ -33,6 +33,8 @@ public enum CommunityPermission : long
     // Moderation (bits 40-49)
     ModerateContent = 1L << 40,
     ViewRevisionHistory = 1L << 41,
+    /// <summary>Pin posts in the bar under the community header.</summary>
+    PinPosts = 1L << 42,
 
     All = ~0L,
 }
@@ -57,7 +59,8 @@ public static class DefaultRolePermissions
         | CommunityPermission.CreateInvites
         | CommunityPermission.ManageCharacters
         | CommunityPermission.ModerateContent
-        | CommunityPermission.ViewRevisionHistory;
+        | CommunityPermission.ViewRevisionHistory
+        | CommunityPermission.PinPosts;
 
     public const CommunityPermission Owner = CommunityPermission.All;
 

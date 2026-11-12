@@ -454,6 +454,7 @@ public static class ChapterEndpoints
     private static string Excerpt(string start)
     {
         start = System.Text.RegularExpressions.Regex.Replace(start, @"!\[[^\]]*\]\([^)]*\)", " ");
+        start = System.Text.RegularExpressions.Regex.Replace(start, @"@\[([^\]\n]{1,80})\]\([a-z]+:[^)\s]+\)", "$1"); // "@[Ayla](character:…)" → "Ayla"
         var flat = string.Join(' ', start.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         return flat.Length <= 160 ? flat : flat[..160].TrimEnd() + "…";
     }

@@ -20,4 +20,19 @@ public sealed class User : IdentityUser<Guid>
     public List<string> HomeSections { get; set; } = [];
 
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    /// <summary>Last time the user had the app open (updated when they disconnect and periodically while online).</summary>
+    public DateTimeOffset? LastSeenAt { get; set; }
+
+    /// <summary>Who sees the green "online" dot. Reciprocal: hiding it also hides the others' from you.</summary>
+    public PresenceVisibility OnlineVisibility { get; set; } = PresenceVisibility.Everyone;
+
+    /// <summary>Who sees "visto por último". Reciprocal, like WhatsApp.</summary>
+    public PresenceVisibility LastSeenVisibility { get; set; } = PresenceVisibility.Everyone;
+}
+
+public enum PresenceVisibility
+{
+    Everyone,
+    Nobody,
 }

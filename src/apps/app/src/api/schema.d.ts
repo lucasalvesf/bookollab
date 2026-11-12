@@ -196,6 +196,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communities/{slug}/linkables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SearchLinkables"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/register": {
         parameters: {
             query?: never;
@@ -654,6 +670,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["CloseScene"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scenes/{id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateSceneCover"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1124,6 +1156,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications/unread-by-community": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UnreadNotificationsByCommunity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notifications/{id}/read": {
         parameters: {
             query?: never;
@@ -1263,6 +1311,102 @@ export interface paths {
         put: operations["UpdateFeedLayout"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/privacy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetPrivacy"];
+        put: operations["UpdatePrivacy"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/theme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateCommunityTheme"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/side-menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCommunitySideMenu"];
+        put: operations["UpdateCommunitySideMenu"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/pins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListPinnedPosts"];
+        put?: never;
+        post: operations["PinPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/pins/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ReorderPinnedPosts"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/pins/{chapterId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["UnpinPost"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1418,6 +1562,11 @@ export interface components {
             coverKey?: null | string;
             sections?: null | string[];
             feedLayout?: components["schemas"]["FeedLayout"];
+            accentColor?: null | string;
+            homeLayout?: components["schemas"]["HomeLayout"];
+            sectionTitles?: null | {
+                [key: string]: string;
+            };
         };
         CommunityProfileDto: {
             /** Format: uuid */
@@ -1444,6 +1593,7 @@ export interface components {
             ownNickname: null | string;
             ownBio: null | string;
             ownAvatarKey: null | string;
+            presence?: null | components["schemas"]["MemberPresence"];
         };
         CommunitySummary: {
             /** Format: uuid */
@@ -1457,6 +1607,11 @@ export interface components {
             iconKey?: null | string;
             coverKey?: null | string;
             myPermissions?: null | string[];
+            accentColor?: null | string;
+        };
+        CommunityThemeDto: {
+            accentColor: null | string;
+            homeLayout: components["schemas"]["HomeLayout"];
         };
         ConfirmEmailRequest: {
             /** Format: uuid */
@@ -1502,6 +1657,8 @@ export interface components {
             writingMode?: components["schemas"]["SceneWritingMode"];
             /** Format: int32 */
             turnTimeLimitMinutes?: null | number;
+            kind?: components["schemas"]["SceneKind"];
+            coverKey?: null | string;
         };
         CreateSheetRequest: {
             name: string;
@@ -1648,6 +1805,11 @@ export interface components {
             communitySlug: string;
             communityName: string;
         };
+        /**
+         * @default Stacked
+         * @enum {unknown}
+         */
+        HomeLayout: "Stacked" | "FeaturedSide";
         HomeSceneDto: {
             /** Format: uuid */
             id: string;
@@ -1723,6 +1885,14 @@ export interface components {
             /** Format: uuid */
             characterId: string;
         };
+        LinkableDto: {
+            kind: string;
+            target: string;
+            label: string;
+            subtitle: null | string;
+            imageKey: null | string;
+            tag: null | string;
+        };
         LoginRequest: {
             email: string;
             password: string;
@@ -1742,6 +1912,12 @@ export interface components {
             baseKind: components["schemas"]["BaseRoleKind"];
             /** Format: date-time */
             joinedAt: string;
+            presence?: null | components["schemas"]["MemberPresence"];
+        };
+        MemberPresence: {
+            online: null | boolean;
+            /** Format: date-time */
+            lastSeenAt: null | string;
         };
         MeResponse: {
             /** Format: uuid */
@@ -1784,11 +1960,27 @@ export interface components {
         };
         /** @enum {unknown} */
         NotificationType: "YourTurn" | "SceneInvite" | "SceneJoinRequest" | "SceneJoinDecision" | "Mention" | "ChapterApproval" | "ChapterDecision" | "RemovedFromCommunity";
+        PinnedPostDto: {
+            /** Format: uuid */
+            chapterId: string;
+            title: string;
+            kind: components["schemas"]["PostKind"];
+        };
+        PinPostRequest: {
+            /** Format: uuid */
+            chapterId: string;
+        };
         /**
          * @default Chapter
          * @enum {unknown}
          */
         PostKind: "Chapter" | "Blog";
+        /** @enum {unknown} */
+        PresenceVisibility: "Everyone" | "Nobody";
+        PrivacySettings: {
+            onlineVisibility: components["schemas"]["PresenceVisibility"];
+            lastSeenVisibility: components["schemas"]["PresenceVisibility"];
+        };
         ProfileChapterDto: {
             /** Format: uuid */
             id: string;
@@ -1833,6 +2025,9 @@ export interface components {
         };
         RejectChapterRequest: {
             reason: string;
+        };
+        ReorderPinsRequest: {
+            chapterIds: string[];
         };
         ResetPasswordRequest: {
             email: string;
@@ -1880,7 +2075,7 @@ export interface components {
             /** Format: uuid */
             sceneId: string;
             /** Format: uuid */
-            characterId: string;
+            characterId: null | string;
             characterName: string;
             characterAvatarKey: null | string;
             /** Format: uuid */
@@ -1942,6 +2137,10 @@ export interface components {
             myPendingCharacterIds: string[];
             /** Format: int32 */
             pendingRequestCount: number;
+            kind?: components["schemas"]["SceneKind"];
+            coverKey?: null | string;
+            /** @default false */
+            canSend: boolean;
         };
         SceneJoinRequestDto: {
             /** Format: uuid */
@@ -1954,6 +2153,11 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        /**
+         * @default Scene
+         * @enum {unknown}
+         */
+        SceneKind: "Scene" | "Chat";
         SceneParticipantDto: {
             /** Format: uuid */
             characterId: string;
@@ -1982,12 +2186,15 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             lastActionAt: null | string;
+            kind?: components["schemas"]["SceneKind"];
+            coverKey?: null | string;
+            background?: null | string;
         };
         /** @enum {unknown} */
         SceneWritingMode: "Free" | "Turns";
         SendActionRequest: {
             /** Format: uuid */
-            characterId: string;
+            characterId: null | string;
             content: null | string;
             attachmentKey?: null | string;
         };
@@ -2050,6 +2257,21 @@ export interface components {
             communitySlug: null | string;
             communityName: null | string;
         };
+        SideMenuDto: {
+            sections: string[];
+            sectionTitles: {
+                [key: string]: string;
+            };
+            groups: components["schemas"]["SideMenuGroupDto"][];
+        };
+        SideMenuGroupDto: {
+            title: string;
+            links: components["schemas"]["SideMenuLinkDto"][];
+        };
+        SideMenuLinkDto: {
+            label: string;
+            target: string;
+        };
         TemplateDto: {
             /** Format: uuid */
             id: string;
@@ -2069,6 +2291,12 @@ export interface components {
         TurnOrderRequest: {
             characterIds: string[];
         };
+        UnreadByCommunityDto: {
+            /** Format: uuid */
+            communityId: string;
+            /** Format: int32 */
+            count: number;
+        };
         UpdateAppearanceRequest: {
             iconKey: null | string;
             coverKey: null | string;
@@ -2086,6 +2314,10 @@ export interface components {
             avatarKey: null | string;
             coverKey: null | string;
         };
+        UpdateCommunityThemeRequest: {
+            accentColor: null | string;
+            homeLayout: components["schemas"]["HomeLayout"];
+        };
         UpdateHomeSectionsRequest: {
             sections: string[];
         };
@@ -2096,6 +2328,9 @@ export interface components {
         };
         UpdateSceneBackgroundRequest: {
             background: null | string;
+        };
+        UpdateSceneCoverRequest: {
+            coverKey: null | string;
         };
         UpdateSceneSettingsRequest: {
             writingMode: components["schemas"]["SceneWritingMode"];
@@ -2446,6 +2681,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    SearchLinkables: {
+        parameters: {
+            query?: {
+                q?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkableDto"][];
+                };
             };
         };
     };
@@ -3247,6 +3507,32 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SceneDetail"];
+                };
+            };
+        };
+    };
+    UpdateSceneCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSceneCoverRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -4162,7 +4448,9 @@ export interface operations {
     };
     ListNotifications: {
         parameters: {
-            query?: never;
+            query?: {
+                communityId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4176,6 +4464,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NotificationListDto"];
+                };
+            };
+        };
+    };
+    UnreadNotificationsByCommunity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadByCommunityDto"][];
                 };
             };
         };
@@ -4202,7 +4510,9 @@ export interface operations {
     };
     MarkAllNotificationsRead: {
         parameters: {
-            query?: never;
+            query?: {
+                communityId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4430,6 +4740,221 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetPrivacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacySettings"];
+                };
+            };
+        };
+    };
+    UpdatePrivacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrivacySettings"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacySettings"];
+                };
+            };
+        };
+    };
+    UpdateCommunityTheme: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCommunityThemeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityThemeDto"];
+                };
+            };
+        };
+    };
+    GetCommunitySideMenu: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SideMenuDto"];
+                };
+            };
+        };
+    };
+    UpdateCommunitySideMenu: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SideMenuDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SideMenuDto"];
+                };
+            };
+        };
+    };
+    ListPinnedPosts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinnedPostDto"][];
+                };
+            };
+        };
+    };
+    PinPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinPostRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinnedPostDto"][];
+                };
+            };
+        };
+    };
+    ReorderPinnedPosts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderPinsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinnedPostDto"][];
+                };
+            };
+        };
+    };
+    UnpinPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                chapterId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinnedPostDto"][];
+                };
             };
         };
     };

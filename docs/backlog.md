@@ -48,7 +48,7 @@ Próximas melhorias (a fazer):
 - [ ] Transições entre telas no celular e gestos (deslizar para voltar, puxar para atualizar).
 - [ ] Busca global de conteúdo (capítulos, fichas, cenas) no servidor; hoje a busca filtra o que já foi carregado.
 - [ ] Transferência de posse da comunidade (permite ao dono sair).
-- [ ] Cor de marca: o roxo sólido ficou. Se o usuário quiser outra identidade (cor/nome do tema), definir com ele.
+- [x] Cor de marca: o roxo continua como cor padrão da plataforma; cada comunidade pode escolher a sua (quinta rodada).
 
 ### Quarta rodada (2026-11-10)
 - [x] Reordenar por **arrastar e soltar** em todo lugar: seções da comunidade, seções da tela inicial, ordem dos turnos, pastas da enciclopédia e destaques.
@@ -65,6 +65,27 @@ Próximas melhorias (a fazer):
 - [ ] Levar o diretismo às outras telas: por exemplo, editar os campos da ficha de personagem a partir da própria ficha e aprovar pedidos de entrada a partir da lista de membros.
 - [ ] Editor de texto rico (negrito, itálico, títulos) além das imagens.
 - [ ] Música por upload de áudio, se o link não bastar (decisão do usuário).
+
+### Quinta rodada (2026-11-12): identidade e navegação da comunidade
+Pedido em `docs-aux/prompt aux/` (texto e as imagens I1 e I2). Regras em `visao-produto.md` → "Decisões de 2026-11-12".
+- [x] **Cor da comunidade** escolhida pela moderação, com seletor (quadrado de saturação/brilho, matiz, hex e cores sugeridas) e prévia nos dois temas; o app todo se adapta dentro da comunidade.
+- [x] **Posts fixados** numa barra abaixo do cabeçalho (permissão "Fixar posts"), com organização por arrastar.
+- [x] **Página da comunidade mais larga**, tela dividida ao abrir uma seção, Enciclopédia direto na tela dela, layout "Destaques à direita" e destaques maiores e dinâmicos.
+- [x] **Enciclopédia como explorador**: pastas com prévia das capas à esquerda, conteúdo à direita.
+- [x] **Barra lateral esquerda** expande ao passar o mouse, com os nomes das comunidades.
+- [x] **Botão flutuante d20** com as opções de criação agrupadas.
+- [x] **Ponto vermelho** de notificação no ícone de cada comunidade.
+- [x] **Notificações em modal** com fundo desfocado, por comunidade com aba global.
+- [x] **Online e visto por último**, com privacidade recíproca.
+- [x] **Menu lateral direito** (Amino): capa, membros, compartilhar, páginas renomeáveis e reordenáveis, grupos de links da moderação.
+- [x] **Marcar com @** qualquer coisa da comunidade nos posts (sugestões agrupadas, On/Off nos chats) e links do menu lateral.
+- [x] **Pílulas** maiores com roda do mouse, rolagem automática nas pontas e barra de rolagem estilizada.
+- [x] **"Cenas" virou "Chats"**: chats públicos (Off) e chats de cena (On), com capas e seções recolhíveis.
+- [ ] Menu lateral direito e tela dividida no **celular** (hoje só no PC; no celular seguem as abas).
+- [ ] Marcar com **@ também nas cenas/chats** (hoje só nos posts).
+- [ ] Marcar **membros** com @ também notificar o membro (hoje notifica só o jogador de personagem marcado).
+- [ ] Prévia das imagens da pasta na enciclopédia usa até 3 capas; permitir a moderação escolher a capa da pasta.
+- [ ] Presença com "só membros das minhas comunidades" e "visto por último aproximado", se o usuário quiser mais opções.
 
 ## Pedidos do usuário (2026-11-05)
 

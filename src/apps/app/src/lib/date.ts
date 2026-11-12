@@ -18,3 +18,18 @@ export function maskBrazilianDate(input: string): string {
   if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 }
+
+/** "Online" / "Visto por último há 5 min" for a member, respecting what the API returned (null = hidden). */
+export function presenceLabel(p: { online?: boolean | null; lastSeenAt?: string | null } | null | undefined): string | null {
+  if (!p) return null;
+  if (p.online) return 'Online agora';
+  if (!p.lastSeenAt) return null;
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(p.lastSeenAt).getTime()) / 60000));
+  if (minutes < 1) return 'Visto agora mesmo';
+  if (minutes < 60) return `Visto há ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `Visto há ${hours} h`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `Visto há ${days} ${days === 1 ? 'dia' : 'dias'}`;
+  return `Visto em ${new Date(p.lastSeenAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`;
+}

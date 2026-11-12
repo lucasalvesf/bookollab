@@ -89,11 +89,18 @@ export function SceneSidebar({
       <View style={styles.block}>
         <Text style={styles.title}>{scene.title}</Text>
         <View style={styles.status}>
+          <Tag label={scene.kind === 'Chat' ? 'Chat público · Off' : 'Cena · On'} tone={scene.kind === 'Chat' ? 'neutral' : 'brand'} />
           <Tag label={scene.status === 'Open' ? 'Ao vivo' : 'Encerrada'} tone={scene.status === 'Open' ? 'live' : 'neutral'} />
         </View>
         {scene.description ? <Text style={styles.description}>{scene.description}</Text> : null}
       </View>
 
+      {scene.kind === 'Chat' ? (
+        <View style={styles.block}>
+          <Text style={styles.sectionTitle}>Chat público (Off)</Text>
+          <Text style={styles.muted}>{`${online.length} online agora. Aqui todos os membros conversam como eles mesmos, fora dos personagens.`}</Text>
+        </View>
+      ) : (
       <View style={styles.block}>
         <Pressable accessibilityRole="button" onPress={() => setExpanded((v) => !v)} style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Participantes · {scene.participants.length}</Text>
@@ -116,6 +123,7 @@ export function SceneSidebar({
           </Pressable>
         ) : null}
       </View>
+      )}
 
       <SceneTurns scene={scene} />
 

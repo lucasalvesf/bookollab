@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ExternalLink, LogOut, Monitor, Moon, Palette, Sun, UserRound } from 'lucide-react-native';
+import { ExternalLink, Eye, EyeOff, LogOut, Monitor, Moon, Palette, ShieldCheck, Sun, UserRound } from 'lucide-react-native';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { api, problemMessage } from '@/api/client';
 import { unwrap } from '@/api/hooks';
@@ -15,6 +15,37 @@ import { Button, Field, Notice } from '@/components/ui';
 import { makeStyles, radius, useTheme, type ThemePreference } from '@/theme';
 
 type Me = components['schemas']['MeResponse'];
+
+type Visibility = components['schemas']['PresenceVisibility'];
+
+/**
+ * Presence privacy, like most chat apps: show when I'm online / when I was last seen. Reciprocal (WhatsApp):
+ * whoever hides theirs doesn't see the others' either.
+ */
+function PrivacySection() {
+  const styles = useStyles();
+  const queryClient = useQueryClient();
+  const privacy = useQuery({ queryKey: ['privacy'], queryFn: () => unwrap(api.GET('/me/privacy')) });
+  const save = async (patch: Partial<components['schemas']['PrivacySettings']>) => {
+    const next = { onlineVisibility: 'Everyone' as Visibility, lastSeenVisibility: 'Everyone' as Visibility, ...privacy.data, ...patch };
+    queryClient.setQueryData(['privacy'], next);
+    await api.PUT('/me/privacy', { body: next });
+    void queryClient.invalidateQueries({ queryKey: ['members'] });
+  };
+  const options = [
+    { value: 'Everyone' as Visibility, label: 'Todos', icon: Eye },
+    { value: 'Nobody' as Visibility, label: 'Ninguém', icon: EyeOff },
+  ];
+  return (
+    <Section title="Privacidade" icon={ShieldCheck} plain>
+      <View style={styles.card}>
+        <ChipPicker<Visibility> label="Quem vê quando estou online" segmented value={privacy.data?.onlineVisibility ?? 'Everyone'} onChange={(v) => void save({ onlineVisibility: v })} options={options} />
+        <ChipPicker<Visibility> label="Quem vê quando fui visto por último" segmented value={privacy.data?.lastSeenVisibility ?? 'Everyone'} onChange={(v) => void save({ lastSeenVisibility: v })} options={options} />
+        <Text style={styles.hint}>É recíproco: se você esconder, também não verá essas informações dos outros membros.</Text>
+      </View>
+    </Section>
+  );
+}
 
 export default function ProfileScreen() {
   const styles = useStyles();
@@ -44,6 +75,7 @@ export default function ProfileScreen() {
                 ]}
               />
             </Section>
+            <PrivacySection />
             <Button title="Sair da conta" icon={LogOut} variant="ghost" onPress={signOut} />
           </View>
         )}
@@ -55,6 +87,7 @@ export default function ProfileScreen() {
 const useStyles = makeStyles((colors) => ({
   stack: { gap: 24 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 18, gap: 16 },
+  hint: { fontSize: 13, color: colors.textSubtle, lineHeight: 18 },
 }));
 
 function ProfileForm({ me }: { me: Me }) {

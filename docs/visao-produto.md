@@ -163,6 +163,38 @@ Cada comunidade tem uma **enciclopédia**, no estilo da wiki do Amino. Ela evolu
   - pode postar blog quem pode escrever capítulos;
   - quem destaca é quem tem a permissão de moderar conteúdo.
 
+### Decisões de 2026-11-12
+Pedido do usuário em `docs-aux/prompt aux/` (texto e as imagens I1 e I2).
+- **Cor da comunidade**: a moderação escolhe a **cor principal** (seletor de cor com cores sugeridas). As cores de destaque dos temas claro e escuro saem dela automaticamente, sempre com contraste de leitura (AA). Enquanto o usuário está dentro da comunidade, o app todo usa essa cor.
+- **Posts fixados**: a moderação com a permissão **"Fixar posts"** fixa posts publicados numa barra logo abaixo do cabeçalho da comunidade. A barra mostra só os títulos, com um alfinete na cor da comunidade.
+- **Página inicial da comunidade (PC)**:
+  - o conteúdo ocupa muito mais espaço da tela;
+  - abrir Membros, Posts, Chats ou Personagens **divide a tela** (cerca de 2/3 e 1/3), com a seção aberta à direita;
+  - a **Enciclopédia** não abre painel: leva direto à tela dela;
+  - nova opção de layout da moderação, **"Destaques à direita"**: os destaques ficam no painel da direita até alguém abrir uma seção;
+  - os **destaques** ficam maiores e dinâmicos (trocam sozinhos), sem o título "Destaques".
+- **Enciclopédia**: entra direto e fica dividida como um explorador de arquivos (pastas com prévia das capas à esquerda, conteúdo da pasta à direita).
+- **Barra lateral esquerda**: ao passar o mouse, expande por cima da página e mostra os nomes das comunidades ao lado dos ícones.
+- **Botão flutuante d20** (como no Amino), com animação ao passar o mouse. Ao passar o mouse, abre as opções de criação da comunidade, agrupadas (Escrever, Conversar, Mundo), mostrando só o que o membro pode criar.
+- **Ponto vermelho de notificação** no ícone de cada comunidade da barra lateral.
+- **Notificações em modal** com o fundo desfocado. Dentro de uma comunidade, abre em "Notificações - nome da comunidade" com uma aba global (ícone de globo). Fora de comunidades, mostra todas.
+- **Presença**: dá para ver se um membro está online e quando foi visto por último. Privacidade como na maioria dos apps: "Quem vê quando estou online" e "Quem vê quando fui visto por último" (Todos ou Ninguém), **recíproco** (quem esconde não vê a dos outros).
+- **Menu lateral direito (Amino)**: uma barra discreta na borda direita; ao passar o mouse abre o menu com:
+  - a capa, o nome, o total de membros (link para a lista) e o botão compartilhar;
+  - as **páginas principais** (Visão geral, Chats, Enciclopédia…), que a moderação reordena e renomeia;
+  - **grupos de links** criados pela moderação, apontando para qualquer coisa da comunidade.
+- **Tudo é linkável e marcável com @**: ao escrever um post, "@" + letra abre sugestões agrupadas (personagens, fichas, chats com a pílula On/Off, posts, membros). Marcar um personagem notifica o jogador dele. O mesmo seletor serve para os links do menu lateral.
+- **Pílulas das seções**: maiores, roláveis com a roda do mouse e com uma área invisível nas pontas que rola sozinha. Uma barra de rolagem estilizada (clicável e arrastável) aparece quando o mouse fica 0,1 s sobre as pílulas.
+- **"Cenas" vira "Chats"**: a lista usa as capas e tem duas seções recolhíveis:
+  - **Chats públicos (Off)**: os membros conversam como eles mesmos;
+  - **Chats de cena (On)**: cada um joga com um personagem.
+- *Decisões de implementação, a confirmar pelo usuário:*
+  - chat público pode ser criado por qualquer membro que participa de chats, mas cena continua só com quem pode abrir cenas (narradores e acima);
+  - no chat público, todos os membros escrevem direto, sem entrar com personagem;
+  - "Fixar posts" vem ligada para os Moderadores (inclusive nas comunidades que já existiam), com até 5 posts fixados;
+  - privacidade da presença com duas opções (Todos/Ninguém), padrão Todos;
+  - o menu lateral direito e a divisão da tela só existem no PC; no celular continuam as abas.
+
 ## Personalização da comunidade
 Tudo disponível desde o lançamento:
 - **Visual:** capa, ícone, cores/tema, fonte.

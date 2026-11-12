@@ -73,6 +73,18 @@ public sealed class Community
     /// <summary>How the community's latest posts are laid out on its home (chosen by the owner).</summary>
     public FeedLayout FeedLayout { get; set; } = FeedLayout.Highlight;
 
+    /// <summary>Main color of the community ("#RRGGBB"). The app derives the light and dark palettes from it. Null = platform color.</summary>
+    public string? AccentColor { get; set; }
+
+    /// <summary>Arrangement of the community home on wide screens.</summary>
+    public HomeLayout HomeLayout { get; set; } = HomeLayout.Stacked;
+
+    /// <summary>Custom names of the main sections (section key → title). Missing = default name.</summary>
+    public Dictionary<string, string> SectionTitles { get; set; } = [];
+
+    /// <summary>Groups of links of the side menu (Amino-like), written by the moderation.</summary>
+    public List<SideMenuGroup> SideMenu { get; set; } = [];
+
     // RPG mechanics, each optional (off = more free and literary play).
     public bool DiceEnabled { get; set; }
     public bool AttributesEnabled { get; set; }
@@ -214,6 +226,43 @@ public enum FeedLayout
 
     /// <summary>Grid that puts the cover images first.</summary>
     Gallery,
+}
+
+public enum HomeLayout
+{
+    /// <summary>Highlights on top, everything else below; sections open in a side panel.</summary>
+    Stacked,
+
+    /// <summary>Highlights live in the right-hand panel; sections replace them when opened.</summary>
+    FeaturedSide,
+}
+
+/// <summary>A named group of links in the community side menu.</summary>
+public sealed class SideMenuGroup
+{
+    public required string Title { get; set; }
+    public List<SideMenuLink> Links { get; set; } = [];
+}
+
+/// <summary>
+/// Link to anything inside the community. <see cref="Target"/> is "kind:id" (see Features/Links), e.g.
+/// "sheet:{guid}", "character:{guid}", "chat:{guid}", "post:{guid}", "member:{userName}", "section:{key}".
+/// </summary>
+public sealed class SideMenuLink
+{
+    public required string Label { get; set; }
+    public required string Target { get; set; }
+}
+
+/// <summary>Post pinned by the moderation in the bar under the community header.</summary>
+public sealed class PinnedPost
+{
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid CommunityId { get; set; }
+    public Guid ChapterId { get; set; }
+    public int Position { get; set; }
+    public Guid PinnedByUserId { get; set; }
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
 public enum FeaturedItemType

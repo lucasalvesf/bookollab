@@ -12,6 +12,7 @@ import { IconButton, Notice } from '@/components/ui';
 import { Composer } from '@/features/scene/composer';
 import { MessageBubble } from '@/features/scene/message-bubble';
 import { SceneSidebar } from '@/features/scene/scene-sidebar';
+import { useDeclareCommunity } from '@/components/community-context';
 import type { SceneAction } from '@/features/scene/types';
 import { resolveBackground } from '@/lib/backgrounds';
 import { fileUrl } from '@/lib/files';
@@ -42,6 +43,7 @@ export default function SceneScreen() {
   });
   const me = useQuery({ queryKey: ['me'], queryFn: () => unwrap(api.GET('/me')) });
   const slug = scene.data?.communitySlug;
+  useDeclareCommunity(slug);
   const myCharacters = useQuery({
     queryKey: ['characters', slug, 'mine'],
     enabled: !!slug,
@@ -107,7 +109,7 @@ export default function SceneScreen() {
         <View style={styles.headerText}>
           <Text style={styles.chatTitle} numberOfLines={1}>{s.title}</Text>
           <Text style={styles.chatSubtitle} numberOfLines={1}>
-            {realtime.connected ? `${realtime.online.length} online · ${s.participants.length} na cena` : 'Conectando…'}
+            {realtime.connected ? (s.kind === 'Chat' ? `Chat público · Off · ${realtime.online.length} online` : `${realtime.online.length} online · ${s.participants.length} na cena`) : 'Conectando…'}
             {turns ? ` · ${turnName ? `vez de ${turnName}` : 'por turnos'}` : ''}
           </Text>
         </View>
@@ -140,7 +142,7 @@ export default function SceneScreen() {
             action={a}
             scene={s}
             mine={a.authorUserId === me.data?.id}
-            grouped={i > 0 && list[i - 1].characterId === a.characterId && !list[i - 1].deleted}
+            grouped={i > 0 && list[i - 1].characterId === a.characterId && list[i - 1].authorUserId === a.authorUserId && !list[i - 1].deleted}
             onChanged={upsert}
           />
         ))}
@@ -157,6 +159,21 @@ export default function SceneScreen() {
         <View style={styles.banner}>
           <Text style={styles.bannerText}>Esta cena foi encerrada. As ações ficam salvas para leitura.</Text>
         </View>
+      ) : s.kind === 'Chat' ? (
+        s.canSend && me.data ? (
+          <Composer
+            sceneId={s.id}
+            characters={[]}
+            self={{ name: me.data.displayName, avatarKey: me.data.avatarKey }}
+            onTyping={realtime.notifyTyping}
+            onSent={upsert}
+            diceEnabled={!!community.data?.mechanics?.diceEnabled}
+          />
+        ) : (
+          <View style={styles.banner}>
+            <Text style={styles.bannerText}>Você não pode escrever neste chat.</Text>
+          </View>
+        )
       ) : writable.length > 0 ? (
         <Composer
           sceneId={s.id}

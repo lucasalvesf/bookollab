@@ -170,6 +170,8 @@ export default function NewChapterScreen() {
             <PostEditor
               value={post}
               onChange={setPost}
+              slug={slug}
+              onMention={(item) => item.kind === 'character' && setMentions((list) => [...new Set([...list, item.target.slice('character:'.length)])])}
               titleError={problemMessage(problem, 'title')}
               contentError={problemMessage(problem, 'content')}
               musicError={problemMessage(problem, 'musicUrl')}

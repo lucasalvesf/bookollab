@@ -110,7 +110,7 @@ public static partial class CommunityEndpoints
             .ToListAsync(ct);
         // My permissions in each community let the app show the right context-menu actions (e.g. staff area).
         return TypedResults.Ok(rows.Select(r => new CommunitySummary(
-            r.c.Id, r.c.Slug, r.c.Name, r.c.Description, r.c.JoinPolicy, r.Count, r.c.IconKey, r.c.CoverKey, PermissionNames(r.Permissions))).ToList());
+            r.c.Id, r.c.Slug, r.c.Name, r.c.Description, r.c.JoinPolicy, r.Count, r.c.IconKey, r.c.CoverKey, PermissionNames(r.Permissions), r.c.AccentColor)).ToList());
     }
 
     /// <summary>Leave a community. The owner can't leave (ownership transfer does not exist yet).</summary>
@@ -162,16 +162,23 @@ public static partial class CommunityEndpoints
         }
     }
 
-    private static async Task<IResult> Members(string slug, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
+    private static async Task<IResult> Members(string slug, ClaimsPrincipal user, AppDbContext db, PermissionService perms, Presence.PresenceTracker presence, CancellationToken ct)
     {
         var (access, error) = await RequireMemberAsync(slug, user, perms, ct);
         if (error is not null) return error;
-        var list = await db.Memberships
+        var viewerId = user.UserId();
+        var viewer = await Presence.PresenceEndpoints.SettingsAsync(db, viewerId, ct);
+        var rows = await db.Memberships
             .Where(m => m.CommunityId == access!.Community.Id)
             .OrderBy(m => m.Role.Position).ThenBy(m => m.User.DisplayName)
-            .Select(m => new MemberDto(m.UserId, m.User.UserName!, m.Nickname ?? m.User.DisplayName, m.AvatarKey ?? m.User.AvatarKey, m.Role.Name, m.Role.BaseKind, m.JoinedAt))
+            .Select(m => new
+            {
+                Dto = new MemberDto(m.UserId, m.User.UserName!, m.Nickname ?? m.User.DisplayName, m.AvatarKey ?? m.User.AvatarKey, m.Role.Name, m.Role.BaseKind, m.JoinedAt, null),
+                Privacy = new Presence.PrivacySettings(m.User.OnlineVisibility, m.User.LastSeenVisibility),
+                m.User.LastSeenAt,
+            })
             .ToListAsync(ct);
-        return TypedResults.Ok(list);
+        return TypedResults.Ok(rows.Select(r => r.Dto with { Presence = presence.View(viewerId, viewer, r.Dto.UserId, r.Privacy, r.LastSeenAt) }).ToList());
     }
 
     /// <summary>
@@ -364,7 +371,8 @@ public static partial class CommunityEndpoints
         c.Id, c.Slug, c.Name, c.Description, c.JoinPolicy, c.ContentRating, memberCount,
         c.SheetFields.Select(ToDto).ToList(),
         role is null ? null : new MyAccess(role.Name, role.BaseKind, PermissionNames(role.Permissions)),
-        pending, Mechanics.MechanicsEndpoints.ToDto(c), c.IconKey, c.CoverKey, CommunitySections.Normalize(c.Sections), c.FeedLayout);
+        pending, Mechanics.MechanicsEndpoints.ToDto(c), c.IconKey, c.CoverKey, CommunitySections.Normalize(c.Sections), c.FeedLayout,
+        c.AccentColor, c.HomeLayout, c.SectionTitles);
 
     public static IReadOnlyList<string> PermissionNames(CommunityPermission permissions) =>
         Enum.GetValues<CommunityPermission>()

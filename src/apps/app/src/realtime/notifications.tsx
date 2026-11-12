@@ -27,6 +27,12 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
   return <>{children}</>;
 }
 
+/** Unread notifications per community id (red dots on the community icons). */
+export function useUnreadByCommunity(): Record<string, number> {
+  const { data } = useQuery({ queryKey: [...NOTIFICATIONS_KEY, 'by-community'], queryFn: () => unwrap(api.GET('/notifications/unread-by-community')) });
+  return Object.fromEntries((data ?? []).map((r) => [r.communityId, r.count]));
+}
+
 /** Unread notifications count, shown as a badge in the app shell. */
 export function useUnreadNotifications(): number {
   const { data } = useQuery({ queryKey: NOTIFICATIONS_KEY, queryFn: () => unwrap(api.GET('/notifications')) });
