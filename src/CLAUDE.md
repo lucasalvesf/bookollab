@@ -65,6 +65,11 @@ Decisões de produto em `docs/visao-produto.md` → "Visual e navegação do app
 - **Nomes são links**: `NameChip` / `NameLink` (`components/links.tsx`). Destaques: `useFeatureMenu` devolve o item de menu "Destacar / Tirar dos destaques".
 - **Posts (capítulo/blog)**: o texto guarda imagens como linhas `![legenda](chaveDoUpload)`; quem renderiza é `RichText` e quem edita é `PostEditor` (capa, fundo e música). A música usa `MusicPlayer`, com iframe na web (`music-player.web.tsx`) e link no celular. Arquivo `.web.tsx` nunca importa o próprio nome sem extensão (resolveria para ele mesmo).
 - Animações com Reanimated: use `sharedValue.set()/get()` (o lint do React Compiler barra `.value = ...`).
+- **Cor da comunidade**: `CommunityColor` (tema) troca as cores de marca pelas derivadas de `Community.AccentColor` (`lib/color.ts`, OKLCH com contraste AA, cache por cor e tema). Quem decide em que comunidade o usuário está é `ActiveCommunityProvider` (`components/community-context.tsx`): rotas `/c/[slug]` pela URL; telas de conteúdo (cena, capítulo, ficha, personagem) chamam `useDeclareCommunity(slug)`.
+- **Moldura** (`app-shell.tsx`): barra esquerda que expande no hover, modal de notificações (`notifications-panel.tsx`), botão d20 (`create-fab.tsx`) e menu lateral direito (`community-drawer.tsx`).
+- **Links internos**: alvo `kind:id` (`character`, `sheet`, `chat`, `post`, `member`, `section`, `url`); no texto, `@[Rótulo](kind:id)`. `lib/links.ts` (parse e rota), `link-picker.tsx` (busca em `/communities/{slug}/linkables`), `useOpenTarget` abre o link.
+- **Hover que engloba filhos** (ex.: expandir a barra): use `onMouseEnter`/`onMouseLeave` numa `View` (o React Native Web repassa ao DOM). O hover do `Pressable` pai não dispara quando o mouse está sobre um `Pressable` filho.
+- Estado que depende de um parâmetro (rota, prop): use o padrão "estado derivado" (comparar com o último valor visto durante o render), não `setState` dentro de `useEffect`; o lint do React Compiler barra.
 
 ## Organização do backend
 - `Features/<Feature>/`: vertical slices, cada uma com seus endpoints, DTOs e lógica.
@@ -78,6 +83,8 @@ Decisões de produto em `docs/visao-produto.md` → "Visual e navegação do app
 - Presença em memória (`ScenePresence`): vale para uma instância da API. Para escalar, adicionar backplane Redis (ADR futuro).
 - O token JWT chega ao hub pela query `access_token` (navegadores não mandam header em WebSocket).
 - App: `src/realtime/use-scene-realtime.ts` (reconecta e reassina sozinho).
+- **Chats públicos (OffGame)**: `Scene.Kind = Chat`. As ações têm `CharacterId` nulo e falam com o perfil do membro na comunidade; qualquer membro com `JoinScenes` escreve sem "entrar". "Digitando" usa `TypingAsSelf` no hub.
+- **Presença online** (`Features/Presence`): conexões abertas no hub de notificações (`PresenceTracker`, em memória) e `User.LastSeenAt`. A privacidade é recíproca (`PresenceTracker.View`).
 
 ## Enciclopédia
 - `Features/Encyclopedia`: fichas (`EncyclopediaSheet`), modelos (`SheetTemplate`), pastas (`EncyclopediaFolder`) e configurações da comunidade (`FreeSheetsEnabled`, `TemplateMode`).

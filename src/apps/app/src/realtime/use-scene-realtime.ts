@@ -101,12 +101,13 @@ export function useSceneRealtime(sceneId: string | undefined, handlers: SceneRea
   }, []);
 
   /** Tells the others "typing…" (throttled). */
-  function notifyTyping(characterId: string) {
+  function notifyTyping(characterId?: string) {
     const connection = connectionRef.current;
     if (!sceneId || !connection || connection.state !== HubConnectionState.Connected) return;
     if (Date.now() - lastTypingSent.current < TYPING_THROTTLE_MS) return;
     lastTypingSent.current = Date.now();
-    void connection.invoke('Typing', sceneId, characterId).catch(() => undefined);
+    // OffGame chats: no character, the member types as themselves.
+    void (characterId ? connection.invoke('Typing', sceneId, characterId) : connection.invoke('TypingAsSelf', sceneId)).catch(() => undefined);
   }
 
   return { online, typingNames: Object.values(typing).map((t) => t.name), connected, notifyTyping };

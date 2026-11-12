@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { NotebookPen, PenSquare, Star, Trash2, X } from 'lucide-react-native';
-import { Modal, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { ChevronLeft, ChevronRight, NotebookPen, PenSquare, Star, Trash2, X } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
+import { Modal, Platform, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { api } from '@/api/client';
@@ -52,59 +54,88 @@ function Cover({ name, imageKey, style, initial = true }: { name: string; imageK
 }
 
 /**
- * Amino-like highlights on top of the community: the first one big, the next ones as medium cards.
- * Moderators get a "manage" button (order by dragging, remove).
+ * Highlights (Amino-like), with no title: the moderation's picks rotate by themselves in a big hero
+ * (pauses on hover), with arrows and dots; the others wait as thumbnails. `compact` = side panel.
  */
-export function FeaturedShowcase({ items, onManage }: { items: Featured[]; onManage?: () => void }) {
+export function FeaturedShowcase({ items, onManage, compact }: { items: Featured[]; onManage?: () => void; compact?: boolean }) {
   const styles = useStyles();
   const { colors } = useTheme();
   const open = useOpenFeatured();
   const { width } = useWindowDimensions();
-  if (items.length === 0 && !onManage) return null;
-  const [first, ...rest] = items;
-  return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const count = items.length;
+  useEffect(() => {
+    if (count < 2 || paused) return;
+    const t = setInterval(() => setIndex((i) => (i + 1) % count), 6000);
+    return () => clearInterval(t);
+  }, [count, paused]);
+  if (count === 0 && !onManage) return null;
+  if (count === 0)
+    return (
+      <View style={styles.featuredEmpty}>
         <Star size={18} color={colors.accent} fill={colors.accent} />
-        <Text style={styles.sectionTitle}>Destaques</Text>
-        {onManage ? <IconButton icon={PenSquare} label="Organizar destaques" size={34} onPress={onManage} /> : null}
+        <Text style={[styles.hint, styles.flex]}>Nada em destaque ainda. Use “Destacar na comunidade” no menu “⋯” de um capítulo, blog ou ficha.</Text>
+        <IconButton icon={PenSquare} label="Organizar destaques" size={34} onPress={onManage!} />
       </View>
-      {!first ? (
-        <Text style={styles.hint}>Nada em destaque ainda. Use “Destacar na comunidade” no menu “⋯” de um capítulo, blog ou ficha.</Text>
-      ) : (
-        <>
-          <PressableScale onPress={() => open(first)} accessibilityLabel={first.title} style={[styles.hero, !first.imageKey && styles.heroPlain]}>
-            <Cover name={first.title} imageKey={first.imageKey} style={styles.fill} initial={false} />
-            {first.imageKey ? <View style={styles.heroShade} /> : null}
-            <View style={styles.heroText}>
-              <View style={styles.badge}>
-                <Star size={11} color={colors.accentText} fill={colors.accentText} />
-                <Text style={styles.badgeText}>{kindLabel(first)}</Text>
-              </View>
-              <Text style={styles.heroTitle} numberOfLines={2}>{first.title}</Text>
-              {first.excerpt ? <Text style={styles.heroExcerpt} numberOfLines={width < 600 ? 2 : 3}>{first.excerpt}</Text> : null}
-              {first.subtitle ? <Text style={styles.heroBy}>{first.subtitle}</Text> : null}
+    );
+  const current = items[Math.min(index, count - 1)];
+  const go = (delta: number) => setIndex((i) => (i + delta + count) % count);
+  const hover = Platform.OS === 'web' ? { onHoverIn: () => setPaused(true), onHoverOut: () => setPaused(false) } : {};
+  const height = compact ? 260 : width < 700 ? 260 : 380;
+  return (
+    <View style={styles.featured}>
+      <Pressable {...hover} onPress={() => open(current)} accessibilityRole="link" accessibilityLabel={current.title} style={[styles.hero, { height }]}>
+        <Animated.View key={current.id} entering={FadeIn.duration(450)} exiting={FadeOut.duration(300)} style={styles.fill}>
+          <Cover name={current.title} imageKey={current.imageKey} style={styles.fill} initial={false} />
+          <View style={styles.heroShade} />
+        </Animated.View>
+        <Animated.View key={`t-${current.id}`} entering={FadeInDown.duration(380)} style={styles.heroText}>
+          <View style={styles.badge}>
+            <Star size={11} color={colors.accentText} fill={colors.accentText} />
+            <Text style={styles.badgeText}>{kindLabel(current)}</Text>
+          </View>
+          <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]} numberOfLines={2}>{current.title}</Text>
+          {current.excerpt && !compact ? <Text style={styles.heroExcerpt} numberOfLines={width < 700 ? 2 : 3}>{current.excerpt}</Text> : null}
+          {current.subtitle ? <Text style={styles.heroBy}>{current.subtitle}</Text> : null}
+        </Animated.View>
+        {onManage ? (
+          <View style={styles.heroManage}>
+            <IconButton icon={PenSquare} label="Organizar destaques" tone="onImage" size={36} onPress={onManage} />
+          </View>
+        ) : null}
+        {count > 1 ? (
+          <>
+            <View style={[styles.heroArrow, styles.heroArrowLeft]}>
+              <IconButton icon={ChevronLeft} label="Destaque anterior" tone="onImage" size={38} onPress={() => go(-1)} />
             </View>
-          </PressableScale>
-          {rest.length > 0 ? (
-            <Carousel itemWidth={220}>
-              {rest.map((f) => (
-                <PressableScale key={f.id} onPress={() => open(f)} accessibilityLabel={f.title} style={styles.mini}>
-                  <Cover name={f.title} imageKey={f.imageKey} style={styles.miniCover} />
-                  <View style={styles.miniBody}>
-                    <Text style={styles.miniKind}>{kindLabel(f)}</Text>
-                    <Text style={styles.miniTitle} numberOfLines={2}>{f.title}</Text>
-                  </View>
-                </PressableScale>
+            <View style={[styles.heroArrow, styles.heroArrowRight]}>
+              <IconButton icon={ChevronRight} label="Próximo destaque" tone="onImage" size={38} onPress={() => go(1)} />
+            </View>
+            <View style={styles.dots}>
+              {items.map((f, i) => (
+                <Pressable key={f.id} accessibilityRole="button" accessibilityLabel={`Destaque ${i + 1}`} onPress={() => setIndex(i)} hitSlop={6} style={[styles.dotItem, i === index && styles.dotActive]} />
               ))}
-            </Carousel>
-          ) : null}
-        </>
-      )}
+            </View>
+          </>
+        ) : null}
+      </Pressable>
+      {count > 1 && !compact ? (
+        <View style={styles.thumbs}>
+          {items.map((f, i) => (
+            <PressableScale key={f.id} onPress={() => setIndex(i)} accessibilityLabel={f.title} style={[styles.thumb, i === index && styles.thumbActive]}>
+              <Cover name={f.title} imageKey={f.imageKey} style={styles.thumbCover} />
+              <View style={styles.thumbBody}>
+                <Text style={styles.miniKind}>{kindLabel(f)}</Text>
+                <Text style={styles.thumbTitle} numberOfLines={1}>{f.title}</Text>
+              </View>
+            </PressableScale>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
-
 /** Moderation: order the highlights by dragging, or take them out. */
 export function ManageFeaturedModal({ slug, items, onClose }: { slug: string; items: Featured[]; onClose: () => void }) {
   const styles = useStyles();
@@ -275,13 +306,28 @@ const useStyles = makeStyles((colors) => ({
   sectionTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: colors.text },
   coverFallback: { alignItems: 'center', justifyContent: 'center' },
   coverInitial: { fontSize: 40, fontWeight: '800', color: 'rgba(255,255,255,0.9)' },
-  hero: { height: 300, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.surfaceAlt, ...shadow(colors, 2) },
-  heroPlain: { height: 190 },
-  heroShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%', backgroundColor: 'rgba(0,0,0,0.5)' },
-  heroText: { position: 'absolute', left: 20, right: 20, bottom: 20, gap: 6 },
+  featured: { gap: 10 },
+  featuredEmpty: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  hero: { borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.brand, ...shadow(colors, 3) },
+  heroShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '75%', backgroundColor: 'rgba(0,0,0,0.55)' },
+  heroText: { position: 'absolute', left: 72, right: 72, bottom: 34, gap: 8 },
+  heroTitleCompact: { fontSize: 22, lineHeight: 28 },
+  heroManage: { position: 'absolute', top: 14, right: 14 },
+  heroArrow: { position: 'absolute', top: '50%', marginTop: -19 },
+  heroArrowLeft: { left: 12 },
+  heroArrowRight: { right: 12 },
+  dots: { position: 'absolute', bottom: 14, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  dotItem: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.5)' },
+  dotActive: { width: 22, backgroundColor: '#FFFFFF' },
+  thumbs: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
+  thumb: { flexGrow: 1, flexBasis: 150, maxWidth: 260, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 6, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.border },
+  thumbActive: { borderColor: colors.brand },
+  thumbCover: { width: 44, height: 44, borderRadius: radius.sm },
+  thumbBody: { flex: 1 },
+  thumbTitle: { fontSize: 13, fontWeight: '600', color: colors.text },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', backgroundColor: colors.accent, borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
   badgeText: { fontSize: 11, fontWeight: '800', color: colors.accentText, textTransform: 'uppercase', letterSpacing: 0.4 },
-  heroTitle: { fontSize: 28, lineHeight: 34, color: '#FFFFFF', fontFamily: 'Literata_600SemiBold' },
+  heroTitle: { fontSize: 34, lineHeight: 40, color: '#FFFFFF', fontFamily: 'Literata_600SemiBold' },
   heroExcerpt: { fontSize: 15, lineHeight: 22, color: 'rgba(255,255,255,0.9)' },
   heroBy: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
   mini: { height: 200, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },

@@ -6,12 +6,17 @@ public sealed record CreateSceneRequest(
     string Title, string? Description,
     SceneParticipation Participation = SceneParticipation.Public,
     SceneWritingMode WritingMode = SceneWritingMode.Free,
-    int? TurnTimeLimitMinutes = null);
+    int? TurnTimeLimitMinutes = null,
+    SceneKind Kind = SceneKind.Scene,
+    string? CoverKey = null);
 
 public sealed record JoinSceneRequest(Guid CharacterId);
 
 /// <summary>Text, an image (AttachmentKey from POST /uploads), or both.</summary>
-public sealed record SendActionRequest(Guid CharacterId, string? Content, string? AttachmentKey = null);
+/// <summary>CharacterId is required in scenes and ignored in OffGame chats (the author speaks as themselves).</summary>
+public sealed record SendActionRequest(Guid? CharacterId, string? Content, string? AttachmentKey = null);
+
+public sealed record UpdateSceneCoverRequest(string? CoverKey);
 
 public sealed record EditActionRequest(string Content);
 
@@ -28,7 +33,8 @@ public sealed record InviteCharacterRequest(Guid CharacterId);
 
 public sealed record SceneSummary(
     Guid Id, string Title, string? Description, SceneStatus Status, SceneWritingMode WritingMode, SceneParticipation Participation,
-    string OpenedByUserName, int ParticipantCount, DateTimeOffset CreatedAt, DateTimeOffset? LastActionAt);
+    string OpenedByUserName, int ParticipantCount, DateTimeOffset CreatedAt, DateTimeOffset? LastActionAt,
+    SceneKind Kind = SceneKind.Scene, string? CoverKey = null, string? Background = null);
 
 public sealed record SceneParticipantDto(Guid CharacterId, string CharacterName, string? CharacterAvatarKey, Guid OwnerUserId, string OwnerUserName);
 
@@ -40,12 +46,13 @@ public sealed record SceneDetail(
     SceneParticipation Participation, SceneArchiveVisibility ArchiveVisibility,
     int? TurnTimeLimitMinutes, Guid? CurrentTurnCharacterId, DateTimeOffset? TurnDeadline,
     bool CanManage, bool CanSkipTurn,
-    IReadOnlyList<Guid> InvitedCharacterIds, IReadOnlyList<Guid> MyPendingCharacterIds, int PendingRequestCount);
+    IReadOnlyList<Guid> InvitedCharacterIds, IReadOnlyList<Guid> MyPendingCharacterIds, int PendingRequestCount,
+    SceneKind Kind = SceneKind.Scene, string? CoverKey = null, bool CanSend = false);
 
 public sealed record SceneJoinRequestDto(Guid Id, Guid CharacterId, string CharacterName, string? CharacterAvatarKey, string UserName, DateTimeOffset CreatedAt);
 
 public sealed record SceneActionDto(
-    Guid Id, Guid SceneId, Guid CharacterId, string CharacterName, string? CharacterAvatarKey, Guid AuthorUserId,
+    Guid Id, Guid SceneId, Guid? CharacterId, string CharacterName, string? CharacterAvatarKey, Guid AuthorUserId,
     string? Content, string? AttachmentKey, DateTimeOffset CreatedAt, DateTimeOffset? EditedAt, bool Deleted,
     Domain.Mechanics.DiceRoll? Roll = null);
 

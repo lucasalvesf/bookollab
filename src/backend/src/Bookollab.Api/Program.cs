@@ -15,6 +15,9 @@ using Bookollab.Api.Features.Featured;
 using Bookollab.Api.Features.Home;
 using Bookollab.Api.Features.Mechanics;
 using Bookollab.Api.Features.Notifications;
+using Bookollab.Api.Features.Presence;
+using Bookollab.Api.Features.CommunityHome;
+using Bookollab.Api.Features.Links;
 using Bookollab.Api.Infrastructure;
 using Bookollab.Api.Infrastructure.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -61,6 +64,7 @@ builder.Services.AddOptions<SmtpOptions>().BindConfiguration(SmtpOptions.Section
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PermissionService>();
 builder.Services.AddSingleton<ScenePresence>();
+builder.Services.AddSingleton<Bookollab.Api.Features.Presence.PresenceTracker>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton<TurnTimeoutService>();
@@ -146,6 +150,9 @@ app.MapNotificationEndpoints();
 app.MapMechanicsEndpoints();
 app.MapHomeEndpoints();
 app.MapFeaturedEndpoints();
+app.MapPresenceEndpoints();
+app.MapCommunityHomeEndpoints();
+app.MapLinkEndpoints();
 app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();

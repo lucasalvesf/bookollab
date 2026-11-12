@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { api } from '@/api/client';
+import { useDeclareCommunity } from '@/components/community-context';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { FolderPicker } from '@/components/folder-picker';
@@ -22,6 +23,7 @@ export default function SheetScreen() {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string>();
   const sheet = useQuery({ queryKey: ['sheet', id], queryFn: () => unwrap(api.GET('/sheets/{id}', { params: { path: { id } } }), 'Ficha não encontrada.') });
+  useDeclareCommunity(sheet.data?.communitySlug);
 
   async function remove(slug: string) {
     try {

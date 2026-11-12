@@ -32,7 +32,8 @@ public sealed record CommunityProfileDto(
     int? Level, string? Title,
     bool IsMe,
     // Raw community values (null = inherited), for the edit form.
-    string? OwnNickname, string? OwnBio, string? OwnAvatarKey);
+    string? OwnNickname, string? OwnBio, string? OwnAvatarKey,
+    Presence.MemberPresence? Presence = null);
 
 public sealed record UpdateCommunityProfileRequest(string? Nickname, string? Bio, string? AvatarKey, string? CoverKey);
 
@@ -71,7 +72,7 @@ public static class PublicProfileEndpoints
     }
 
     /// <summary>A member's profile inside a community. Only members of that community can see it.</summary>
-    private static async Task<IResult> GetCommunity(string slug, string userName, ClaimsPrincipal viewer, AppDbContext db, PermissionService perms, CancellationToken ct)
+    private static async Task<IResult> GetCommunity(string slug, string userName, ClaimsPrincipal viewer, AppDbContext db, PermissionService perms, Presence.PresenceTracker presence, CancellationToken ct)
     {
         var (access, error) = await CommunityEndpoints.RequireMemberAsync(slug, viewer, perms, ct);
         if (error is not null) return error;
@@ -79,7 +80,10 @@ public static class PublicProfileEndpoints
         var member = await db.Memberships.Include(m => m.User).Include(m => m.Role)
             .SingleOrDefaultAsync(m => m.CommunityId == access!.Community.Id && m.User.NormalizedUserName == normalized, ct);
         if (member is null) return Problems.NotFound("Este usuário não é membro da comunidade.");
-        return TypedResults.Ok(await BuildAsync(db, member, access!.Community, viewer.UserId(), ct));
+        var viewerId = viewer.UserId();
+        var seen = presence.View(viewerId, await Presence.PresenceEndpoints.SettingsAsync(db, viewerId, ct), member.UserId,
+            new Presence.PrivacySettings(member.User.OnlineVisibility, member.User.LastSeenVisibility), member.User.LastSeenAt);
+        return TypedResults.Ok(await BuildAsync(db, member, access!.Community, viewerId, ct) with { Presence = seen });
     }
 
     private static async Task<IResult> UpdateCommunity(string slug, UpdateCommunityProfileRequest req, ClaimsPrincipal viewer, AppDbContext db, PermissionService perms, CancellationToken ct)

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type PropsWith
 import { Platform, StyleSheet, useColorScheme, type TextStyle } from 'react-native';
 
 import { storage } from '@/auth/storage';
+import { communityPalette, isHex } from '@/lib/color';
 
 /**
  * Design tokens. Every color is semantic (what it is for, not what it looks like), so screens never
@@ -60,6 +61,8 @@ const dark: Palette = {
   shadow: '#000000',
 };
 
+/** Both base palettes (e.g. to preview a community color in light and dark side by side). */
+export const PALETTES = { light, dark };
 
 export const radius = { sm: 8, md: 12, lg: 16, xl: 24, pill: 999 };
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
@@ -119,6 +122,19 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
     };
   }, [preference, system]);
 
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+/**
+ * Recolors everything inside with a community's main color (both themes). Styles stay cached: each
+ * derived palette is a stable object, so makeStyles builds it once per color and theme.
+ */
+export function CommunityColor({ color, children }: PropsWithChildren<{ color?: string | null }>) {
+  const theme = useTheme();
+  const value = useMemo<Theme>(
+    () => (isHex(color) ? { ...theme, colors: communityPalette(theme.colors, theme.scheme, color.toUpperCase()) } : theme),
+    [theme, color],
+  );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

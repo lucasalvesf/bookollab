@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { api } from '@/api/client';
+import { useDeclareCommunity } from '@/components/community-context';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
 import { CharacterForm } from '@/components/character-form';
@@ -30,6 +31,7 @@ export default function CharacterScreen() {
     queryKey: ['character', id],
     queryFn: () => unwrap(api.GET('/characters/{id}', { params: { path: { id } } }), 'Personagem não encontrado.'),
   });
+  useDeclareCommunity(character.data?.communitySlug);
   const community = useQuery({
     queryKey: ['community', character.data?.communitySlug],
     enabled: !!character.data,

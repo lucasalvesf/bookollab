@@ -19,6 +19,19 @@ internal sealed class CommunityConfiguration : IEntityTypeConfiguration<Communit
             f.Property(x => x.Key).HasMaxLength(64);
             f.Property(x => x.Label).HasMaxLength(100);
         });
+        b.Property(c => c.AccentColor).HasMaxLength(7);
+        b.Property(c => c.SectionTitles).HasColumnType("jsonb").HasConversion(
+            v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+            v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new(),
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<Dictionary<string, string>>(
+                (a, z) => a!.Count == z!.Count && !a.Except(z).Any(),
+                v => v.Aggregate(0, (h, kv) => HashCode.Combine(h, kv.Key, kv.Value)),
+                v => new Dictionary<string, string>(v)));
+        b.OwnsMany(c => c.SideMenu, g =>
+        {
+            g.ToJson();
+            g.OwnsMany(x => x.Links);
+        });
         b.HasOne(c => c.Owner).WithMany().HasForeignKey(c => c.OwnerId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(c => c.Roles).WithOne().HasForeignKey(r => r.CommunityId).OnDelete(DeleteBehavior.Cascade);
         b.HasMany(c => c.Memberships).WithOne().HasForeignKey(m => m.CommunityId).OnDelete(DeleteBehavior.Cascade);

@@ -13,9 +13,16 @@ public sealed record NotificationDto(Guid Id, NotificationType Type, string Titl
 
 public sealed record NotificationListDto(IReadOnlyList<NotificationDto> Items, int UnreadCount);
 
+public sealed record UnreadByCommunityDto(Guid CommunityId, int Count);
+
 /// <summary>Per-user realtime channel: pushes "NotificationCreated" as soon as a notification is stored.</summary>
 [Authorize]
-public sealed class NotificationHub : Hub;
+public sealed class NotificationHub(Presence.PresenceTracker presence) : Hub
+{
+    public override Task OnConnectedAsync() => presence.ConnectedAsync(Context.UserIdentifier);
+
+    public override Task OnDisconnectedAsync(Exception? exception) => presence.DisconnectedAsync(Context.UserIdentifier);
+}
 
 /// <summary>SignalR user id = the JWT "sub" claim, so Clients.User(userId) reaches every device of the user.</summary>
 public sealed class SubUserIdProvider : IUserIdProvider
@@ -49,16 +56,19 @@ public static class NotificationEndpoints
     {
         var g = app.MapGroup("/notifications").WithTags("Notifications").RequireAuthorization();
         g.MapGet("/", List).WithName("ListNotifications").Produces<NotificationListDto>();
+        g.MapGet("/unread-by-community", UnreadByCommunity).WithName("UnreadNotificationsByCommunity").Produces<List<UnreadByCommunityDto>>();
         g.MapPost("/{id:guid}/read", MarkRead).WithName("MarkNotificationRead").Produces(StatusCodes.Status204NoContent);
         g.MapPost("/read-all", MarkAllRead).WithName("MarkAllNotificationsRead").Produces(StatusCodes.Status204NoContent);
         app.MapHub<NotificationHub>("/hubs/notifications");
     }
 
-    private static async Task<IResult> List(ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
+    /// <summary>Latest notifications; with communityId, only that community's (the unread count follows the filter).</summary>
+    private static async Task<IResult> List(Guid? communityId, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
     {
         var userId = user.UserId();
-        var items = await db.Notifications.Where(n => n.UserId == userId).OrderByDescending(n => n.CreatedAt).Take(50).ToListAsync(ct);
-        var unread = await db.Notifications.CountAsync(n => n.UserId == userId && n.ReadAt == null, ct);
+        var mine = db.Notifications.Where(n => n.UserId == userId && (communityId == null || n.CommunityId == communityId));
+        var items = await mine.OrderByDescending(n => n.CreatedAt).Take(50).ToListAsync(ct);
+        var unread = await mine.CountAsync(n => n.ReadAt == null, ct);
         return TypedResults.Ok(new NotificationListDto(items.Select(NotificationService.ToDto).ToList(), unread));
     }
 
@@ -70,10 +80,21 @@ public static class NotificationEndpoints
         return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> MarkAllRead(ClaimsPrincipal user, AppDbContext db, TimeProvider clock, CancellationToken ct)
+    /// <summary>Unread notifications per community (red dots on the community rail).</summary>
+    private static async Task<IResult> UnreadByCommunity(ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
     {
         var userId = user.UserId();
-        await db.Notifications.Where(n => n.UserId == userId && n.ReadAt == null)
+        var rows = await db.Notifications.Where(n => n.UserId == userId && n.ReadAt == null && n.CommunityId != null)
+            .GroupBy(n => n.CommunityId!.Value)
+            .Select(g => new UnreadByCommunityDto(g.Key, g.Count()))
+            .ToListAsync(ct);
+        return TypedResults.Ok(rows);
+    }
+
+    private static async Task<IResult> MarkAllRead(Guid? communityId, ClaimsPrincipal user, AppDbContext db, TimeProvider clock, CancellationToken ct)
+    {
+        var userId = user.UserId();
+        await db.Notifications.Where(n => n.UserId == userId && n.ReadAt == null && (communityId == null || n.CommunityId == communityId))
             .ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
         return TypedResults.NoContent();
     }

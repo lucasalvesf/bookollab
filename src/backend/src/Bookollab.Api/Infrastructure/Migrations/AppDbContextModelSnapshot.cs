@@ -287,6 +287,11 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("AccentColor")
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("accent_color");
+
                     b.Property<bool>("AttributesEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("attributes_enabled");
@@ -335,6 +340,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("free_sheets_enabled");
 
+                    b.Property<string>("HomeLayout")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("home_layout");
+
                     b.Property<string>("IconKey")
                         .HasColumnType("text")
                         .HasColumnName("icon_key");
@@ -358,6 +369,11 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid")
                         .HasColumnName("owner_id");
+
+                    b.Property<string>("SectionTitles")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("section_titles");
 
                     b.PrimitiveCollection<List<string>>("Sections")
                         .IsRequired()
@@ -612,6 +628,48 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasDatabaseName("ix_memberships_user_id");
 
                     b.ToTable("memberships", (string)null);
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Communities.PinnedPost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChapterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chapter_id");
+
+                    b.Property<Guid>("CommunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("community_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("PinnedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pinned_by_user_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pinned_posts");
+
+                    b.HasIndex("ChapterId")
+                        .HasDatabaseName("ix_pinned_posts_chapter_id");
+
+                    b.HasIndex("PinnedByUserId")
+                        .HasDatabaseName("ix_pinned_posts_pinned_by_user_id");
+
+                    b.HasIndex("CommunityId", "ChapterId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pinned_posts_community_id_chapter_id");
+
+                    b.ToTable("pinned_posts", (string)null);
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.EncyclopediaFolder", b =>
@@ -887,6 +945,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("community_id");
 
+                    b.Property<string>("CoverKey")
+                        .HasColumnType("text")
+                        .HasColumnName("cover_key");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -899,6 +961,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("description");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("kind");
 
                     b.Property<Guid>("OpenedByUserId")
                         .HasColumnType("uuid")
@@ -963,7 +1031,7 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("author_user_id");
 
-                    b.Property<Guid>("CharacterId")
+                    b.Property<Guid?>("CharacterId")
                         .HasColumnType("uuid")
                         .HasColumnName("character_id");
 
@@ -1271,6 +1339,16 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("text[]")
                         .HasColumnName("home_sections");
 
+                    b.Property<DateTimeOffset?>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at");
+
+                    b.Property<string>("LastSeenVisibility")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("last_seen_visibility");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("lockout_enabled");
@@ -1288,6 +1366,12 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .HasColumnName("normalized_user_name");
+
+                    b.Property<string>("OnlineVisibility")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("online_visibility");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text")
@@ -1668,9 +1752,61 @@ namespace Bookollab.Api.Infrastructure.Migrations
                                 .HasConstraintName("fk_communities_communities_community_id");
                         });
 
+                    b.OwnsMany("Bookollab.Api.Domain.Communities.SideMenuGroup", "SideMenu", b1 =>
+                        {
+                            b1.Property<Guid>("CommunityId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd();
+
+                            b1.Property<string>("Title")
+                                .IsRequired();
+
+                            b1.HasKey("CommunityId", "__synthesizedOrdinal");
+
+                            b1.ToTable("communities");
+
+                            b1
+                                .ToJson("side_menu")
+                                .HasColumnType("jsonb");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommunityId")
+                                .HasConstraintName("fk_communities_communities_community_id");
+
+                            b1.OwnsMany("Bookollab.Api.Domain.Communities.SideMenuLink", "Links", b2 =>
+                                {
+                                    b2.Property<Guid>("SideMenuGroupCommunityId");
+
+                                    b2.Property<int>("SideMenuGroup__synthesizedOrdinal");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAdd();
+
+                                    b2.Property<string>("Label")
+                                        .IsRequired();
+
+                                    b2.Property<string>("Target")
+                                        .IsRequired();
+
+                                    b2.HasKey("SideMenuGroupCommunityId", "SideMenuGroup__synthesizedOrdinal", "__synthesizedOrdinal")
+                                        .HasName("pk_communities");
+
+                                    b2.ToTable("communities");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("SideMenuGroupCommunityId", "SideMenuGroup__synthesizedOrdinal")
+                                        .HasConstraintName("fk_communities_communities_side_menu_group_community_id_side_menu_gr");
+                                });
+
+                            b1.Navigation("Links");
+                        });
+
                     b.Navigation("Owner");
 
                     b.Navigation("SheetFields");
+
+                    b.Navigation("SideMenu");
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Communities.CommunityRole", b =>
@@ -1760,6 +1896,30 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Bookollab.Api.Domain.Communities.PinnedPost", b =>
+                {
+                    b.HasOne("Bookollab.Api.Domain.Chapters.Chapter", null)
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pinned_posts_chapters_chapter_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Communities.Community", null)
+                        .WithMany()
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pinned_posts_communities_community_id");
+
+                    b.HasOne("Bookollab.Api.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("PinnedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pinned_posts_users_pinned_by_user_id");
                 });
 
             modelBuilder.Entity("Bookollab.Api.Domain.Encyclopedia.EncyclopediaFolder", b =>
@@ -1957,7 +2117,6 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("fk_scene_actions_characters_character_id");
 
                     b.HasOne("Bookollab.Api.Domain.Scenes.Scene", null)

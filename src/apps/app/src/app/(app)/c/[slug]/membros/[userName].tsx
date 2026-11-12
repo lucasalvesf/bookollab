@@ -11,6 +11,7 @@ import { Empty, Loadable, Page, Row, Tag } from '@/components/layout';
 import { NameChip } from '@/components/links';
 import { MoreButton, useCopyLink, useMenu, type MenuItem } from '@/components/menu';
 import { ProfileHero, StatRow, TabBar } from '@/components/profile-header';
+import { presenceLabel } from '@/lib/date';
 import { IconButton } from '@/components/ui';
 import { makeStyles, radius, shadow } from '@/theme';
 
@@ -76,6 +77,7 @@ export default function CommunityProfileScreen() {
                 coverKey={p.coverKey}
                 badges={
                   <>
+                    {presenceLabel(p.presence) ? <Tag label={presenceLabel(p.presence)!} tone={p.presence?.online ? 'live' : 'neutral'} /> : null}
                     <Tag label={p.roleName} tone={p.baseKind === 'Player' ? 'neutral' : 'brand'} />
                     <Tag label={p.level ? `Nível ${p.level}${p.title ? ` · ${p.title}` : ''}` : 'Nível em breve'} tone="neutral" />
                     <NameChip label={p.communityName} href={{ pathname: '/c/[slug]', params: { slug } }} />

@@ -3,7 +3,10 @@ import { useState } from 'react';
 import { Text, View, type StyleProp, type TextStyle } from 'react-native';
 
 import { fileUrl } from '@/lib/files';
+import { splitMentions } from '@/lib/links';
 import { makeStyles, radius } from '@/theme';
+
+import { useOpenTarget } from './community-drawer';
 
 /** Image line inside a post: ![caption](uploadKey). */
 const IMAGE_LINE = /^!\[(.*?)\]\(([^)\s]+)\)$/;
@@ -38,13 +41,24 @@ function parse(content: string): Block[] {
 }
 
 /** Post body (blog format): paragraphs and images placed in the middle of the text. */
-export function RichText({ content, textStyle }: { content: string; textStyle?: StyleProp<TextStyle> }) {
+export function RichText({ content, textStyle, slug }: { content: string; textStyle?: StyleProp<TextStyle>; slug?: string }) {
   const styles = useStyles();
+  const openTarget = useOpenTarget(slug);
   return (
     <View style={styles.body}>
       {parse(content).map((b, i) =>
         b.kind === 'text' ? (
-          <Text key={i} style={textStyle}>{b.text}</Text>
+          <Text key={i} style={textStyle}>
+            {splitMentions(b.text).map((part, j) =>
+              'target' in part ? (
+                <Text key={j} accessibilityRole="link" onPress={() => openTarget(part.target)} style={styles.mention}>
+                  {part.label}
+                </Text>
+              ) : (
+                part.text
+              ),
+            )}
+          </Text>
         ) : (
           <PostImage key={i} uploadKey={b.key} caption={b.caption} />
         ),
@@ -77,5 +91,6 @@ const useStyles = makeStyles((colors) => ({
   body: { gap: 18 },
   figure: { gap: 6 },
   image: { width: '100%', borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  mention: { color: colors.brand, fontWeight: '700', backgroundColor: colors.brandSoft, borderRadius: 4 },
   caption: { fontSize: 13, color: colors.textSubtle, textAlign: 'center', fontStyle: 'italic' },
 }));

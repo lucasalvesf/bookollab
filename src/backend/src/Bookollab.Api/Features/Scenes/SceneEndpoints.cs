@@ -29,6 +29,7 @@ public static partial class SceneEndpoints
         scenes.MapGet("/{id:guid}", Get).WithName("GetScene").Produces<SceneDetail>();
         scenes.MapPost("/{id:guid}/join", Join).WithName("JoinScene").Produces<SceneDetail>();
         scenes.MapPost("/{id:guid}/close", Close).WithName("CloseScene").Produces<SceneDetail>();
+        scenes.MapPut("/{id:guid}/cover", UpdateCover).WithName("UpdateSceneCover").Produces<SceneDetail>();
         scenes.MapPut("/{id:guid}/background", UpdateBackground).WithName("UpdateSceneBackground").Produces<SceneDetail>();
         scenes.MapPut("/{id:guid}/settings", UpdateSettings).WithName("UpdateSceneSettings").Produces<SceneDetail>();
         scenes.MapPut("/{id:guid}/turn-order", UpdateTurnOrder).WithName("UpdateSceneTurnOrder").Produces<SceneDetail>();
@@ -69,16 +70,21 @@ public static partial class SceneEndpoints
             .Select(s => new SceneSummary(
                 s.Id, s.Title, s.Description, s.Status, s.WritingMode, s.Participation,
                 db.Users.Where(u => u.Id == s.OpenedByUserId).Select(u => u.UserName!).Single(),
-                s.Participants.Count, s.CreatedAt,
-                db.SceneActions.Where(a => a.SceneId == s.Id).Max(a => (DateTimeOffset?)a.CreatedAt)))
+                s.Kind == SceneKind.Chat ? db.SceneActions.Where(a => a.SceneId == s.Id).Select(a => a.AuthorUserId).Distinct().Count() : s.Participants.Count, s.CreatedAt,
+                db.SceneActions.Where(a => a.SceneId == s.Id).Max(a => (DateTimeOffset?)a.CreatedAt),
+                s.Kind, s.CoverKey, s.Background))
             .ToListAsync(ct);
         return TypedResults.Ok(list);
     }
 
     private static async Task<IResult> Create(string slug, CreateSceneRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
     {
-        var (access, error) = await CommunityEndpoints.RequireAsync(slug, CommunityPermission.OpenScenes, user, perms, ct);
+        // Scenes (OnGame) are opened by narrators; public OffGame chats by any member who can take part in chats.
+        var needed = req.Kind == SceneKind.Chat ? CommunityPermission.JoinScenes : CommunityPermission.OpenScenes;
+        var (access, error) = await CommunityEndpoints.RequireAsync(slug, needed, user, perms, ct);
         if (error is not null) return error;
+        if (req.CoverKey is not null && !await UploadEndpoints.OwnsAsync(db, req.CoverKey, user.UserId(), ct))
+            return Problems.Validation("coverKey", "Envie a imagem antes de usá-la.");
         var title = req.Title?.Trim() ?? "";
         if (title.Length is < 1 or > 150) return Problems.Validation("title", "O título precisa ter de 1 a 150 caracteres.");
         if (req.Description?.Length > 2000) return Problems.Validation("description", "A descrição pode ter até 2.000 caracteres.");
@@ -90,9 +96,12 @@ public static partial class SceneEndpoints
             Title = title,
             Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description.Trim(),
             OpenedByUserId = user.UserId(),
-            Participation = req.Participation,
-            WritingMode = req.WritingMode,
-            TurnTimeLimitMinutes = req.TurnTimeLimitMinutes,
+            Kind = req.Kind,
+            CoverKey = req.CoverKey,
+            // OffGame chats are always open to every member and free-form.
+            Participation = req.Kind == SceneKind.Chat ? SceneParticipation.Public : req.Participation,
+            WritingMode = req.Kind == SceneKind.Chat ? SceneWritingMode.Free : req.WritingMode,
+            TurnTimeLimitMinutes = req.Kind == SceneKind.Chat ? null : req.TurnTimeLimitMinutes,
         };
         db.Scenes.Add(scene);
         await db.SaveChangesAsync(ct);
@@ -116,6 +125,7 @@ public static partial class SceneEndpoints
         if (error is not null) return error;
         if (!access!.Has(CommunityPermission.JoinScenes)) return Problems.Forbidden();
         if (scene!.Status != SceneStatus.Open) return Problems.Conflict("Esta cena já foi encerrada.", "scene_closed");
+        if (scene.Kind == SceneKind.Chat) return Problems.Conflict("Chats públicos não precisam de entrada: é só escrever.", "chat_no_join");
 
         var userId = user.UserId();
         var character = await db.Characters.SingleOrDefaultAsync(
@@ -325,10 +335,9 @@ public static partial class SceneEndpoints
         var query = db.SceneActions.Where(a => a.SceneId == id);
         if (before is not null) query = query.Where(a => a.CreatedAt < before);
         // Latest page, returned in chronological order.
-        var page = await query.OrderByDescending(a => a.CreatedAt).Take(take)
-            .Join(db.Characters, a => a.CharacterId, c => c.Id, (a, c) => new { a, c.Name, c.AvatarKey })
-            .ToListAsync(ct);
-        return TypedResults.Ok(page.OrderBy(x => x.a.CreatedAt).Select(x => ToDto(x.a, x.Name, x.AvatarKey)).ToList());
+        var page = await query.OrderByDescending(a => a.CreatedAt).Take(take).ToListAsync(ct);
+        var speakers = await SpeakersAsync(db, page, ct);
+        return TypedResults.Ok(page.OrderBy(a => a.CreatedAt).Select(a => ToDto(a, speakers[a.Id].Name, speakers[a.Id].AvatarKey)).ToList());
     }
 
     private static async Task<IResult> SendAction(Guid id, SendActionRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, IHubContext<SceneHub> hub, NotificationService notifications, TimeProvider clock, CancellationToken ct)
@@ -344,6 +353,7 @@ public static partial class SceneEndpoints
         var userId = user.UserId();
         if (attachment is not null && !await UploadEndpoints.OwnsAsync(db, attachment, userId, ct))
             return Problems.Validation("attachmentKey", "Anexo inválido. Envie a imagem novamente.");
+        if (scene.Kind == SceneKind.Chat) return await SendChatMessageAsync(scene, access!, userId, content, attachment, db, hub, ct);
         var character = await db.SceneParticipants
             .Where(p => p.SceneId == id && p.CharacterId == req.CharacterId)
             .Join(db.Characters.Where(c => c.OwnerUserId == userId), p => p.CharacterId, c => c.Id, (p, c) => c)
@@ -410,7 +420,7 @@ public static partial class SceneEndpoints
         var content = req.Content?.Trim() ?? "";
         if (content.Length > MaxActionLength || (content.Length == 0 && action.AttachmentKey is null))
             return Problems.Validation("content", "A ação precisa ter de 1 a 20.000 caracteres.");
-        var (name, avatar) = await CharacterInfo(db, action.CharacterId, ct);
+        var (name, avatar) = (await SpeakersAsync(db, [action], ct))[action.Id];
         if (content == action.Content) return TypedResults.Ok(ToDto(action, name, avatar));
 
         action.Edit(content, clock.GetUtcNow());
@@ -535,7 +545,7 @@ public static partial class SceneEndpoints
         return new SceneDetail(
             scene.Id, scene.CommunityId, access.Community.Slug, access.Community.Name, scene.Title, scene.Description,
             scene.Status, scene.WritingMode, scene.OpenedByUserId, scene.CreatedAt, scene.ClosedAt, scene.Background, participants,
-            CanJoin: open && access.Has(CommunityPermission.JoinScenes),
+            CanJoin: open && scene.Kind == SceneKind.Scene && access.Has(CommunityPermission.JoinScenes),
             CanClose: open && CanClose(scene, access, userId),
             CanModerate: access.Has(CommunityPermission.ModerateContent),
             CanViewRevisions: access.Has(CommunityPermission.ViewRevisionHistory),
@@ -544,13 +554,67 @@ public static partial class SceneEndpoints
             scene.TurnTimeLimitMinutes, scene.CurrentTurnCharacterId, scene.TurnDeadline(),
             CanManage: manager,
             CanSkipTurn: open && scene.WritingMode == SceneWritingMode.Turns && CanSkip(scene, access, userId),
-            invited, myPending, pendingCount);
+            invited, myPending, pendingCount,
+            scene.Kind, scene.CoverKey,
+            CanSend: open && scene.Kind == SceneKind.Chat && access.Has(CommunityPermission.JoinScenes));
     }
 
-    private static async Task<(string Name, string? AvatarKey)> CharacterInfo(AppDbContext db, Guid characterId, CancellationToken ct)
+    /// <summary>OffGame chat message: any member who can take part in chats, speaking as their community profile.</summary>
+    private static async Task<IResult> SendChatMessageAsync(Scene scene, MemberAccess access, Guid userId, string content, string? attachment, AppDbContext db, IHubContext<SceneHub> hub, CancellationToken ct)
     {
-        var c = await db.Characters.Where(x => x.Id == characterId).Select(x => new { x.Name, x.AvatarKey }).SingleAsync(ct);
-        return (c.Name, c.AvatarKey);
+        if (!access.Has(CommunityPermission.JoinScenes)) return Problems.Forbidden("Você não pode participar dos chats desta comunidade.");
+        if (attachment is null && Dice.ParseCommand(content) is not null && !access.Community.DiceEnabled)
+            return Problems.Validation("content", "A rolagem de dados está desligada nesta comunidade.");
+        string? rollJson = null;
+        if (attachment is null && Dice.ParseCommand(content) is { } expression && access.Community.DiceEnabled)
+        {
+            var (roll, rollError) = Dice.Roll(expression, new Dictionary<string, int>());
+            if (roll is null) return Problems.Validation("content", rollError!);
+            rollJson = System.Text.Json.JsonSerializer.Serialize(roll);
+        }
+        var action = new SceneAction { SceneId = scene.Id, CharacterId = null, AuthorUserId = userId, Content = content, AttachmentKey = attachment, RollJson = rollJson };
+        db.SceneActions.Add(action);
+        await db.SaveChangesAsync(ct);
+        var (name, avatar) = (await SpeakersAsync(db, [action], ct))[action.Id];
+        var dto = ToDto(action, name, avatar);
+        await hub.Clients.Group(SceneEvents.Group(scene.Id)).SendAsync(SceneEvents.ActionCreated, dto, ct);
+        return TypedResults.Created($"/actions/{action.Id}", dto);
+    }
+
+    /// <summary>Who speaks in each action: the character, or (OffGame chats) the author's community profile.</summary>
+    private static async Task<Dictionary<Guid, (string Name, string? AvatarKey)>> SpeakersAsync(AppDbContext db, IReadOnlyCollection<SceneAction> actions, CancellationToken ct)
+    {
+        var characterIds = actions.Where(a => a.CharacterId != null).Select(a => a.CharacterId!.Value).Distinct().ToList();
+        var characters = await db.Characters.Where(c => characterIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => (c.Name, c.AvatarKey), ct);
+        var authorIds = actions.Where(a => a.CharacterId == null).Select(a => a.AuthorUserId).Distinct().ToList();
+        var authors = new Dictionary<Guid, (string, string?)>();
+        if (authorIds.Count > 0)
+        {
+            var sceneId = actions.First().SceneId;
+            var communityId = await db.Scenes.Where(s => s.Id == sceneId).Select(s => s.CommunityId).SingleAsync(ct);
+            var rows = await db.Users.Where(u => authorIds.Contains(u.Id))
+                .Select(u => new
+                {
+                    u.Id, u.DisplayName, u.AvatarKey,
+                    Member = db.Memberships.Where(m => m.CommunityId == communityId && m.UserId == u.Id).Select(m => new { m.Nickname, m.AvatarKey }).FirstOrDefault(),
+                })
+                .ToListAsync(ct);
+            foreach (var r in rows) authors[r.Id] = (r.Member?.Nickname ?? r.DisplayName, r.Member?.AvatarKey ?? r.AvatarKey);
+        }
+        return actions.ToDictionary(a => a.Id, a => a.CharacterId is { } id && characters.TryGetValue(id, out var c) ? c : authors.GetValueOrDefault(a.AuthorUserId, ("Membro", null)));
+    }
+
+    private static async Task<IResult> UpdateCover(Guid id, UpdateSceneCoverRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
+    {
+        var (scene, access, error) = await LoadAsync(id, user, db, perms, ct);
+        if (error is not null) return error;
+        var userId = user.UserId();
+        if (!CanManage(scene!, access!, userId)) return Problems.Forbidden();
+        if (req.CoverKey is not null && req.CoverKey != scene!.CoverKey && !await UploadEndpoints.OwnsAsync(db, req.CoverKey, userId, ct))
+            return Problems.Validation("coverKey", "Envie a imagem antes de usá-la.");
+        scene!.CoverKey = req.CoverKey;
+        await db.SaveChangesAsync(ct);
+        return TypedResults.Ok(await DetailAsync(db, scene, access!, userId, ct));
     }
 
     private static SceneActionDto ToDto(SceneAction a, string characterName, string? characterAvatarKey) => new(

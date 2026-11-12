@@ -97,6 +97,18 @@ public sealed class SceneHub(AppDbContext db, PermissionService perms, ScenePres
         await Clients.OthersInGroup(SceneEvents.Group(sceneId)).SendAsync(SceneEvents.Typing, new TypingDto(sceneId, userId, name));
     }
 
+    /// <summary>"Typing" in an OffGame chat: the member speaks as their community profile, not a character.</summary>
+    public async Task TypingAsSelf(Guid sceneId)
+    {
+        var userId = Context.User!.UserId();
+        var name = await db.Scenes
+            .Where(s => s.Id == sceneId && s.Kind == SceneKind.Chat)
+            .Join(db.Memberships.Where(m => m.UserId == userId), s => s.CommunityId, m => m.CommunityId, (s, m) => m.Nickname ?? m.User.DisplayName)
+            .SingleOrDefaultAsync();
+        if (name is null) return;
+        await Clients.OthersInGroup(SceneEvents.Group(sceneId)).SendAsync(SceneEvents.Typing, new TypingDto(sceneId, userId, name));
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         foreach (var sceneId in presence.Disconnect(Context.ConnectionId))

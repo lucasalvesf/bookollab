@@ -12,7 +12,7 @@ import { IconButton, Notice } from './ui';
  * Standard page of the logged-in area: scrollable centered column, header with optional back button.
  * Notifications live in the app shell (side rail / bottom bar), not in each page.
  */
-export function Page({ title, subtitle, back, actions, hero, onScroll, overlay, transparent, children }: PropsWithChildren<{
+export function Page({ title, subtitle, back, actions, hero, onScroll, overlay, transparent, maxWidth, children }: PropsWithChildren<{
   title: string;
   subtitle?: string;
   back?: boolean;
@@ -25,6 +25,8 @@ export function Page({ title, subtitle, back, actions, hero, onScroll, overlay, 
   overlay?: ReactNode;
   /** No page background (something is drawn behind it, e.g. a reading background). */
   transparent?: boolean;
+  /** Width of the content column (default 760; immersive screens use more). */
+  maxWidth?: number;
 }>) {
   const styles = useStyles();
   const router = useRouter();
@@ -37,7 +39,7 @@ export function Page({ title, subtitle, back, actions, hero, onScroll, overlay, 
       onScroll={onScroll ? (e) => onScroll(e.nativeEvent.contentOffset.y) : undefined}
       scrollEventThrottle={onScroll ? 32 : undefined}>
       {hero}
-      <View style={[styles.column, hero ? styles.columnAfterHero : null]}>
+      <View style={[styles.column, hero ? styles.columnAfterHero : null, maxWidth ? { maxWidth } : null]}>
         {!hero ? (
           <View style={styles.header}>
             {back ? <IconButton icon={ChevronLeft} label="Voltar" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} size={38} /> : null}
