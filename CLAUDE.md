@@ -26,7 +26,7 @@ Bookollab é uma plataforma de histórias colaborativas estilo RPG de texto, par
 ## Fluxo de trabalho
 - Conversa e documentação em português; código, nomes de arquivos de código, identificadores e commits em inglês.
 - Commits seguem Conventional Commits: `docs:`, `feat:`, `fix:`, `refactor:`, `chore:`, `test:`.
-- Código: branch (`feat/…`, `fix/…`, `chore/…` etc.) → Pull Request com CI → squash merge na `main`. Docs pequenos podem ir direto na `main`. Ver [ADR 0003](docs/decisoes/0003-fluxo-git.md).
+- Tudo (código e docs) vai **direto na `main`**, sem branch nem Pull Request; o CI roda a cada push. Ver [ADR 0003](docs/decisoes/0003-fluxo-git.md).
 - Quando uma decisão de produto ou arquitetura mudar, atualize o arquivo em `docs/` **no mesmo commit**.
 - Não invente regra de negócio: se não está em `docs/`, pergunte.
 - Todo pedido do usuário que não for construído na hora vai para `docs/backlog.md` (com data e, se houver, o marco previsto). Nada pedido pode se perder.
