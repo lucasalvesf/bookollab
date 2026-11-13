@@ -2,7 +2,7 @@ import { usePathname, useRouter, type Href } from 'expo-router';
 import { VenetianMask } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
-import Animated, { Easing, FadeIn, FadeOut, ZoomIn, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeOut, ZoomIn, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Path, Polygon, Text as SvgText } from 'react-native-svg';
 
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
@@ -67,6 +67,12 @@ export function CreateFab() {
   const spin = useSharedValue(0);
   const scale = useSharedValue(1);
   const anim = useAnimatedStyle(() => ({ transform: [{ rotate: `${spin.get()}deg` }, { scale: scale.get() }] }));
+  // Idle attention: a soft halo that breathes behind the die (hidden while the menu is open).
+  const pulse = useSharedValue(0);
+  useEffect(() => {
+    pulse.set(withRepeat(withTiming(1, { duration: 1800, easing: Easing.out(Easing.quad) }), -1, false));
+  }, [pulse]);
+  const halo = useAnimatedStyle(() => ({ opacity: 0.55 * (1 - pulse.get()), transform: [{ scale: 1 + pulse.get() * 0.55 }] }));
   useEffect(() => () => {
     clearTimeout(timer.current);
     clearInterval(roller.current);
@@ -151,7 +157,7 @@ export function CreateFab() {
                       <Text style={[styles.optionLabelText, hovered && styles.optionLabelTextOn]}>{o.label}</Text>
                     </View>
                     <View style={[styles.die, hovered && styles.dieHover]}>
-                      <Die kind={o.die} color={o.color} />
+                      <Die kind={o.die} color={o.color} size={52} />
                     </View>
                   </>
                 )}
@@ -166,8 +172,9 @@ export function CreateFab() {
         accessibilityState={{ expanded: open }}
         onPress={() => (open ? hide(0) : show())}
         style={styles.fab}>
+        {open ? null : <Animated.View pointerEvents="none" style={[styles.halo, { backgroundColor: colors.brand }, halo]} />}
         <Animated.View style={anim}>
-          <D20 size={68} color={colors.brand} faceColor={colors.brandText} textColor={colors.brand} label={face} />
+          <D20 size={104} color={colors.brand} faceColor={colors.brandText} textColor={colors.brand} label={face} />
         </Animated.View>
       </Pressable>
     </View>
@@ -175,15 +182,16 @@ export function CreateFab() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  anchor: { position: 'absolute', right: 26, bottom: 26, alignItems: 'flex-end', zIndex: 60, paddingTop: 8, paddingLeft: 8 },
-  fab: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center', borderRadius: 36, ...shadow(colors, 3) },
-  stack: { alignItems: 'flex-end', gap: 10, marginBottom: 12, marginRight: 6 },
+  anchor: { position: 'absolute', right: 30, bottom: 30, alignItems: 'flex-end', zIndex: 60, paddingTop: 8, paddingLeft: 8 },
+  fab: { width: 104, height: 104, alignItems: 'center', justifyContent: 'center', borderRadius: 52 },
+  halo: { position: 'absolute', width: 96, height: 96, borderRadius: 48 },
+  stack: { alignItems: 'flex-end', gap: 12, marginBottom: 6, marginRight: 18 },
   optionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   option: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   optionLabel: { backgroundColor: colors.surface, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6, ...shadow(colors, 2) },
   optionLabelText: { fontSize: 13, fontWeight: '700', color: colors.text },
   optionLabelTextOn: { color: '#FFFFFF' },
-  die: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', ...shadow(colors, 2) },
+  die: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', ...shadow(colors, 2) },
   dieHover: { transform: [{ scale: 1.12 }, { rotate: '-12deg' }] },
   subs: { flexDirection: 'row', gap: 8 },
   sub: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surface, borderRadius: radius.pill, borderWidth: 1.5, borderColor: colors.border, paddingLeft: 12, paddingRight: 6, paddingVertical: 5, ...shadow(colors, 2) },

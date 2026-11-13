@@ -216,7 +216,7 @@ export function PostFeed({ posts, slug, layout, menuFor, onOpen }: {
   );
 
   const card = (p: Post) => (
-    <ContextMenu key={p.id} items={menuFor(p)} title={p.title} style={styles.fill}>
+    <ContextMenu key={p.id} items={menuFor(p)} title={p.title}>
       <PressableScale onPress={() => onOpen(p)} accessibilityLabel={p.title} style={styles.card}>
         <Cover name={p.title} imageKey={p.coverKey} style={styles.cardCover} />
         <View style={styles.cardBody}>
