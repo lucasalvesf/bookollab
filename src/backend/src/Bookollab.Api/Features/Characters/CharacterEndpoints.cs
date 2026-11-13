@@ -103,7 +103,7 @@ public static class CharacterEndpoints
         return TypedResults.Ok(ToDto(character, access.Community.Slug, owner!, true));
     }
 
-    private static bool CanEdit(Character c, Guid userId, MemberAccess access) =>
+    public static bool CanEdit(Character c, Guid userId, MemberAccess access) =>
         c.OwnerUserId == userId || access.Has(CommunityPermission.ManageCharacters);
 
     /// <summary>Validates the name and the sheet against the community's fields; unknown keys are rejected.</summary>

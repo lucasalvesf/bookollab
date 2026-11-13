@@ -1,12 +1,14 @@
 import { Image } from 'expo-image';
 import { Dices, Paperclip, SendHorizontal, Smile, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, Text, TextInput, View, type TextInputKeyPressEvent } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import { Avatar } from '@/components/avatar';
+import { LinkableList, useLinkables, type Linkable } from '@/components/link-picker';
 import { fileUrl, pickAndUploadImage } from '@/lib/files';
+import { mentionMarkup } from '@/lib/links';
 
 import { EMOJIS, type Character, type SceneAction } from './types';
 import { makeStyles, useTheme } from '@/theme';
@@ -20,11 +22,17 @@ export function Composer({
   diceEnabled = false,
   attributesEnabled = false,
   self,
+  slug,
+  attributeNames = [],
 }: {
   sceneId: string;
   /** The user's characters that already joined the scene. */
   characters: Character[];
   onTyping: (characterId?: string) => void;
+  /** Community of the chat: enables "@" suggestions. */
+  slug?: string;
+  /** Numeric sheet fields usable in "/rolar 1d20+campo". */
+  attributeNames?: string[];
   /** OffGame chat: the member writes as themselves (no character). */
   self?: { name: string; avatarKey?: string | null };
   onSent: (a: SceneAction) => void;
@@ -49,7 +57,7 @@ export function Composer({
     setError(undefined);
     setUploading(true);
     try {
-      const key = await pickAndUploadImage();
+      const key = await pickAndUploadImage({ aspect: 4 / 3, title: 'Ajustar imagem' });
       if (key) setAttachment(key);
     } catch (e) {
       setError((e as Error).message);
@@ -78,9 +86,35 @@ export function Composer({
     }
   }
 
-  // Web: Enter sends, Shift+Enter breaks the line.
+  // Autocomplete: "@nome" suggests anything linkable in the community; "/" suggests the commands.
+  const mentionTerm = /(^|\s)@([^\s@[\]()]{1,30})$/.exec(text)?.[2] ?? '';
+  const deferredTerm = useDeferredValue(mentionTerm);
+  const linkables = useLinkables(slug && deferredTerm ? slug : undefined, deferredTerm, 4);
+  const commands = diceEnabled && /^\/\S*( \S*)?$/.test(text)
+    ? [
+        { value: '/rolar 1d20', hint: 'Rola um dado de 20 lados' },
+        { value: '/rolar 2d6', hint: 'Rola dois dados de 6 lados' },
+        { value: '/rolar 1d100', hint: 'Porcentagem' },
+        ...(attributesEnabled ? attributeNames.map((a) => ({ value: `/rolar 1d20+${a.toLowerCase()}`, hint: `d20 somando ${a}` })) : []),
+      ].filter((c) => c.value.startsWith(text.trim().toLowerCase()) && c.value !== text.trim())
+    : [];
+  const mentionItems = mentionTerm ? (linkables.data ?? []) : [];
+  const suggestions = commands.length ? commands.length : mentionItems.length;
+  const [active, setActive] = useState(0);
+  const pickCommand = (value: string) => setText(`${value} `);
+  const pickMention = (l: Linkable) => setText((t) => t.replace(/@([^\s@[\]()]{1,30})$/, `${mentionMarkup(l.label, l.target)} `));
+
+  // Web: Enter sends, Shift+Enter breaks the line; with suggestions open, arrows move and Enter/Tab pick.
   function onKeyPress(e: TextInputKeyPressEvent) {
     const native = e.nativeEvent as TextInputKeyPressEvent['nativeEvent'] & { shiftKey?: boolean };
+    if (suggestions > 0 && ['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'].includes(native.key)) {
+      e.preventDefault();
+      if (native.key === 'ArrowDown' || native.key === 'ArrowUp') setActive((i) => (i + (native.key === 'ArrowDown' ? 1 : -1) + suggestions) % suggestions);
+      else if (native.key === 'Escape') setText((t) => `${t} `);
+      else if (commands.length) pickCommand(commands[Math.min(active, commands.length - 1)].value);
+      else pickMention(mentionItems[Math.min(active, mentionItems.length - 1)]);
+      return;
+    }
     if (Platform.OS === 'web' && native.key === 'Enter' && !native.shiftKey) {
       e.preventDefault();
       void send();
@@ -123,6 +157,25 @@ export function Composer({
         </View>
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {commands.length ? (
+        <View style={styles.panel} accessibilityRole="menu">
+          <Text style={styles.panelTitle}>Comandos</Text>
+          {commands.map((c, i) => (
+            <Pressable key={c.value} accessibilityRole="button" onPress={() => pickCommand(c.value)} style={({ hovered }) => [styles.suggestion, (hovered || i === active) && styles.suggestionActive]}>
+              <Dices size={16} color={colors.brand} />
+              <Text style={styles.suggestionValue}>{c.value}</Text>
+              <Text style={styles.suggestionHint}>{c.hint}</Text>
+            </Pressable>
+          ))}
+          <Text style={styles.suggestionKeys}>↑ ↓ para escolher · Enter para completar</Text>
+        </View>
+      ) : mentionItems.length ? (
+        <View style={styles.panel} accessibilityRole="menu">
+          <Text style={styles.panelTitle}>{`Marcar "${mentionTerm}"`}</Text>
+          <LinkableList items={mentionItems} onPick={pickMention} activeIndex={active} />
+          <Text style={styles.suggestionKeys}>↑ ↓ para escolher · Enter para completar</Text>
+        </View>
+      ) : null}
 
       <View style={styles.bar}>
         {self ? (
@@ -153,6 +206,7 @@ export function Composer({
           value={text}
           onChangeText={(v) => {
             setText(v);
+            setActive(0);
             if (self && v) onTyping();
     else if (current && v) onTyping(current.id);
           }}
@@ -187,6 +241,11 @@ const useStyles = makeStyles((colors) => ({
   emojiGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   emoji: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   emojiText: { fontSize: 22 },
+  suggestion: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 8, paddingVertical: 7, borderRadius: 8 },
+  suggestionActive: { backgroundColor: colors.surfaceAlt },
+  suggestionValue: { fontSize: 14, fontWeight: '700', color: colors.text },
+  suggestionHint: { flex: 1, fontSize: 12, color: colors.textMuted },
+  suggestionKeys: { fontSize: 11, color: colors.textSubtle, paddingHorizontal: 8 },
   preview: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.surfaceAlt, borderRadius: 12, padding: 6, borderWidth: 1, borderColor: colors.border },
   previewImage: { width: 48, height: 48, borderRadius: 8 },
   previewText: { flex: 1, fontSize: 13, color: colors.textMuted },

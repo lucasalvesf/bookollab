@@ -49,7 +49,7 @@ export default function NewChatScreen() {
   async function pickCover() {
     setUploading(true);
     try {
-      const key = await pickAndUploadImage();
+      const key = await pickAndUploadImage({ aspect: 16 / 9, title: 'Ajustar capa do chat' });
       if (key) setCoverKey(key);
     } catch (e) {
       setProblem({ detail: (e as Error).message });

@@ -67,6 +67,8 @@ export default function NewChapterScreen() {
           coverKey: post.coverKey,
           backgroundKey: post.backgroundKey,
           musicUrl: post.musicUrl.trim() || null,
+          backgroundColor: post.backgroundColor ?? null,
+          backgroundBlur: post.backgroundBlur ?? 0,
           publish,
           sourceSceneId: sceneId ?? null,
           coauthorCharacterIds: sceneId ? selectedCoauthors.filter((id) => id !== writer) : null,

@@ -1412,10 +1412,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sheets/{id}/page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetSheetPage"];
+        put: operations["SaveSheetPage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/characters/{id}/page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCharacterPage"];
+        put: operations["SaveCharacterPage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/communities/{slug}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CommunityActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ActivityDto: {
+            kind: string;
+            actorName: string;
+            actorUserName: null | string;
+            verb: string;
+            targetLabel: string;
+            target: null | string;
+            /** Format: date-time */
+            at: string;
+        };
         AttributeDto: {
             key: string;
             label: string;
@@ -1480,6 +1538,12 @@ export interface components {
             canFeature: boolean;
             /** @default false */
             isFeatured: boolean;
+            backgroundColor?: null | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            backgroundBlur: number;
         };
         ChapterPersonDto: {
             /** Format: uuid */
@@ -1567,6 +1631,17 @@ export interface components {
             sectionTitles?: null | {
                 [key: string]: string;
             };
+            themeMode?: components["schemas"]["ThemeMode"];
+            themeOverrides?: null | {
+                [key: string]: string;
+            };
+            backgroundKey?: null | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            backgroundBlur: number;
+            inventoryLabel?: null | string;
         };
         CommunityProfileDto: {
             /** Format: uuid */
@@ -1612,6 +1687,14 @@ export interface components {
         CommunityThemeDto: {
             accentColor: null | string;
             homeLayout: components["schemas"]["HomeLayout"];
+            themeMode: components["schemas"]["ThemeMode"];
+            themeOverrides: {
+                [key: string]: string;
+            };
+            backgroundKey: null | string;
+            /** Format: int32 */
+            backgroundBlur: number;
+            inventoryLabel: null | string;
         };
         ConfirmEmailRequest: {
             /** Format: uuid */
@@ -1637,6 +1720,12 @@ export interface components {
             coverKey?: null | string;
             backgroundKey?: null | string;
             musicUrl?: null | string;
+            backgroundColor?: null | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            backgroundBlur: number;
         };
         CreateCommunityRequest: {
             name: string;
@@ -1844,6 +1933,10 @@ export interface components {
             description: null | string;
             /** Format: date-time */
             createdAt: string;
+            /** Format: uuid */
+            linkedSheetId?: null | string;
+            linkedSheetName?: null | string;
+            linkedSheetImageKey?: null | string;
         };
         InviteCharacterRequest: {
             /** Format: uuid */
@@ -1960,6 +2053,14 @@ export interface components {
         };
         /** @enum {unknown} */
         NotificationType: "YourTurn" | "SceneInvite" | "SceneJoinRequest" | "SceneJoinDecision" | "Mention" | "ChapterApproval" | "ChapterDecision" | "RemovedFromCommunity";
+        PageDto: {
+            content: null | string;
+            backgroundKey: null | string;
+            backgroundColor: null | string;
+            /** Format: int32 */
+            backgroundBlur: number;
+            canEdit: boolean;
+        };
         PinnedPostDto: {
             /** Format: uuid */
             chapterId: string;
@@ -2062,6 +2163,15 @@ export interface components {
             /** Format: int32 */
             quantity: number;
             description: null | string;
+            /** Format: uuid */
+            linkedSheetId?: null | string;
+        };
+        SavePageRequest: {
+            content: null | string;
+            backgroundKey: null | string;
+            backgroundColor: null | string;
+            /** Format: int32 */
+            backgroundBlur: number;
         };
         SaveTemplateRequest: {
             name: string;
@@ -2282,6 +2392,11 @@ export interface components {
         };
         /** @enum {unknown} */
         TemplateMode: "Strict" | "Base";
+        /**
+         * @default Accent
+         * @enum {unknown}
+         */
+        ThemeMode: "Accent" | "Full";
         TokenResponse: {
             accessToken: string;
             /** Format: date-time */
@@ -2307,6 +2422,12 @@ export interface components {
             coverKey?: null | string;
             backgroundKey?: null | string;
             musicUrl?: null | string;
+            backgroundColor?: null | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            backgroundBlur: number;
         };
         UpdateCommunityProfileRequest: {
             nickname: null | string;
@@ -2317,6 +2438,17 @@ export interface components {
         UpdateCommunityThemeRequest: {
             accentColor: null | string;
             homeLayout: components["schemas"]["HomeLayout"];
+            themeMode?: components["schemas"]["ThemeMode"];
+            themeOverrides?: null | {
+                [key: string]: string;
+            };
+            backgroundKey?: null | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            backgroundBlur: number;
+            inventoryLabel?: null | string;
         };
         UpdateHomeSectionsRequest: {
             sections: string[];
@@ -4954,6 +5086,124 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PinnedPostDto"][];
+                };
+            };
+        };
+    };
+    GetSheetPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageDto"];
+                };
+            };
+        };
+    };
+    SaveSheetPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageDto"];
+                };
+            };
+        };
+    };
+    GetCharacterPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageDto"];
+                };
+            };
+        };
+    };
+    SaveCharacterPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageDto"];
+                };
+            };
+        };
+    };
+    CommunityActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityDto"][];
                 };
             };
         };

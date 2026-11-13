@@ -17,7 +17,7 @@ export function AvatarPicker({ name, imageKey, onChange }: { name: string; image
     setError(undefined);
     setUploading(true);
     try {
-      const key = await pickAndUploadImage();
+      const key = await pickAndUploadImage({ aspect: 1, round: true, title: 'Ajustar foto' });
       if (key) onChange(key);
     } catch (e) {
       setError((e as Error).message);

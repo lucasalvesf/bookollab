@@ -11,9 +11,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Bookollab.Api.Features.CommunityHome;
 
 /// <summary>Community color and home arrangement (ManageCommunity).</summary>
-public sealed record UpdateCommunityThemeRequest(string? AccentColor, HomeLayout HomeLayout);
+public sealed record UpdateCommunityThemeRequest(string? AccentColor, HomeLayout HomeLayout, ThemeMode ThemeMode = ThemeMode.Accent,
+    Dictionary<string, string>? ThemeOverrides = null, string? BackgroundKey = null, int BackgroundBlur = 0, string? InventoryLabel = null);
 
-public sealed record CommunityThemeDto(string? AccentColor, HomeLayout HomeLayout);
+public sealed record CommunityThemeDto(string? AccentColor, HomeLayout HomeLayout, ThemeMode ThemeMode, IReadOnlyDictionary<string, string> ThemeOverrides, string? BackgroundKey, int BackgroundBlur, string? InventoryLabel);
 
 public sealed record SideMenuLinkDto(string Label, string Target);
 
@@ -32,6 +33,9 @@ public sealed record ReorderPinsRequest(List<Guid> ChapterIds);
 public static partial class CommunityHomeEndpoints
 {
     public const int MaxPins = 5;
+
+    /// <summary>Theme tokens the moderation may override (see the app's theme palette).</summary>
+    public static readonly string[] ThemeTokens = ["background", "surface", "surfaceAlt", "border", "rail", "brand", "brandSoft", "brandSoftText", "textMuted"];
     public const int MaxGroups = 12;
     public const int MaxLinksPerGroup = 20;
 
@@ -56,10 +60,27 @@ public static partial class CommunityHomeEndpoints
         if (error is not null) return error;
         var color = string.IsNullOrWhiteSpace(req.AccentColor) ? null : req.AccentColor.Trim().ToUpperInvariant();
         if (color is not null && !HexColor().IsMatch(color)) return Problems.Validation("accentColor", "Use uma cor no formato #RRGGBB.");
-        access!.Community.AccentColor = color;
-        access.Community.HomeLayout = req.HomeLayout;
+        var overrides = new Dictionary<string, string>();
+        foreach (var (token, value) in req.ThemeOverrides ?? [])
+        {
+            var v = value?.Trim().ToUpperInvariant() ?? "";
+            if (!ThemeTokens.Contains(token) || !HexColor().IsMatch(v)) return Problems.Validation("themeOverrides", $"Cor inválida para \"{token}\".");
+            overrides[token] = v;
+        }
+        var c = access!.Community;
+        if (req.BackgroundKey is not null && req.BackgroundKey != c.BackgroundKey && !await Uploads.UploadEndpoints.OwnsAsync(db, req.BackgroundKey, user.UserId(), ct))
+            return Problems.Validation("backgroundKey", "Envie a imagem antes de usá-la.");
+        var label = string.IsNullOrWhiteSpace(req.InventoryLabel) ? null : req.InventoryLabel.Trim();
+        if (label?.Length > 30) return Problems.Validation("inventoryLabel", "Use até 30 caracteres.");
+        c.AccentColor = color;
+        c.HomeLayout = req.HomeLayout;
+        c.ThemeMode = req.ThemeMode;
+        c.ThemeOverrides = overrides;
+        c.BackgroundKey = req.BackgroundKey;
+        c.BackgroundBlur = Math.Clamp(req.BackgroundBlur, 0, 40);
+        c.InventoryLabel = label;
         await db.SaveChangesAsync(ct);
-        return TypedResults.Ok(new CommunityThemeDto(color, req.HomeLayout));
+        return TypedResults.Ok(new CommunityThemeDto(c.AccentColor, c.HomeLayout, c.ThemeMode, c.ThemeOverrides, c.BackgroundKey, c.BackgroundBlur, c.InventoryLabel));
     }
 
     // ------------------------------------------------------------------ side menu

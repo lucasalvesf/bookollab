@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type PropsWith
 import { Platform, StyleSheet, useColorScheme, type TextStyle } from 'react-native';
 
 import { storage } from '@/auth/storage';
-import { communityPalette, isHex } from '@/lib/color';
+import { communityPalette, isHex, type ThemeMode } from '@/lib/color';
 
 /**
  * Design tokens. Every color is semantic (what it is for, not what it looks like), so screens never
@@ -32,6 +32,8 @@ const light = {
   warningBg: '#FEF3E2',
   overlay: 'rgba(17, 14, 35, 0.55)',
   shadow: '#1B1830',
+  /** Left rail with the communities. */
+  rail: '#FFFFFF',
 };
 
 export type Palette = typeof light;
@@ -59,6 +61,7 @@ const dark: Palette = {
   warningBg: '#33240C',
   overlay: 'rgba(0, 0, 0, 0.6)',
   shadow: '#000000',
+  rail: '#0B0914',
 };
 
 /** Both base palettes (e.g. to preview a community color in light and dark side by side). */
@@ -129,12 +132,20 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
  * Recolors everything inside with a community's main color (both themes). Styles stay cached: each
  * derived palette is a stable object, so makeStyles builds it once per color and theme.
  */
-export function CommunityColor({ color, children }: PropsWithChildren<{ color?: string | null }>) {
+export function CommunityColor({ color, mode, overrides, translucent, children }: PropsWithChildren<{
+  color?: string | null;
+  mode?: ThemeMode;
+  overrides?: Record<string, string> | null;
+  /** A background image sits behind the community: let it show through the page background. */
+  translucent?: boolean;
+}>) {
   const theme = useTheme();
-  const value = useMemo<Theme>(
-    () => (isHex(color) ? { ...theme, colors: communityPalette(theme.colors, theme.scheme, color.toUpperCase()) } : theme),
-    [theme, color],
-  );
+  const overridesKey = overrides && Object.keys(overrides).length ? JSON.stringify(overrides) : '';
+  const value = useMemo<Theme>(() => {
+    let colors = isHex(color) ? communityPalette(PALETTES[theme.scheme], theme.scheme, color.toUpperCase(), mode, overridesKey ? (JSON.parse(overridesKey) as Record<string, string>) : null) : theme.colors;
+    if (translucent) colors = { ...colors, background: `${colors.background.slice(0, 7)}C7` };
+    return colors === theme.colors ? theme : { ...theme, colors };
+  }, [theme, color, mode, overridesKey, translucent]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

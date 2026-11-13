@@ -83,14 +83,30 @@ function fit(hex: string, other: string, ratio: number, direction: 'darker' | 'l
 
 const cache = new Map<string, Palette>();
 
+export type ThemeMode = 'Accent' | 'Full';
+
+/** Tokens the moderation can see and override, with what each one paints. */
+export const THEME_TOKENS: { key: keyof Palette; label: string; usage: string }[] = [
+  { key: 'brand', label: 'Destaque', usage: 'Botões principais, pílula ativa, links, o dado d20' },
+  { key: 'brandSoft', label: 'Destaque suave', usage: 'Fundos de etiquetas, posts fixados, itens selecionados' },
+  { key: 'brandSoftText', label: 'Texto sobre destaque suave', usage: 'Texto e ícones sobre o destaque suave' },
+  { key: 'background', label: 'Fundo', usage: 'Fundo das telas da comunidade' },
+  { key: 'surface', label: 'Superfície', usage: 'Cartões, painéis, menus e modais' },
+  { key: 'surfaceAlt', label: 'Superfície alternativa', usage: 'Campos de busca, hover, áreas secundárias' },
+  { key: 'rail', label: 'Barra lateral', usage: 'Barra lateral esquerda com as comunidades' },
+  { key: 'border', label: 'Bordas', usage: 'Contornos de cartões, divisórias e pílulas' },
+  { key: 'textMuted', label: 'Texto secundário', usage: 'Descrições, datas e metadados' },
+];
+
 /**
- * Palette of a community: the base theme with brand tokens derived from `hex`.
- * - brand: buttons/active pills (text brandText on it ≥ 4.5:1);
- * - brandSoft / brandSoftText: tinted backgrounds and their text (≥ 4.5:1);
- * - accent stays the platform's (stars, highlights) so warnings never look like brand.
+ * Palette of a community, derived from its main color `hex`.
+ * - Accent: only the brand tokens change (buttons, pills, links, tinted backgrounds).
+ * - Full: backgrounds, surfaces, borders and the rail are tinted from the same hue too, so the whole
+ *   community feels painted in that color (light and dark keep their lightness steps and AA contrast).
+ * `overrides` (set by the moderation) win over anything derived.
  */
-export function communityPalette(base: Palette, scheme: 'light' | 'dark', hex: string): Palette {
-  const key = `${scheme}${hex}`;
+export function communityPalette(base: Palette, scheme: 'light' | 'dark', hex: string, mode: ThemeMode = 'Accent', overrides?: Record<string, string> | null): Palette {
+  const key = `${scheme}${hex}${mode}${overrides ? JSON.stringify(overrides) : ''}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const [, C, H] = toOklch(hex);
@@ -100,6 +116,10 @@ export function communityPalette(base: Palette, scheme: 'light' | 'dark', hex: s
     const brand = contrast(hex, '#FFFFFF') >= 4.5 ? hex.toUpperCase() : fit(hex, '#FFFFFF', 4.5, 'darker');
     const brandSoft = fromOklch(0.95, Math.min(C, 0.05), H);
     palette = { ...base, brand, brandText: '#FFFFFF', brandSoft, brandSoftText: fit(brand, brandSoft, 4.6, 'darker') };
+    if (mode === 'Full') {
+      const tint = (l: number, c: number) => fromOklch(l, Math.min(C, c), H);
+      palette = { ...palette, background: tint(0.965, 0.022), surface: tint(0.993, 0.008), surfaceAlt: tint(0.935, 0.03), border: tint(0.885, 0.035), borderStrong: tint(0.8, 0.045), rail: tint(0.92, 0.04), textMuted: fit(tint(0.5, 0.05), tint(0.965, 0.022), 4.6, 'darker') };
+    }
   } else {
     // Light brand on dark surfaces, with dark text on it.
     const lifted = fromOklch(Math.max(toOklch(hex)[0], 0.72), C, H);
@@ -107,11 +127,16 @@ export function communityPalette(base: Palette, scheme: 'light' | 'dark', hex: s
     const brandSoft = fromOklch(0.3, Math.min(C, 0.08), H);
     const brandText = fromOklch(0.2, Math.min(C, 0.06), H);
     palette = { ...base, brand, brandText: contrast(brandText, brand) >= 4.5 ? brandText : '#000000', brandSoft, brandSoftText: fit(fromOklch(0.85, Math.min(C, 0.1), H), brandSoft, 4.6, 'lighter') };
+    if (mode === 'Full') {
+      const tint = (l: number, c: number) => fromOklch(l, Math.min(C, c), H);
+      // The rail sits one step darker than the background, like the platform's dark theme.
+      palette = { ...palette, background: tint(0.18, 0.045), surface: tint(0.225, 0.05), surfaceAlt: tint(0.27, 0.055), border: tint(0.32, 0.055), borderStrong: tint(0.4, 0.06), rail: tint(0.15, 0.045), textMuted: fit(tint(0.75, 0.04), tint(0.225, 0.05), 4.6, 'lighter') };
+    }
   }
+  if (overrides) for (const [k, v] of Object.entries(overrides)) if (k in palette && isHex(v)) (palette as Record<string, string>)[k] = v.toUpperCase();
   cache.set(key, palette);
   return palette;
 }
-
 /** Curated starting points for the color picker (all pass AA in both themes after derivation). */
 export const COLOR_PRESETS = ['#5B3DF5', '#2563EB', '#0891B2', '#059669', '#65A30D', '#CA8A04', '#EA580C', '#DC2626', '#DB2777', '#9333EA', '#7C5C3B', '#475569'];
 

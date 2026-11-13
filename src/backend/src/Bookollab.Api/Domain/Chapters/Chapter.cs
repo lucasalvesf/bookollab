@@ -65,6 +65,10 @@ public sealed class Chapter
 
     /// <summary>Background image behind the text while reading (upload key).</summary>
     public string? BackgroundKey { get; set; }
+    /// <summary>Solid reading background (#RRGGBB) when there is no image.</summary>
+    public string? BackgroundColor { get; set; }
+    /// <summary>Blur applied to the background image (0-40 px).</summary>
+    public int BackgroundBlur { get; set; }
 
     /// <summary>Music to listen to while reading (YouTube, Spotify or SoundCloud link).</summary>
     public string? MusicUrl { get; set; }

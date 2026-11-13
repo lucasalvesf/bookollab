@@ -18,6 +18,7 @@ import { ActiveCommunityProvider, useActiveCommunity } from './community-context
 import { CommunityDrawer } from './community-drawer';
 import { useCommunityMenu } from './community-menu';
 import { CreateFab } from './create-fab';
+import { BackgroundLayer } from './page-background';
 import { ContextMenu } from './menu';
 import { NotificationsModal } from './notifications-panel';
 import { QuickSwitcherProvider, useQuickSwitcher } from './quick-switcher';
@@ -58,6 +59,7 @@ function ShellFrame({ children }: PropsWithChildren) {
         <CommunityRail onBell={() => setNotifications(true)} />
       </View>
       <View style={styles.flex}>
+        {community?.backgroundKey ? <BackgroundLayer value={{ imageKey: community.backgroundKey, color: null, blur: community.backgroundBlur ?? 0 }} /> : null}
         {children}
         <CreateFab />
         {community && !pathname.startsWith('/cenas/') ? <CommunityDrawer community={community} /> : null}
@@ -240,7 +242,7 @@ const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   wide: { flex: 1, flexDirection: 'row', backgroundColor: colors.background },
   railSlot: { width: RAIL, zIndex: 50 },
-  rail: { position: 'absolute', top: 0, bottom: 0, left: 0, backgroundColor: colors.surface, borderRightWidth: 1, borderRightColor: colors.border, overflow: 'hidden' },
+  rail: { position: 'absolute', top: 0, bottom: 0, left: 0, backgroundColor: colors.rail, borderRightWidth: 1, borderRightColor: colors.border, overflow: 'hidden' },
   railOpen: { ...shadow(colors, 3) },
   railInner: { flex: 1, paddingVertical: 12 },
   railDivider: { width: 32, height: 2, borderRadius: 1, backgroundColor: colors.border, marginVertical: 8, marginLeft: (RAIL - 32) / 2 },

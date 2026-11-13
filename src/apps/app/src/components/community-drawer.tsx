@@ -3,7 +3,7 @@ import { useRouter, type Href } from 'expo-router';
 import { Check, ExternalLink, FolderPlus, Link2, Pencil, PencilLine, Plus, RotateCcw, Share2, Trash2, Users, X } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Linking, Platform, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, SlideInRight, SlideOutRight } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeOut, SlideInRight, SlideOutRight } from 'react-native-reanimated';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
@@ -64,6 +64,8 @@ export function CommunityDrawer({ community: c }: { community: Community }) {
     if (!stay) timer.current = setTimeout(() => setOpen(false), 260);
   };
   const hover = Platform.OS === 'web' ? { onHoverIn: show, onHoverOut: hide } : {};
+  // Over the open drawer use DOM mouseenter/leave: Pressable hover breaks over the buttons inside it.
+  const mouse = Platform.OS === 'web' ? ({ onMouseEnter: show, onMouseLeave: hide } as object) : {};
   return (
     <>
       <Pressable {...hover} onPress={show} accessibilityRole="button" accessibilityLabel={`Menu de ${c.name}`} style={styles.edge}>
@@ -72,10 +74,10 @@ export function CommunityDrawer({ community: c }: { community: Community }) {
       {open ? (
         <>
           {stay ? <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.scrim}><Pressable style={styles.fill} onPress={() => { setEditing(false); setOpen(false); }} /></Animated.View> : null}
-          <Animated.View entering={SlideInRight.duration(200)} exiting={SlideOutRight.duration(160)} style={styles.drawer}>
-            <Pressable {...hover} style={styles.fill}>
+          <Animated.View entering={SlideInRight.duration(280).easing(Easing.out(Easing.cubic))} exiting={SlideOutRight.duration(200).easing(Easing.in(Easing.cubic))} style={styles.drawer}>
+            <View {...mouse} style={styles.fill}>
               <DrawerContent community={c} editing={editing} setEditing={setEditing} onDialog={setDialog} onClose={() => { setEditing(false); setOpen(false); }} />
-            </Pressable>
+            </View>
           </Animated.View>
         </>
       ) : null}
@@ -265,7 +267,7 @@ const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   fill: { flex: 1 },
   edge: { position: 'absolute', top: 0, bottom: 0, right: 0, width: 14, alignItems: 'center', justifyContent: 'center', zIndex: 40 },
-  edgeGrip: { width: 4, height: 72, borderRadius: 2, backgroundColor: colors.brand, opacity: 0.35 },
+  edgeGrip: { width: 4, height: 72, borderRadius: 2, backgroundColor: colors.brand, opacity: 0.35, ...(Platform.OS === 'web' ? ({ transition: 'opacity 200ms ease, height 200ms ease' } as object) : null) },
   scrim: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.overlay, zIndex: 44 },
   drawer: { position: 'absolute', top: 0, bottom: 0, right: 0, width: 340, backgroundColor: colors.surface, borderLeftWidth: 1, borderLeftColor: colors.border, zIndex: 45, ...shadow(colors, 3) },
   content: { paddingBottom: 40 },

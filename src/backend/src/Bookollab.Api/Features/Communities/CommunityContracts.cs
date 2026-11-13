@@ -13,7 +13,8 @@ public sealed record CommunityDetail(
     int MemberCount, IReadOnlyList<SheetFieldDto> SheetFields, MyAccess? Me, bool HasPendingRequest,
     Mechanics.MechanicsDto? Mechanics = null, string? IconKey = null, string? CoverKey = null, IReadOnlyList<string>? Sections = null,
     FeedLayout FeedLayout = FeedLayout.Highlight, string? AccentColor = null, HomeLayout HomeLayout = HomeLayout.Stacked,
-    IReadOnlyDictionary<string, string>? SectionTitles = null);
+    IReadOnlyDictionary<string, string>? SectionTitles = null, ThemeMode ThemeMode = ThemeMode.Accent,
+    IReadOnlyDictionary<string, string>? ThemeOverrides = null, string? BackgroundKey = null, int BackgroundBlur = 0, string? InventoryLabel = null);
 
 public sealed record UpdateAppearanceRequest(string? IconKey, string? CoverKey);
 

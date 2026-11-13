@@ -20,10 +20,11 @@ public sealed record CreateChapterRequest(
     Guid? SourceSceneId = null, List<Guid>? CoauthorCharacterIds = null,
     List<Guid>? MentionedCharacterIds = null, List<Guid>? MentionedUserIds = null,
     Guid? ReplyToChapterId = null,
-    PostKind Kind = PostKind.Chapter, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null);
+    PostKind Kind = PostKind.Chapter, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null,
+    string? BackgroundColor = null, int BackgroundBlur = 0);
 
 /// <summary>Full replacement of the editable parts (send the current cover/background/music to keep them).</summary>
-public sealed record UpdateChapterRequest(string Title, string Content, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null);
+public sealed record UpdateChapterRequest(string Title, string Content, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null, string? BackgroundColor = null, int BackgroundBlur = 0);
 
 public sealed record RejectChapterRequest(string Reason);
 
@@ -54,7 +55,8 @@ public sealed record ChapterDetail(
     IReadOnlyList<ChapterPersonDto> Coauthors, IReadOnlyList<ChapterPersonDto> MentionedCharacters, IReadOnlyList<ChapterPersonDto> MentionedUsers,
     bool MentionsMe,
     PostKind Kind = PostKind.Chapter, string? CoverKey = null, string? BackgroundKey = null, string? MusicUrl = null,
-    string? CharacterAvatarKey = null, bool CanFeature = false, bool IsFeatured = false);
+    string? CharacterAvatarKey = null, bool CanFeature = false, bool IsFeatured = false,
+    string? BackgroundColor = null, int BackgroundBlur = 0);
 
 public sealed record ChapterRevisionDto(string Title, string Content, DateTimeOffset CreatedAt);
 
@@ -255,6 +257,8 @@ public static class ChapterEndpoints
             Content = req.Content.Trim(),
             CoverKey = req.CoverKey,
             BackgroundKey = req.BackgroundKey,
+            BackgroundColor = Pages.PageEndpoints.CleanColor(req.BackgroundColor),
+            BackgroundBlur = Math.Clamp(req.BackgroundBlur, 0, 40),
             MusicUrl = string.IsNullOrWhiteSpace(req.MusicUrl) ? null : req.MusicUrl.Trim(),
             SourceSceneId = req.SourceSceneId,
             ReplyToChapterId = req.ReplyToChapterId,
@@ -291,6 +295,8 @@ public static class ChapterEndpoints
             chapter.Edit(req.Title.Trim(), req.Content.Trim(), clock.GetUtcNow());
         chapter.CoverKey = req.CoverKey;
         chapter.BackgroundKey = req.BackgroundKey;
+        chapter.BackgroundColor = Pages.PageEndpoints.CleanColor(req.BackgroundColor);
+        chapter.BackgroundBlur = Math.Clamp(req.BackgroundBlur, 0, 40);
         chapter.MusicUrl = string.IsNullOrWhiteSpace(req.MusicUrl) ? null : req.MusicUrl.Trim();
         await db.SaveChangesAsync(ct);
         return TypedResults.Ok(await DetailAsync(db, chapter, access!, userId, ct));
@@ -488,6 +494,7 @@ public static class ChapterEndpoints
             c.SourceSceneId, sceneTitle, c.ReplyToChapterId, replyTitle,
             coauthors, mentionedCharacters.Select(x => x.Dto).ToList(), mentionedUsers, mentionsMe,
             c.Kind, c.CoverKey, c.BackgroundKey, c.MusicUrl, character?.AvatarKey ?? authorUser.AvatarKey,
-            CanFeature: access.Has(CommunityPermission.ModerateContent) && c.Status == ChapterStatus.Published, IsFeatured: featured);
+            CanFeature: access.Has(CommunityPermission.ModerateContent) && c.Status == ChapterStatus.Published, IsFeatured: featured,
+            BackgroundColor: c.BackgroundColor, BackgroundBlur: c.BackgroundBlur);
     }
 }

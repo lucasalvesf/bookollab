@@ -322,7 +322,7 @@ public static partial class EncyclopediaEndpoints
 
     // ------------------------------------------------------------------ rules
 
-    private static bool CanEdit(EncyclopediaSheet s, MemberAccess access, Guid userId) =>
+    public static bool CanEdit(EncyclopediaSheet s, MemberAccess access, Guid userId) =>
         s.OwnerUserId == userId || access.Has(CommunityPermission.ManageCharacters);
 
     /// <summary>Free sheets can always add fields; template sheets only in "Base" mode.</summary>

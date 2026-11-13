@@ -166,6 +166,8 @@ export default function SceneScreen() {
             characters={[]}
             self={{ name: me.data.displayName, avatarKey: me.data.avatarKey }}
             onTyping={realtime.notifyTyping}
+            slug={slug}
+            attributeNames={(community.data?.sheetFields ?? []).filter((f) => f.type === 'Number').map((f) => f.label)}
             onSent={upsert}
             diceEnabled={!!community.data?.mechanics?.diceEnabled}
           />
@@ -179,6 +181,8 @@ export default function SceneScreen() {
           sceneId={s.id}
           characters={writable}
           onTyping={realtime.notifyTyping}
+            slug={slug}
+            attributeNames={(community.data?.sheetFields ?? []).filter((f) => f.type === 'Number').map((f) => f.label)}
           onSent={upsert}
           diceEnabled={!!community.data?.mechanics?.diceEnabled}
           attributesEnabled={!!community.data?.mechanics?.attributesEnabled}

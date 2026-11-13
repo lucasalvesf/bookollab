@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { SessionProvider, useSession } from '@/auth/session';
+import { ImageCropHost } from '@/components/image-crop';
 import { MenuProvider } from '@/components/menu';
 import { AppThemeProvider, useTheme } from '@/theme';
 
@@ -59,7 +60,10 @@ function NavigationTheme({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider value={value}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <MenuProvider>{children}</MenuProvider>
+      <MenuProvider>
+        {children}
+        <ImageCropHost />
+      </MenuProvider>
     </ThemeProvider>
   );
 }

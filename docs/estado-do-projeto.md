@@ -1,7 +1,7 @@
 # Bookollab — Estado do projeto
 
 > Retrato de onde o projeto está, para retomar em qualquer computador ou chat.
-> Atualizado em **2026-11-12**. Ao terminar uma etapa importante, atualize este arquivo.
+> Atualizado em **2026-11-13**. Ao terminar uma etapa importante, atualize este arquivo.
 > Preparar um computador novo: [`docs-aux/ambiente-de-desenvolvimento.md`](../docs-aux/ambiente-de-desenvolvimento.md).
 
 ## Em uma frase
@@ -40,6 +40,7 @@ Tudo na `main`, entregue em Pull Requests com CI verde:
 | #16 | UX, terceira rodada: perfis e personagem no estilo Amino, enciclopédia em grade com filtros, formulários em seções com barra de ações fixa, membros agrupados por cargo |
 | #17 | Blogs (posts OFF) e formato de blog (capa, imagens, fundo, música), destaques e layout dos posts no estilo Amino, cabeçalho fixo, arrastar para reordenar, nomes como links, Staff → Moderação, gestão da enciclopédia na própria tela |
 | #18 | Identidade e navegação da comunidade: cor da comunidade (temas derivados), posts fixados, página larga com tela dividida, enciclopédia como explorador, barra lateral que expande, botão d20 de criação, notificações em modal por comunidade, online/visto por último com privacidade, menu lateral direito editável, marcação com @ de tudo, chats públicos (Off) e de cena (On) |
+| (main) | Sexta rodada, direto na main: tema completo da comunidade com cores secundárias editáveis, fundo com desfoque, recorte de imagens, fundo de posts e fichas, ficha nova (slides, recibo, texto, inventário em baú com links), seção Acontecimentos, d20 com dados coloridos, autocompletar @ e / no chat, painel lateral fixo e expansível |
 
 **Testes:** 112 testes automáticos na API, todos passando (Postgres real via Testcontainers, incluindo tempo real com SignalR).
 

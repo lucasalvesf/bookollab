@@ -1,28 +1,35 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Link2, Pencil, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { api } from '@/api/client';
-import { useDeclareCommunity } from '@/components/community-context';
 import { unwrap } from '@/api/hooks';
-import { Avatar } from '@/components/avatar';
+import { useDeclareCommunity } from '@/components/community-context';
 import { FolderPicker } from '@/components/folder-picker';
-import { Loadable, Page, Row, Section, Tag } from '@/components/layout';
-import { ConfirmButton } from '@/components/pickers';
+import { Loadable, Page } from '@/components/layout';
+import { MoreButton, useCopyLink, useMenu, type MenuItem } from '@/components/menu';
 import { SheetForm } from '@/components/sheet-form';
-import { Button, Notice } from '@/components/ui';
+import { ReceiptFields, SheetBackdrop, SheetContent, SheetFooter, SheetHero, sheetImages } from '@/components/sheet-page';
+import { Notice } from '@/components/ui';
 import { makeStyles } from '@/theme';
 
-/** An encyclopedia sheet (non-playable): view, edit, delete and (staff) move to a folder. */
+/**
+ * An encyclopedia sheet: image slideshow header with the main image centered, the data as a receipt,
+ * then the text (like a post). Edit, delete and move to a folder sit in the "⋯" menu.
+ */
 export default function SheetScreen() {
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const copyLink = useCopyLink();
+  const { openMenu } = useMenu();
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string>();
   const sheet = useQuery({ queryKey: ['sheet', id], queryFn: () => unwrap(api.GET('/sheets/{id}', { params: { path: { id } } }), 'Ficha não encontrada.') });
+  const page = useQuery({ queryKey: ['sheet-page', id], queryFn: () => unwrap(api.GET('/sheets/{id}/page', { params: { path: { id } } })) });
   useDeclareCommunity(sheet.data?.communitySlug);
 
   async function remove(slug: string) {
@@ -37,63 +44,73 @@ export default function SheetScreen() {
 
   return (
     <Loadable query={sheet}>
-      {(s) => (
-        <Page
-          title={editing ? 'Editar ficha' : s.name}
-          subtitle={`${s.kind ?? 'Ficha'} · de @${s.ownerUserName} · ${s.communityName}`}
-          back
-          actions={s.canEdit && !editing ? <View style={styles.edit}><Button title="Editar" variant="secondary" onPress={() => setEditing(true)} /></View> : undefined}>
-          {error ? <Notice kind="error">{error}</Notice> : null}
-          {editing ? (
-            <SheetForm
-              baseFields={s.fields.filter((f) => f.fromTemplate)}
-              canAddFields={s.canAddFields}
-              initial={{
-                name: s.name,
-                kind: s.kind ?? null,
-                imageKey: s.imageKey ?? null,
-                values: Object.fromEntries(s.fields.filter((f) => f.fromTemplate).map((f) => [f.key, f.value ?? ''])),
-                custom: s.fields.filter((f) => !f.fromTemplate).map((f) => ({ key: f.key, label: f.label, type: f.type, value: f.value ?? '' })),
-              }}
-              submitLabel="Salvar"
-              onSubmit={async (value) => {
-                const { data, error: problem } = await api.PUT('/sheets/{id}', { params: { path: { id } }, body: value });
-                if (!data) return { ok: false, problem };
-                queryClient.setQueryData(['sheet', id], data);
-                await queryClient.invalidateQueries({ queryKey: ['encyclopedia', s.communitySlug] });
-                setEditing(false);
-                return { ok: true };
-              }}
-            />
-          ) : (
-            <>
-              <View style={styles.header}>
-                <Avatar name={s.name} imageKey={s.imageKey} size={110} />
-                <View style={styles.tags}>
-                  <Tag label={s.kind ?? 'Ficha'} />
-                  <Tag label={s.templateName ? `Modelo: ${s.templateName}` : s.fields.some((f) => f.fromTemplate) ? 'Modelo removido' : 'Ficha livre'} />
-                </View>
-              </View>
-              <Section title="Ficha">
-                {s.fields.length === 0 ? (
-                  <Text style={styles.empty}>Sem campos.</Text>
-                ) : (
-                  s.fields.map((f) => <Row key={f.key} title={f.label} subtitle={f.value || '—'} />)
-                )}
-              </Section>
-              <FolderPicker slug={s.communitySlug} itemType="Sheet" itemId={s.id} folderId={s.folderId} onMoved={() => queryClient.invalidateQueries({ queryKey: ['sheet', id] })} />
-              {s.canEdit ? <ConfirmButton label="Apagar ficha" confirmLabel="Confirmar exclusão" onConfirm={() => remove(s.communitySlug)} /> : null}
-            </>
-          )}
-        </Page>
-      )}
+      {(s) => {
+        const menu: MenuItem[] = [
+          { label: 'Editar dados da ficha', icon: Pencil, hidden: !s.canEdit, onPress: () => setEditing(true) },
+          { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/fichas/${s.id}`) },
+          ...(s.canEdit
+            ? (['separator', { label: 'Apagar ficha', icon: Trash2, danger: true, onPress: () => openMenu([{ label: `Apagar "${s.name}"`, icon: Trash2, danger: true, onPress: () => void remove(s.communitySlug) }], undefined, 'Apagar a ficha? Não dá para desfazer.') }] as MenuItem[])
+            : []),
+        ];
+        return (
+          <SheetBackdrop page={editing ? null : page.data}>
+            <Page
+              title={editing ? 'Editar ficha' : s.name}
+              back
+              maxWidth={1100}
+              transparent={!editing && (!!page.data?.backgroundKey || !!page.data?.backgroundColor)}
+              actions={editing ? undefined : <MoreButton items={menu} title={s.name} size={40} />}>
+              {error ? <Notice kind="error">{error}</Notice> : null}
+              {editing ? (
+                <SheetForm
+                  baseFields={s.fields.filter((f) => f.fromTemplate)}
+                  canAddFields={s.canAddFields}
+                  initial={{
+                    name: s.name,
+                    kind: s.kind ?? null,
+                    imageKey: s.imageKey ?? null,
+                    values: Object.fromEntries(s.fields.filter((f) => f.fromTemplate).map((f) => [f.key, f.value ?? ''])),
+                    custom: s.fields.filter((f) => !f.fromTemplate).map((f) => ({ key: f.key, label: f.label, type: f.type, value: f.value ?? '' })),
+                  }}
+                  submitLabel="Salvar"
+                  onSubmit={async (value) => {
+                    const { data, error: problem } = await api.PUT('/sheets/{id}', { params: { path: { id } }, body: value });
+                    if (!data) return { ok: false, problem };
+                    queryClient.setQueryData(['sheet', id], data);
+                    await queryClient.invalidateQueries({ queryKey: ['encyclopedia', s.communitySlug] });
+                    setEditing(false);
+                    return { ok: true };
+                  }}
+                />
+              ) : (
+                <>
+                  <SheetHero name={s.name} kind={s.kind ?? 'Ficha'} imageKey={s.imageKey} images={sheetImages(s.imageKey, page.data?.content)} />
+                  <ReceiptFields fields={s.fields.map((f) => ({ label: f.label, value: f.value, long: f.type === 'LongText' }))} />
+                  {page.data ? (
+                    <SheetContent
+                      key={page.dataUpdatedAt}
+                      page={page.data}
+                      slug={s.communitySlug}
+                      onSave={async ({ content, background }) => {
+                        const data = await unwrap(api.PUT('/sheets/{id}/page', { params: { path: { id } }, body: { content, backgroundKey: background.imageKey, backgroundColor: background.color, backgroundBlur: background.blur } }));
+                        queryClient.setQueryData(['sheet-page', id], data);
+                      }}
+                    />
+                  ) : null}
+                  <View style={styles.quiet}>
+                    <FolderPicker slug={s.communitySlug} itemType="Sheet" itemId={s.id} folderId={s.folderId} onMoved={() => queryClient.invalidateQueries({ queryKey: ['sheet', id] })} />
+                  </View>
+                  <SheetFooter slug={s.communitySlug} communityName={s.communityName} ownerUserName={s.ownerUserName} />
+                </>
+              )}
+            </Page>
+          </SheetBackdrop>
+        );
+      }}
     </Loadable>
   );
 }
 
-const useStyles = makeStyles((colors) => ({
-  edit: { width: 100 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
-  tags: { gap: 8 },
-  empty: { padding: 16, color: colors.textMuted },
+const useStyles = makeStyles(() => ({
+  quiet: { opacity: 0.9 },
 }));

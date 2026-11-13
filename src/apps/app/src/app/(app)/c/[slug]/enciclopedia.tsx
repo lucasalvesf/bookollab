@@ -104,7 +104,6 @@ export default function EncyclopediaScreen() {
   const wide = width >= 1000;
   const title = community.data ? sectionTitle(community.data, 'encyclopedia') : 'Enciclopédia';
   const previews = (id: string | null) => (all.data?.items ?? []).filter((i) => (id === null ? !i.folderId : i.folderId === id)).map((i) => ({ name: i.name, imageKey: i.imageKey })).slice(0, 3);
-  const unfiled = (all.data?.items ?? []).filter((i) => !i.folderId).length;
   const selectFolder = (id: string | undefined, none = false) => {
     setFolderId(id);
     setNoFolder(none);
@@ -174,13 +173,6 @@ export default function EncyclopediaScreen() {
                     <FolderEntry name={f.name} count={f.itemCount} previews={previews(f.id)} selected={folderId === f.id} onPress={() => selectFolder(f.id)} wide={wide} />
                   </ContextMenu>
                 ))}
-                {unfiled ? <FolderEntry name="Sem pasta" count={unfiled} previews={previews(null)} selected={noFolder} onPress={() => selectFolder(undefined, true)} wide={wide} icon={Layers} /> : null}
-                {canManage ? (
-                  <Pressable accessibilityRole="button" onPress={() => setPrompt({})} style={({ hovered }) => [styles.newFolder, hovered && styles.newFolderHover]}>
-                    <FolderPlus size={16} color={colors.brand} />
-                    <Text style={styles.newFolderText}>Nova pasta</Text>
-                  </Pressable>
-                ) : null}
               </ScrollView>
             </View>
           );

@@ -8,11 +8,12 @@ import { mentionMarkup } from '@/lib/links';
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
 import { FormSection } from './form';
+import { BackgroundPicker } from './page-background';
 import { LinkableList, useLinkables, type Linkable } from './link-picker';
 import { imageMarkup } from './rich-text';
 import { Button, Field, Notice } from './ui';
 
-export type PostDraft = { title: string; content: string; coverKey: string | null; backgroundKey: string | null; musicUrl: string };
+export type PostDraft = { title: string; content: string; coverKey: string | null; backgroundKey: string | null; musicUrl: string; backgroundColor?: string | null; backgroundBlur?: number };
 
 /**
  * Blog-format editor (chapters and blogs): cover on top, title and text in book type with
@@ -77,7 +78,7 @@ export function PostEditor({ value, onChange, titleError, contentError, musicErr
     setError(undefined);
     setBusy(kind);
     try {
-      const key = await pickAndUploadImage();
+      const key = await pickAndUploadImage(kind === 'cover' ? { aspect: 2.4, title: 'Ajustar capa' } : kind === 'background' ? { aspect: 16 / 9, title: 'Ajustar fundo' } : { aspect: 16 / 9, title: 'Ajustar imagem' });
       if (!key) return;
       if (kind === 'cover') set({ coverKey: key });
       else if (kind === 'background') set({ backgroundKey: key });
@@ -95,7 +96,6 @@ export function PostEditor({ value, onChange, titleError, contentError, musicErr
   }
 
   const cover = fileUrl(value.coverKey);
-  const background = fileUrl(value.backgroundKey);
   const words = value.content.replace(/!\[[^\]]*\]\([^)]*\)/g, ' ').trim();
 
   return (
@@ -160,16 +160,11 @@ export function PostEditor({ value, onChange, titleError, contentError, musicErr
         </View>
       </View>
 
-      <FormSection title="Leitura" icon={Wallpaper} description="Deixe a leitura com a sua cara: uma imagem de fundo e uma música para ouvir junto.">
-        <View style={styles.backgroundRow}>
-          <View style={[styles.backgroundThumb, { backgroundColor: colors.surfaceAlt }]}>
-            {background ? <Image source={{ uri: background }} style={styles.fill} contentFit="cover" /> : <Wallpaper size={20} color={colors.textSubtle} />}
-          </View>
-          <View style={styles.inline}>
-            <Button title={background ? 'Trocar fundo' : 'Escolher fundo'} icon={ImagePlus} size="sm" variant="secondary" onPress={() => upload('background')} loading={busy === 'background'} />
-            {background ? <Button title="Tirar" icon={Trash2} size="sm" variant="ghost" onPress={() => set({ backgroundKey: null })} /> : null}
-          </View>
-        </View>
+      <FormSection title="Leitura" icon={Wallpaper} description="Deixe a leitura com a sua cara: uma cor ou imagem de fundo (com desfoque) e uma música para ouvir junto.">
+        <BackgroundPicker
+          value={{ imageKey: value.backgroundKey, color: value.backgroundColor ?? null, blur: value.backgroundBlur ?? 0 }}
+          onChange={(b) => set({ backgroundKey: b.imageKey, backgroundColor: b.color, backgroundBlur: b.blur })}
+        />
         <Field
           label="Música (link do YouTube, Spotify ou SoundCloud)"
           value={value.musicUrl}

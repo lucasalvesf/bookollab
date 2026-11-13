@@ -51,7 +51,7 @@ function Form({ slug, profile, me }: { slug: string; profile: Profile; me: Me })
   async function chooseCover() {
     setUploadingCover(true);
     try {
-      const key = await pickAndUploadImage();
+      const key = await pickAndUploadImage({ aspect: 3, title: 'Ajustar capa do perfil' });
       if (key) setCoverKey(key);
     } catch (e) {
       setProblem({ detail: (e as Error).message });

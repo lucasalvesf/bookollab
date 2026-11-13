@@ -18,6 +18,7 @@ using Bookollab.Api.Features.Notifications;
 using Bookollab.Api.Features.Presence;
 using Bookollab.Api.Features.CommunityHome;
 using Bookollab.Api.Features.Links;
+using Bookollab.Api.Features.Pages;
 using Bookollab.Api.Infrastructure;
 using Bookollab.Api.Infrastructure.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -153,6 +154,7 @@ app.MapFeaturedEndpoints();
 app.MapPresenceEndpoints();
 app.MapCommunityHomeEndpoints();
 app.MapLinkEndpoints();
+app.MapPageEndpoints();
 app.MapHub<SceneHub>("/hubs/scenes");
 
 app.Run();

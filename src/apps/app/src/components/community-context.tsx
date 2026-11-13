@@ -37,7 +37,7 @@ export function ActiveCommunityProvider({ children }: PropsWithChildren) {
   const value = useMemo<Ctx>(() => ({ slug, community: community.data?.me ? community.data : undefined, declare }), [slug, community.data, declare]);
   return (
     <ActiveCommunityContext.Provider value={value}>
-      <CommunityColor color={value.community?.accentColor}>{children}</CommunityColor>
+      <CommunityColor color={value.community?.accentColor} mode={value.community?.themeMode} overrides={value.community?.themeOverrides} translucent={!!value.community?.backgroundKey}>{children}</CommunityColor>
     </ActiveCommunityContext.Provider>
   );
 }

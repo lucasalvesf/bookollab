@@ -1,23 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookMarked, Check, GalleryHorizontal, LayoutGrid, Palette, PanelRight, PanelTop, Pin, PinOff, RotateCcw, MessagesSquare, ImagePlus, LayoutList, NotebookPen, Paintbrush, Trash2, UserRound, Users, type LucideIcon } from 'lucide-react-native';
+import { Activity, BookMarked, Check, GalleryHorizontal, LayoutGrid, Palette, PanelRight, PanelTop, Pin, PinOff, RotateCcw, MessagesSquare, ImagePlus, LayoutList, NotebookPen, Paintbrush, Trash2, UserRound, Users, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
 import type { components } from '@/api/schema';
-import { communityPalette, isHex } from '@/lib/color';
+import { communityPalette, isHex, THEME_TOKENS, type ThemeMode } from '@/lib/color';
 import { pickAndUploadImage } from '@/lib/files';
-import { makeStyles, PALETTES, radius, useTheme } from '@/theme';
+import { makeStyles, PALETTES, radius, useTheme, type Palette as ThemePalette } from '@/theme';
 
 import { ColorPicker } from './color-picker';
+import { BackgroundPicker } from './page-background';
 
 import { Avatar } from './avatar';
 import { CommunityCover } from './community';
 import { OptionCards } from './form';
 import { Section } from './layout';
 import { SortableList } from './sortable';
-import { Button, Notice } from './ui';
+import { Button, Field, Notice } from './ui';
 
 type Community = components['schemas']['CommunityDetail'];
 type FeedLayout = components['schemas']['FeedLayout'];
@@ -26,6 +27,7 @@ type Pinned = components['schemas']['PinnedPostDto'];
 
 export const SECTION_INFO: Record<string, { label: string; icon: LucideIcon }> = {
   overview: { label: 'Visão geral', icon: LayoutGrid },
+  activity: { label: 'Acontecimentos', icon: Activity },
   scenes: { label: 'Chats', icon: MessagesSquare },
   chapters: { label: 'Posts', icon: NotebookPen },
   encyclopedia: { label: 'Enciclopédia', icon: BookMarked },
@@ -57,7 +59,7 @@ export function AppearanceAdmin({ community: c }: { community: Community }) {
     setError(undefined);
     setBusy(kind);
     try {
-      const key = await pickAndUploadImage();
+      const key = await pickAndUploadImage(kind === 'icon' ? { aspect: 1, title: 'Ajustar ícone' } : { aspect: 3.2, title: 'Ajustar capa' });
       if (key) save.mutate({ iconKey: kind === 'icon' ? key : (c.iconKey ?? null), coverKey: kind === 'cover' ? key : (c.coverKey ?? null) });
     } catch (e) {
       setError((e as Error).message);
@@ -152,75 +154,121 @@ const HOME_LAYOUTS: { value: HomeLayout; label: string; description: string; ico
   { value: 'FeaturedSide', label: 'Destaques à direita', description: 'Tela dividida: os destaques ficam no painel da direita até alguém abrir uma seção.', icon: PanelRight },
 ];
 
-/** Moderation: the community's main color (both themes derive from it) and the home arrangement. */
+/** Moderation: community colors (accent only or full theme), secondary colors, background and naming. */
 export function ThemeAdmin({ community: c }: { community: Community }) {
   const styles = useStyles();
+  const { scheme } = useTheme();
   const queryClient = useQueryClient();
   const [color, setColor] = useState(c.accentColor ?? PALETTES.light.brand);
+  const [mode, setMode] = useState<ThemeMode>(c.themeMode ?? 'Accent');
+  const [overrides, setOverrides] = useState<Record<string, string>>({ ...(c.themeOverrides ?? {}) });
+  const [editing, setEditing] = useState<keyof ThemePalette | null>(null);
+  const [inventoryLabel, setInventoryLabel] = useState(c.inventoryLabel ?? '');
   const save = useMutation({
-    mutationFn: (body: { accentColor: string | null; homeLayout: HomeLayout }) => unwrap(api.PUT('/communities/{slug}/theme', { params: { path: { slug: c.slug } }, body })),
+    mutationFn: (patch: Partial<{ accentColor: string | null; homeLayout: HomeLayout; themeMode: ThemeMode; themeOverrides: Record<string, string>; backgroundKey: string | null; backgroundBlur: number; inventoryLabel: string | null }>) =>
+      unwrap(api.PUT('/communities/{slug}/theme', { params: { path: { slug: c.slug } }, body: {
+        accentColor: c.accentColor ?? null, homeLayout: c.homeLayout ?? 'Stacked', themeMode: c.themeMode ?? 'Accent', themeOverrides: c.themeOverrides ?? {},
+        backgroundKey: c.backgroundKey ?? null, backgroundBlur: c.backgroundBlur ?? 0, inventoryLabel: c.inventoryLabel ?? null, ...patch,
+      } })),
     onSuccess: (data) => {
-      queryClient.setQueryData<Community>(['community', c.slug], (old) => (old ? { ...old, accentColor: data.accentColor, homeLayout: data.homeLayout } : old));
+      queryClient.setQueryData<Community>(['community', c.slug], (old) => (old ? { ...old, ...data } : old));
       void queryClient.invalidateQueries({ queryKey: ['my-communities'] });
     },
   });
   const layout = c.homeLayout ?? 'Stacked';
-  const changed = (c.accentColor ?? null) !== (color.toUpperCase() === PALETTES.light.brand && !c.accentColor ? null : color.toUpperCase());
+  // Live palette of what is being edited, in the current theme (light or dark).
+  const preview = isHex(color) ? communityPalette(PALETTES[scheme], scheme, color.toUpperCase(), mode, overrides) : PALETTES[scheme];
+  const derived = isHex(color) ? communityPalette(PALETTES[scheme], scheme, color.toUpperCase(), mode, null) : PALETTES[scheme];
+  const tokens = THEME_TOKENS.filter((t) => mode === 'Full' || ['brand', 'brandSoft', 'brandSoftText'].includes(t.key));
+  const dirty = color.toUpperCase() !== (c.accentColor ?? '').toUpperCase() || mode !== (c.themeMode ?? 'Accent') || JSON.stringify(overrides) !== JSON.stringify(c.themeOverrides ?? {});
   return (
     <>
-      <Section title="Cor da comunidade" icon={Palette}>
+      <Section title="Cores da comunidade" icon={Palette}>
         <View style={styles.themeBody}>
-          <ColorPicker value={color} onChange={setColor} />
+          <View style={styles.themeLeft}>
+            <OptionCards<ThemeMode>
+              value={mode}
+              onChange={setMode}
+              options={[
+                { value: 'Accent', label: 'Só a cor de destaque', description: 'O fundo continua o da plataforma; botões, pílulas e links usam a sua cor.', icon: Paintbrush },
+                { value: 'Full', label: 'Tema completo', description: 'Fundo, cartões, bordas e barra lateral também ganham tons da sua cor, em harmonia.', icon: Palette },
+              ]}
+            />
+            <Text style={styles.groupLabel}>Cor primária</Text>
+            <ColorPicker value={color} onChange={setColor} />
+          </View>
           <View style={styles.previews}>
-            <Text style={styles.hint}>Prévia nos dois temas. Os tons claros e escuros saem da cor escolhida, sempre com contraste de leitura.</Text>
-            <ColorPreview scheme="light" color={color} />
-            <ColorPreview scheme="dark" color={color} />
+            <Text style={styles.groupLabel}>Cores secundárias (definidas automaticamente)</Text>
+            <Text style={styles.hint}>{`Tons gerados a partir da primária no tema ${scheme === 'dark' ? 'escuro' : 'claro'}, sempre com contraste de leitura. Toque em "Trocar" para escolher outra.`}</Text>
+            {tokens.map((t) => (
+              <View key={t.key} style={styles.tokenRow}>
+                <View style={[styles.tokenDot, { backgroundColor: preview[t.key] }]} />
+                <View style={styles.flex}>
+                  <Text style={styles.tokenName}>{`${t.label}  ${preview[t.key].toUpperCase()}`}</Text>
+                  <Text style={styles.hint}>{t.usage}</Text>
+                </View>
+                {overrides[t.key] ? (
+                  <Button title="Automática" icon={RotateCcw} size="sm" variant="ghost" onPress={() => setOverrides(Object.fromEntries(Object.entries(overrides).filter(([k]) => k !== t.key)))} />
+                ) : null}
+                <Button title="Trocar" size="sm" variant="secondary" onPress={() => setEditing(t.key)} />
+              </View>
+            ))}
+            {editing ? (
+              <View style={styles.overrideBox}>
+                <Text style={styles.tokenName}>{THEME_TOKENS.find((t) => t.key === editing)?.label}</Text>
+                <ColorPicker value={overrides[editing] ?? derived[editing]} onChange={(v) => setOverrides({ ...overrides, [editing]: v })} />
+                <Button title="Pronto" icon={Check} size="sm" onPress={() => setEditing(null)} />
+              </View>
+            ) : null}
           </View>
         </View>
         <View style={[styles.inline, styles.padded]}>
           {save.isError ? <Notice kind="error">{save.error.message}</Notice> : null}
-          <Button title="Salvar cor" icon={Check} size="sm" disabled={!changed} loading={save.isPending} onPress={() => save.mutate({ accentColor: color, homeLayout: layout })} />
+          <Button title="Salvar cores" icon={Check} size="sm" disabled={!dirty} loading={save.isPending} onPress={() => save.mutate({ accentColor: color, themeMode: mode, themeOverrides: overrides })} />
           {c.accentColor ? (
             <Button
-              title="Voltar à cor padrão"
+              title="Voltar ao padrão da plataforma"
               icon={RotateCcw}
               size="sm"
               variant="ghost"
               onPress={() => {
                 setColor(PALETTES.light.brand);
-                save.mutate({ accentColor: null, homeLayout: layout });
+                setMode('Accent');
+                setOverrides({});
+                save.mutate({ accentColor: null, themeMode: 'Accent', themeOverrides: {} });
               }}
             />
           ) : null}
+          <View style={[styles.miniPreview, { backgroundColor: preview.background, borderColor: preview.border }]}>
+            <View style={[styles.miniRail, { backgroundColor: preview.rail }]} />
+            <View style={[styles.miniCard, { backgroundColor: preview.surface, borderColor: preview.border }]}>
+              <View style={[styles.miniPill, { backgroundColor: preview.brand }]} />
+              <View style={[styles.miniPill, { backgroundColor: preview.brandSoft, width: 60 }]} />
+            </View>
+          </View>
+        </View>
+      </Section>
+      <Section title="Fundo da comunidade" icon={ImagePlus}>
+        <View style={styles.padded}>
+          <Text style={styles.hint}>Uma imagem atrás de todas as telas da comunidade. Use o desfoque para a leitura ficar confortável.</Text>
+          <BackgroundPicker
+            value={{ imageKey: c.backgroundKey ?? null, color: null, blur: c.backgroundBlur ?? 0 }}
+            onChange={(b) => save.mutate({ backgroundKey: b.imageKey, backgroundBlur: b.blur })}
+          />
+        </View>
+      </Section>
+      <Section title="Nomes" icon={Paintbrush}>
+        <View style={[styles.padded, styles.inline]}>
+          <View style={styles.flex}>
+            <Field label="Nome do inventário (ex.: Mochila, Baú)" value={inventoryLabel} onChangeText={setInventoryLabel} placeholder="Inventário" />
+          </View>
+          <Button title="Salvar" size="sm" disabled={(c.inventoryLabel ?? '') === inventoryLabel.trim()} onPress={() => save.mutate({ inventoryLabel: inventoryLabel.trim() || null })} />
         </View>
       </Section>
       <Section title="Layout da página inicial" icon={PanelRight} plain>
-        <OptionCards<HomeLayout> value={layout} onChange={(v) => save.mutate({ accentColor: c.accentColor ?? null, homeLayout: v })} options={HOME_LAYOUTS} />
+        <OptionCards<HomeLayout> value={layout} onChange={(v) => save.mutate({ homeLayout: v })} options={HOME_LAYOUTS} />
       </Section>
     </>
-  );
-}
-
-/** Mini mock of the community UI in one theme, recolored with the chosen color. */
-function ColorPreview({ scheme, color }: { scheme: 'light' | 'dark'; color: string }) {
-  const styles = useStyles();
-  const p = isHex(color) ? communityPalette(PALETTES[scheme], scheme, color.toUpperCase()) : PALETTES[scheme];
-  return (
-    <View style={[styles.preview, { backgroundColor: p.background, borderColor: p.border }]}>
-      <Text style={[styles.previewLabel, { color: p.textSubtle }]}>{scheme === 'light' ? 'Tema claro' : 'Tema escuro'}</Text>
-      <View style={styles.inline}>
-        <View style={[styles.previewPill, { backgroundColor: p.brand }]}>
-          <Text style={[styles.previewPillText, { color: p.brandText }]}>Visão geral</Text>
-        </View>
-        <View style={[styles.previewPill, { backgroundColor: p.surface, borderColor: p.border, borderWidth: 1 }]}>
-          <Text style={[styles.previewPillText, { color: p.textMuted }]}>Chats</Text>
-        </View>
-        <View style={[styles.previewPill, { backgroundColor: p.brandSoft }]}>
-          <Text style={[styles.previewPillText, { color: p.brandSoftText }]}>Capítulo</Text>
-        </View>
-      </View>
-      <Text style={[styles.previewLink, { color: p.brand }]}>@Ayla Venn · Ver mais</Text>
-    </View>
   );
 }
 
@@ -277,6 +325,17 @@ const useStyles = makeStyles((colors) => ({
   previewPill: { borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
   previewPillText: { fontSize: 13, fontWeight: '600' },
   previewLink: { fontSize: 13, fontWeight: '700' },
+  flex: { flex: 1 },
+  themeLeft: { flex: 1, minWidth: 280, maxWidth: 380, gap: 12 },
+  groupLabel: { fontSize: 13, fontWeight: '700', color: colors.text },
+  tokenRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
+  tokenDot: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: colors.borderStrong },
+  tokenName: { fontSize: 14, fontWeight: '600', color: colors.text },
+  overrideBox: { gap: 10, padding: 12, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  miniPreview: { flexDirection: 'row', width: 150, height: 70, borderRadius: radius.sm, borderWidth: 1, overflow: 'hidden', marginLeft: 'auto' },
+  miniRail: { width: 22 },
+  miniCard: { flex: 1, margin: 10, borderRadius: 6, borderWidth: 1, padding: 6, gap: 4 },
+  miniPill: { height: 8, width: 40, borderRadius: 4 },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   position: { width: 18, fontSize: 13, fontWeight: '700', color: colors.textSubtle, textAlign: 'center' },
   sectionIcon: { width: 34, height: 34, borderRadius: radius.md, backgroundColor: colors.brandSoft, alignItems: 'center', justifyContent: 'center' },

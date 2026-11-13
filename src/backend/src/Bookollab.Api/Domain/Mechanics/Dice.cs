@@ -118,6 +118,9 @@ public sealed class InventoryItem
     public required string Name { get; set; }
     public int Quantity { get; set; } = 1;
     public string? Description { get; set; }
+
+    /// <summary>Encyclopedia sheet this item is (optional link).</summary>
+    public Guid? LinkedSheetId { get; set; }
     public Guid GivenByUserId { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }

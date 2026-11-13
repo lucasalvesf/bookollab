@@ -87,6 +87,26 @@ Pedido em `docs-aux/prompt aux/` (texto e as imagens I1 e I2). Regras em `visao-
 - [ ] Prévia das imagens da pasta na enciclopédia usa até 3 capas; permitir a moderação escolher a capa da pasta.
 - [ ] Presença com "só membros das minhas comunidades" e "visto por último aproximado", se o usuário quiser mais opções.
 
+### Sexta rodada (2026-11-13)
+Pedido em `docs-aux/prompt aux/prompt/prompt melhorias13-11-26.md`. Regras em `visao-produto.md` → "Decisões de 2026-11-13".
+- [x] Cores em dois modos (só destaque / tema completo), secundárias visíveis e editáveis.
+- [x] Fundo da comunidade com imagem e desfoque.
+- [x] Recorte de imagem antes de todo envio (web com `react-easy-crop`; celular com o recorte do sistema).
+- [x] Fundo de cor ou imagem (com desfoque) em capítulos, blogs, fichas e personagens.
+- [x] Ficha nova: cabeçalho com slides, imagem central, dados em "recibo", texto como post, comunidade no rodapé.
+- [x] Inventário renomeável, em "baú" animado, com itens ligados a fichas.
+- [x] Enciclopédia sem "Sem pasta" e com a moderação discreta.
+- [x] Leitura mais larga (fichas, capítulos, blogs).
+- [x] Painel da tela dividida acompanha a rolagem; título expande a seção em tela grande.
+- [x] Configurações de moderação do chat escondidas atrás de "Configurar chat".
+- [x] Autocompletar "@" e "/" no chat, com setas e Enter.
+- [x] Novo d20 de criação com dados coloridos e opções ON/OFF; hover do menu lateral direito corrigido.
+- [x] Símbolo de ON (máscara) nas mensagens de personagem.
+- [x] Seção "Acontecimentos".
+- [ ] Comentários, reações com emoji e curtidas em posts e fichas. *Marco 4.*
+- [ ] Revisar no celular o novo d20 e o baú (feitos pensando no mouse).
+- [ ] Moderação escolher quais tipos aparecem nos Acontecimentos.
+
 ## Pedidos do usuário (2026-11-05)
 
 ### Cenas como chat (no estilo do Amino)

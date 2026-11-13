@@ -372,7 +372,7 @@ public static partial class CommunityEndpoints
         c.SheetFields.Select(ToDto).ToList(),
         role is null ? null : new MyAccess(role.Name, role.BaseKind, PermissionNames(role.Permissions)),
         pending, Mechanics.MechanicsEndpoints.ToDto(c), c.IconKey, c.CoverKey, CommunitySections.Normalize(c.Sections), c.FeedLayout,
-        c.AccentColor, c.HomeLayout, c.SectionTitles);
+        c.AccentColor, c.HomeLayout, c.SectionTitles, c.ThemeMode, c.ThemeOverrides, c.BackgroundKey, c.BackgroundBlur, c.InventoryLabel);
 
     public static IReadOnlyList<string> PermissionNames(CommunityPermission permissions) =>
         Enum.GetValues<CommunityPermission>()

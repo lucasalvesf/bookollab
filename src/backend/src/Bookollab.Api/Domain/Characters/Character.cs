@@ -16,6 +16,12 @@ public sealed class Character
 
     /// <summary>Values of the community's sheet fields (stored as jsonb).</summary>
     public List<SheetValue> Sheet { get; set; } = [];
+    // Page of the sheet (like a post): body text and the reading background.
+    public string? Content { get; set; }
+    public string? BackgroundKey { get; set; }
+    public string? BackgroundColor { get; set; }
+    public int BackgroundBlur { get; set; }
+
 
     public bool ShowOnGlobalProfile { get; set; }
     public bool ShowCommunityOnProfile { get; set; } = true;

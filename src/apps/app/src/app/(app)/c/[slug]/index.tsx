@@ -25,8 +25,8 @@ import {
   X,
 } from 'lucide-react-native';
 import { useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, useWindowDimensions, View, type ViewInstance } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeInRight } from 'react-native-reanimated';
+import { Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View, type ViewInstance } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeInRight, ZoomIn } from 'react-native-reanimated';
 
 import { api } from '@/api/client';
 import { labels, unwrap } from '@/api/hooks';
@@ -41,11 +41,13 @@ import { Carousel, ChatCard, EntryTile, FeedSection } from '@/components/feed';
 import { Empty, Loadable, Page, Row, Tag } from '@/components/layout';
 import { ContextMenu, MoreButton, useCopyLink, useMenu, type MenuItem } from '@/components/menu';
 import { PillScroller } from '@/components/pill-scroller';
+import { useOpenTarget } from '@/components/community-drawer';
+import { blurBehind } from '@/components/notifications-panel';
 import { Button, IconButton, Notice } from '@/components/ui';
 import { presenceLabel } from '@/lib/date';
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
-type SectionKey = 'overview' | 'scenes' | 'chapters' | 'encyclopedia' | 'characters' | 'members';
+type SectionKey = 'overview' | 'activity' | 'scenes' | 'chapters' | 'encyclopedia' | 'characters' | 'members';
 type Community = components['schemas']['CommunityDetail'];
 type Post = components['schemas']['ChapterSummary'];
 type Pinned = components['schemas']['PinnedPostDto'];
@@ -98,6 +100,7 @@ export default function CommunityScreen() {
   const validTab = (t?: string) => (t && t in SECTION_INFO && t !== 'encyclopedia' ? (t as SectionKey) : undefined);
   const [tab, setTab] = useState<SectionKey | undefined>(() => validTab(tabParam));
   const [scrolled, setScrolled] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   // A link to a section (?tab=members, e.g. from the side menu) opens it, also when already on this screen.
   const [seenParam, setSeenParam] = useState(tabParam);
   if (tabParam !== seenParam) {
@@ -167,7 +170,14 @@ export default function CommunityScreen() {
             maxWidth={split ? 1320 : 760}
             onScroll={(y) => setScrolled(y > 300)}
             overlay={
-              scrolled ? <StickyHeader community={c} order={c.me ? order : []} current={current} onTab={choose} isStaff={isStaff} pins={pinned} /> : null
+              <>
+                {scrolled ? <StickyHeader community={c} order={c.me ? order : []} current={current} onTab={choose} isStaff={isStaff} pins={pinned} /> : null}
+                {expanded && panelOpen ? (
+                  <ExpandedSection title={sectionTitle(c, current)} onClose={() => setExpanded(false)}>
+                    <SectionList section={current as Exclude<SectionKey, 'overview' | 'encyclopedia'>} community={c} perms={perms} pins={pinned} />
+                  </ExpandedSection>
+                ) : null}
+              </>
             }>
             {c.description ? <Text style={styles.description}>{c.description}</Text> : null}
 
@@ -211,19 +221,19 @@ export default function CommunityScreen() {
                       <Overview community={c} onSeeAll={choose} pins={pinned} hideFeatured={featuredSide && !panelOpen} />
                     </View>
                     {panelOpen ? (
-                      <Animated.View key={current} entering={FadeInRight.duration(220)} style={styles.side}>
+                      <Animated.View key={current} entering={FadeInRight.duration(260)} style={[styles.side, STICKY]}>
                         <View style={styles.sideHeader}>
                           {(() => {
                             const Icon = SECTION_INFO[current].icon;
                             return <Icon size={18} color={colors.brand} strokeWidth={2.2} />;
                           })()}
-                          <Text style={styles.sideTitle}>{sectionTitle(c, current)}</Text>
+                          <ExpandTitle title={sectionTitle(c, current)} onPress={() => setExpanded(true)} />
                           <IconButton icon={X} label="Fechar painel" size={32} onPress={() => setTab('overview')} />
                         </View>
                         <SectionList section={current as Exclude<SectionKey, 'overview' | 'encyclopedia'>} community={c} perms={perms} pins={pinned} narrow />
                       </Animated.View>
                     ) : featuredSide ? (
-                      <Animated.View entering={FadeIn.duration(200)} style={styles.side}>
+                      <Animated.View entering={FadeIn.duration(260)} style={[styles.side, STICKY]}>
                         <SideFeatured community={c} />
                       </Animated.View>
                     ) : null}
@@ -236,6 +246,94 @@ export default function CommunityScreen() {
               </>
             )}
           </Page>
+        );
+      }}
+    </Loadable>
+  );
+}
+
+/** Side panel follows the reader: it sticks to the viewport while the overview scrolls (web). */
+const STICKY = Platform.OS === 'web' ? ({ position: 'sticky', top: 12, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto' } as object) : null;
+
+/** Panel title that expands the section into a big blurred view ("Chats ›", hint on hover). */
+function ExpandTitle({ title, onPress }: { title: string; onPress: () => void }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={`${title}: clique para expandir`} onPress={onPress} style={styles.expandTitle}>
+      {({ hovered }) => (
+        <>
+          <Text style={[styles.sideTitle, hovered && styles.sideTitleHover]}>{title}</Text>
+          <ChevronRight size={18} color={hovered ? colors.brand : colors.textSubtle} />
+          {hovered ? (
+            <Animated.View entering={FadeIn.duration(140)} style={styles.expandHint} pointerEvents="none">
+              <Text style={styles.expandHintText}>Clique para expandir</Text>
+            </Animated.View>
+          ) : null}
+        </>
+      )}
+    </Pressable>
+  );
+}
+
+/** The section in a large view over the blurred page, like the notifications. */
+function ExpandedSection({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  const styles = useStyles();
+  return (
+    <Animated.View entering={FadeIn.duration(180)} style={styles.expandBackdrop} ref={blurBehind}>
+      <Pressable style={styles.fillAbs} onPress={onClose} accessibilityLabel="Fechar" />
+      <Animated.View entering={ZoomIn.duration(220)} style={styles.expandModal}>
+        <View style={styles.expandHead}>
+          <Text style={styles.expandTitleBig}>{title}</Text>
+          <IconButton icon={X} label="Fechar" size={36} onPress={onClose} />
+        </View>
+        <ScrollView contentContainerStyle={styles.expandBody}>{children}</ScrollView>
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
+const ACTIVITY_ICON: Record<string, typeof Users> = { chat: MessagesSquare, scene: Clapperboard, character: UserRound, sheet: BookMarked, chapter: NotebookPen, blog: PenSquare, member: Users };
+
+/** "Acontecimentos": quick feed of what happened, one line each, no thumbnails. */
+function ActivityList({ slug, match }: { slug: string; match: (...parts: (string | null | undefined)[]) => boolean }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const router = useRouter();
+  const openTarget = useOpenTarget(slug);
+  const activity = useQuery({ queryKey: ['activity', slug], queryFn: () => unwrap(api.GET('/communities/{slug}/activity', { params: { path: { slug } } })) });
+  const [now] = useState(() => Date.now());
+  const ago = (iso: string) => {
+    const min = Math.max(1, Math.round((now - new Date(iso).getTime()) / 60000));
+    return min < 60 ? `${min} min` : min < 1440 ? `${Math.round(min / 60)} h` : `${Math.round(min / 1440)} d`;
+  };
+  return (
+    <Loadable query={activity}>
+      {(list) => {
+        const items = list.filter((a) => match(a.actorName, a.verb, a.targetLabel));
+        return items.length === 0 ? (
+          <Empty icon={Clock}>Nada aconteceu por aqui ainda.</Empty>
+        ) : (
+          <View>
+            {items.map((a, i) => {
+              const Icon = ACTIVITY_ICON[a.kind] ?? Clock;
+              return (
+                <Pressable
+                  key={i}
+                  accessibilityRole="link"
+                  onPress={() => (a.target ? openTarget(a.target) : a.actorUserName && router.push({ pathname: '/c/[slug]/membros/[userName]', params: { slug, userName: a.actorUserName } }))}
+                  style={({ hovered }) => [styles.activityRow, hovered && styles.chapterActive]}>
+                  <Icon size={16} color={colors.textMuted} />
+                  <Text style={styles.activityText} numberOfLines={2}>
+                    <Text style={styles.activityStrong}>{a.actorName}</Text>
+                    {` ${a.verb} `}
+                    {a.targetLabel ? <Text style={styles.activityStrong}>{a.targetLabel}</Text> : null}
+                  </Text>
+                  <Text style={styles.chapterTime}>{ago(a.at)}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
         );
       }}
     </Loadable>
@@ -482,7 +580,7 @@ function SectionList({ section, community: c, perms, pins, narrow }: { section: 
   };
 
   const placeholder = useMemo(
-    () => ({ scenes: 'Buscar chats', chapters: 'Buscar posts', characters: 'Buscar personagens', members: 'Buscar membros' })[section],
+    () => ({ activity: 'Buscar acontecimentos', scenes: 'Buscar chats', chapters: 'Buscar posts', characters: 'Buscar personagens', members: 'Buscar membros' })[section],
     [section],
   );
 
@@ -624,6 +722,8 @@ function SectionList({ section, community: c, perms, pins, narrow }: { section: 
         </Loadable>
       ) : null}
 
+      {section === 'activity' ? <ActivityList slug={slug} match={match} /> : null}
+
       {section === 'members' ? (
         <Loadable query={members}>
           {(list) => {
@@ -703,7 +803,20 @@ const useStyles = makeStyles((colors) => ({
   main: { flex: 2, minWidth: 0 },
   side: { flex: 1, minWidth: 360, maxWidth: 480, gap: 12 },
   sideHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sideTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: colors.text },
+  sideTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  sideTitleHover: { color: colors.brand },
+  expandTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  expandHint: { position: 'absolute', top: 30, left: 0, backgroundColor: colors.text, borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 5, zIndex: 5 },
+  expandHintText: { color: colors.surface, fontSize: 12, fontWeight: '600' },
+  fillAbs: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  expandBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: 32, zIndex: 90 },
+  expandModal: { width: '100%', maxWidth: 1100, maxHeight: '90%', backgroundColor: colors.surface, borderRadius: radius.xl, overflow: 'hidden', ...shadow(colors, 3) },
+  expandHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border },
+  expandTitleBig: { flex: 1, fontSize: 20, fontWeight: '800', color: colors.text },
+  expandBody: { padding: 16 },
+  activityRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: colors.border },
+  activityText: { flex: 1, fontSize: 14, color: colors.textMuted, lineHeight: 20 },
+  activityStrong: { fontWeight: '700', color: colors.text },
   overview: { gap: 32 },
   panel: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow(colors, 1) },
   toolbar: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderBottomWidth: 1, borderBottomColor: colors.border, flexWrap: 'wrap' },

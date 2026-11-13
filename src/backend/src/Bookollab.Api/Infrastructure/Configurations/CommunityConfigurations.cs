@@ -27,6 +27,13 @@ internal sealed class CommunityConfiguration : IEntityTypeConfiguration<Communit
                 (a, z) => a!.Count == z!.Count && !a.Except(z).Any(),
                 v => v.Aggregate(0, (h, kv) => HashCode.Combine(h, kv.Key, kv.Value)),
                 v => new Dictionary<string, string>(v)));
+        b.Property(c => c.ThemeOverrides).HasColumnType("jsonb").HasConversion(
+            v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+            v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new(),
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<Dictionary<string, string>>(
+                (a, z) => a!.Count == z!.Count && !a.Except(z).Any(),
+                v => v.Aggregate(0, (h, kv) => HashCode.Combine(h, kv.Key, kv.Value)),
+                v => new Dictionary<string, string>(v)));
         b.OwnsMany(c => c.SideMenu, g =>
         {
             g.ToJson();

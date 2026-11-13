@@ -1,19 +1,17 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BookMarked, Eye, EyeOff, IdCard, Link2, Pencil, UserRound } from 'lucide-react-native';
+import { BookMarked, Eye, EyeOff, Link2, Pencil, UserRound } from 'lucide-react-native';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { api } from '@/api/client';
 import { useDeclareCommunity } from '@/components/community-context';
 import { unwrap } from '@/api/hooks';
-import { Avatar } from '@/components/avatar';
 import { CharacterForm } from '@/components/character-form';
 import { FolderPicker } from '@/components/folder-picker';
-import { Empty, Loadable, Page, Section } from '@/components/layout';
-import { NameLink } from '@/components/links';
-import { CharacterMechanics } from '@/components/mechanics';
-import { ContextMenu, MoreButton, useCopyLink, type MenuItem } from '@/components/menu';
+import { Loadable, Page } from '@/components/layout';
+import { InventoryChest, ReceiptFields, SheetBackdrop, SheetContent, SheetFooter, SheetHero, sheetImages } from '@/components/sheet-page';
+import { MoreButton, useCopyLink, type MenuItem } from '@/components/menu';
 import { IconButton, Notice } from '@/components/ui';
 import { makeStyles, radius, shadow, useTheme } from '@/theme';
 
@@ -32,6 +30,7 @@ export default function CharacterScreen() {
     queryFn: () => unwrap(api.GET('/characters/{id}', { params: { path: { id } } }), 'Personagem não encontrado.'),
   });
   useDeclareCommunity(character.data?.communitySlug);
+  const page = useQuery({ queryKey: ['character-page', id], queryFn: () => unwrap(api.GET('/characters/{id}/page', { params: { path: { id } } })) });
   const community = useQuery({
     queryKey: ['community', character.data?.communitySlug],
     enabled: !!character.data,
@@ -53,9 +52,12 @@ export default function CharacterScreen() {
           { label: 'Copiar link', icon: Link2, onPress: () => void copyLink(`/personagens/${ch.id}`) },
         ];
         return (
+          <SheetBackdrop page={editing ? null : page.data}>
           <Page
             title={editing ? `Editar ${ch.name}` : ch.name}
             back
+            maxWidth={1100}
+            transparent={!editing && (!!page.data?.backgroundKey || !!page.data?.backgroundColor)}
             actions={
               editing ? undefined : (
                 <View style={styles.inline}>
@@ -85,52 +87,34 @@ export default function CharacterScreen() {
                   />
                 ) : (
                   <>
-                    <ContextMenu items={menu} title={ch.name} style={styles.identity}>
-                      <Avatar name={ch.name} imageKey={ch.avatarKey} size={120} shape="rounded" />
-                      <View style={styles.identityText}>
-                        <Text style={styles.kind}>Personagem</Text>
-                        <Text style={styles.name}>{ch.name}</Text>
-                        <Text style={styles.meta}>
-                          {'de '}
-                          <NameLink label={`@${ch.ownerUserName}`} href={{ pathname: '/c/[slug]/membros/[userName]', params: { slug: ch.communitySlug, userName: ch.ownerUserName } }} />
-                          {community.data ? ' · ' : ''}
-                          {community.data ? <NameLink label={community.data.name} href={{ pathname: '/c/[slug]', params: { slug: ch.communitySlug } }} /> : null}
-                        </Text>
-                        <View style={styles.visibility}>
-                          {ch.showOnGlobalProfile ? <Eye size={14} color={colors.textSubtle} /> : <EyeOff size={14} color={colors.textSubtle} />}
-                          <Text style={styles.visibilityText}>
-                            {ch.showOnGlobalProfile
-                              ? `Na vitrine do perfil global${ch.showCommunityOnProfile ? ', com a comunidade' : ''}`
-                              : 'Fora do perfil global'}
-                          </Text>
-                        </View>
-                      </View>
-                    </ContextMenu>
-
-                    <Section title="Ficha" icon={IdCard}>
-                      {c.sheetFields.length === 0 ? (
-                        <Empty icon={IdCard}>A comunidade ainda não definiu campos de ficha.</Empty>
-                      ) : (
-                        c.sheetFields.map((f) => {
-                          const value = ch.sheet.find((v) => v.key === f.key)?.value;
-                          return (
-                            <View key={f.key} style={[styles.field, f.type === 'LongText' && styles.fieldLong]}>
-                              <Text style={styles.fieldLabel}>{f.label}</Text>
-                              <Text style={[styles.fieldValue, !value && styles.fieldEmpty]}>{value || '—'}</Text>
-                            </View>
-                          );
-                        })
-                      )}
-                    </Section>
-                    <CharacterMechanics characterId={ch.id} />
-                    <View style={styles.staffBox}>
-                      <FolderPicker slug={ch.communitySlug} itemType="Character" itemId={ch.id} folderId={ch.folderId} onMoved={() => queryClient.invalidateQueries({ queryKey: ['character', id] })} />
+                    <SheetHero name={ch.name} kind="Personagem" imageKey={ch.avatarKey} images={sheetImages(ch.avatarKey, page.data?.content)} />
+                    <ReceiptFields fields={c.sheetFields.map((f) => ({ label: f.label, value: ch.sheet.find((v) => v.key === f.key)?.value, long: f.type === 'LongText' }))} />
+                    {page.data ? (
+                      <SheetContent
+                        key={page.dataUpdatedAt}
+                        page={page.data}
+                        slug={ch.communitySlug}
+                        onSave={async ({ content, background }) => {
+                          const data = await unwrap(api.PUT('/characters/{id}/page', { params: { path: { id } }, body: { content, backgroundKey: background.imageKey, backgroundColor: background.color, backgroundBlur: background.blur } }));
+                          queryClient.setQueryData(['character-page', id], data);
+                        }}
+                      />
+                    ) : null}
+                    <InventoryChest characterId={ch.id} slug={ch.communitySlug} label={c.inventoryLabel || 'Inventário'} />
+                    <View style={styles.visibility}>
+                      {ch.showOnGlobalProfile ? <Eye size={14} color={colors.textSubtle} /> : <EyeOff size={14} color={colors.textSubtle} />}
+                      <Text style={styles.visibilityText}>
+                        {ch.showOnGlobalProfile ? `Na vitrine do perfil global${ch.showCommunityOnProfile ? ', com a comunidade' : ''}` : 'Fora do perfil global'}
+                      </Text>
                     </View>
+                    <FolderPicker slug={ch.communitySlug} itemType="Character" itemId={ch.id} folderId={ch.folderId} onMoved={() => queryClient.invalidateQueries({ queryKey: ['character', id] })} />
+                    <SheetFooter slug={ch.communitySlug} communityName={c.name} ownerUserName={ch.ownerUserName} />
                   </>
                 )
               }
             </Loadable>
           </Page>
+          </SheetBackdrop>
         );
       }}
     </Loadable>

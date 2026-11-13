@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, NotebookPen, X } from 'lucide-react-native';
+import { ChevronDown, ChevronLeft, ChevronRight, NotebookPen, Settings2, X } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { api } from '@/api/client';
@@ -55,6 +55,7 @@ export function SceneSidebar({
     mutationFn: () => unwrap(api.POST('/scenes/{id}/close', { params: { path: { id: scene.id } } })),
     onSuccess: setScene,
   });
+  const [configuring, setConfiguring] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
 
@@ -62,7 +63,7 @@ export function SceneSidebar({
     setUploadError(undefined);
     setUploading(true);
     try {
-      const key = await pickAndUploadImage();
+      const key = await pickAndUploadImage({ aspect: 16 / 9, title: 'Ajustar fundo do chat' });
       if (key) background.mutate(`image:${key}`);
     } catch (e) {
       setUploadError((e as Error).message);
@@ -153,13 +154,20 @@ export function SceneSidebar({
         </View>
       ) : null}
 
-      <SceneInvitesAndRequests scene={scene} />
-      <SceneSettings scene={scene} />
+      {scene.canManage || scene.canEditBackground || scene.canClose ? (
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: configuring }} onPress={() => setConfiguring((v) => !v)} style={({ hovered }) => [styles.configToggle, (hovered || configuring) && styles.configToggleOn]}>
+          <Settings2 size={16} color={configuring ? colors.brand : colors.textMuted} />
+          <Text style={[styles.configText, configuring && styles.configTextOn]}>{configuring ? 'Fechar configurações' : 'Configurar chat'}</Text>
+          {scene.pendingRequestCount ? <Text style={styles.configBadge}>{scene.pendingRequestCount}</Text> : null}
+        </Pressable>
+      ) : null}
+      {configuring ? <SceneInvitesAndRequests scene={scene} /> : null}
+      {configuring ? <SceneSettings scene={scene} /> : null}
       {scene.status === 'Open' && scene.canJoin && myCharacters && myCharacters.length === 0 ? (
         <Notice kind="info">Crie um personagem nesta comunidade para entrar na cena.</Notice>
       ) : null}
 
-      {scene.canEditBackground ? (
+      {configuring && scene.canEditBackground ? (
         <View style={styles.block}>
           <Text style={styles.sectionTitle}>Fundo do chat</Text>
           <View style={styles.swatches}>
@@ -204,7 +212,7 @@ export function SceneSidebar({
         </View>
       ) : null}
 
-      {scene.canClose ? (
+      {configuring && scene.canClose ? (
         <View style={styles.block}>
           {close.isError ? <Notice kind="error">{close.error.message}</Notice> : null}
           <ConfirmButton label="Encerrar cena" confirmLabel="Confirmar: encerrar a cena" onConfirm={() => close.mutate()} />
@@ -215,6 +223,11 @@ export function SceneSidebar({
 }
 
 const useStyles = makeStyles((colors) => ({
+  configToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginVertical: 6, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 10, borderWidth: 1, borderColor: colors.border },
+  configToggleOn: { borderColor: colors.brand, backgroundColor: colors.brandSoft },
+  configText: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.textMuted },
+  configTextOn: { color: colors.brandSoftText },
+  configBadge: { minWidth: 20, textAlign: 'center', fontSize: 11, fontWeight: '800', color: '#FFFFFF', backgroundColor: colors.danger, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
   sidebar: { flex: 1, backgroundColor: colors.surface },
   content: { padding: 20, gap: 20 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

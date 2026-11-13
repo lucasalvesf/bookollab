@@ -79,6 +79,19 @@ public sealed class Community
     /// <summary>Arrangement of the community home on wide screens.</summary>
     public HomeLayout HomeLayout { get; set; } = HomeLayout.Stacked;
 
+    /// <summary>Accent = only the brand color changes; Full = backgrounds, surfaces and borders also derive from AccentColor.</summary>
+    public ThemeMode ThemeMode { get; set; } = ThemeMode.Accent;
+
+    /// <summary>Manual overrides of derived theme tokens (token name → #RRGGBB), set by the moderation.</summary>
+    public Dictionary<string, string> ThemeOverrides { get; set; } = [];
+
+    /// <summary>Image behind the whole community (upload key) and its blur in px (0-40).</summary>
+    public string? BackgroundKey { get; set; }
+    public int BackgroundBlur { get; set; }
+
+    /// <summary>Custom name of the inventory (e.g. Mochila, Baú). Null = Inventário.</summary>
+    public string? InventoryLabel { get; set; }
+
     /// <summary>Custom names of the main sections (section key → title). Missing = default name.</summary>
     public Dictionary<string, string> SectionTitles { get; set; } = [];
 
@@ -202,8 +215,9 @@ public static class CommunitySections
     public const string Encyclopedia = "encyclopedia";
     public const string Characters = "characters";
     public const string Members = "members";
+    public const string Activity = "activity";
 
-    public static readonly string[] Default = [Overview, Scenes, Chapters, Encyclopedia, Characters, Members];
+    public static readonly string[] Default = [Overview, Activity, Scenes, Chapters, Encyclopedia, Characters, Members];
 
     /// <summary>Known sections in the saved order, plus any section added later at the end.</summary>
     public static List<string> Normalize(IEnumerable<string> saved)
@@ -226,6 +240,12 @@ public enum FeedLayout
 
     /// <summary>Grid that puts the cover images first.</summary>
     Gallery,
+}
+
+public enum ThemeMode
+{
+    Accent,
+    Full,
 }
 
 public enum HomeLayout

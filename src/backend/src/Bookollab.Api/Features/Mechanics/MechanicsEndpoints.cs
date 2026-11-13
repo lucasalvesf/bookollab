@@ -12,9 +12,10 @@ public sealed record MechanicsDto(bool DiceEnabled, bool AttributesEnabled, bool
 
 public sealed record AttributeDto(string Key, string Label, string? Value);
 
-public sealed record InventoryItemDto(Guid Id, string Name, int Quantity, string? Description, DateTimeOffset CreatedAt);
+/// <summary>An item; LinkedSheet* point to an encyclopedia sheet the item is (e.g. "Espada de Âmbar").</summary>
+public sealed record InventoryItemDto(Guid Id, string Name, int Quantity, string? Description, DateTimeOffset CreatedAt, Guid? LinkedSheetId = null, string? LinkedSheetName = null, string? LinkedSheetImageKey = null);
 
-public sealed record SaveInventoryItemRequest(string Name, int Quantity, string? Description);
+public sealed record SaveInventoryItemRequest(string Name, int Quantity, string? Description, Guid? LinkedSheetId = null);
 
 public sealed record CharacterMechanicsDto(MechanicsDto Mechanics, IReadOnlyList<AttributeDto> Attributes, IReadOnlyList<InventoryItemDto> Inventory, bool CanManageInventory);
 
@@ -71,7 +72,9 @@ public static class MechanicsEndpoints
             : [];
         var inventory = community.InventoryEnabled
             ? await db.InventoryItems.Where(i => i.CharacterId == id).OrderBy(i => i.Name)
-                .Select(i => new InventoryItemDto(i.Id, i.Name, i.Quantity, i.Description, i.CreatedAt)).ToListAsync(ct)
+                .Select(i => new InventoryItemDto(i.Id, i.Name, i.Quantity, i.Description, i.CreatedAt, i.LinkedSheetId,
+                    db.EncyclopediaSheets.Where(s => s.Id == i.LinkedSheetId).Select(s => s.Name).FirstOrDefault(),
+                    db.EncyclopediaSheets.Where(s => s.Id == i.LinkedSheetId).Select(s => s.ImageKey).FirstOrDefault())).ToListAsync(ct)
             : [];
         return TypedResults.Ok(new CharacterMechanicsDto(ToDto(community), attributes, inventory,
             community.InventoryEnabled && access.Has(CommunityPermission.ManageCharacters)));
@@ -94,9 +97,10 @@ public static class MechanicsEndpoints
             Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description.Trim(),
             GivenByUserId = user.UserId(),
         };
+        if (!await LinkAsync(db, item, req.LinkedSheetId, character.CommunityId, ct)) return Problems.Validation("linkedSheetId", "Escolha uma ficha desta comunidade.");
         db.InventoryItems.Add(item);
         await db.SaveChangesAsync(ct);
-        return TypedResults.Created($"/inventory-items/{item.Id}", new InventoryItemDto(item.Id, item.Name, item.Quantity, item.Description, item.CreatedAt));
+        return TypedResults.Created($"/inventory-items/{item.Id}", await ItemDtoAsync(db, item, ct));
     }
 
     private static async Task<IResult> UpdateItem(Guid id, SaveInventoryItemRequest req, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)
@@ -112,8 +116,22 @@ public static class MechanicsEndpoints
         item.Name = req.Name.Trim();
         item.Quantity = req.Quantity;
         item.Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description.Trim();
+        if (!await LinkAsync(db, item, req.LinkedSheetId, communityId, ct)) return Problems.Validation("linkedSheetId", "Escolha uma ficha desta comunidade.");
         await db.SaveChangesAsync(ct);
-        return TypedResults.Ok(new InventoryItemDto(item.Id, item.Name, item.Quantity, item.Description, item.CreatedAt));
+        return TypedResults.Ok(await ItemDtoAsync(db, item, ct));
+    }
+
+    private static async Task<bool> LinkAsync(AppDbContext db, InventoryItem item, Guid? sheetId, Guid communityId, CancellationToken ct)
+    {
+        if (sheetId is { } sid && !await db.EncyclopediaSheets.AnyAsync(s => s.Id == sid && s.CommunityId == communityId, ct)) return false;
+        item.LinkedSheetId = sheetId;
+        return true;
+    }
+
+    private static async Task<InventoryItemDto> ItemDtoAsync(AppDbContext db, InventoryItem i, CancellationToken ct)
+    {
+        var sheet = i.LinkedSheetId is { } sid ? await db.EncyclopediaSheets.Where(s => s.Id == sid).Select(s => new { s.Name, s.ImageKey }).FirstOrDefaultAsync(ct) : null;
+        return new InventoryItemDto(i.Id, i.Name, i.Quantity, i.Description, i.CreatedAt, i.LinkedSheetId, sheet?.Name, sheet?.ImageKey);
     }
 
     private static async Task<IResult> RemoveItem(Guid id, ClaimsPrincipal user, AppDbContext db, PermissionService perms, CancellationToken ct)

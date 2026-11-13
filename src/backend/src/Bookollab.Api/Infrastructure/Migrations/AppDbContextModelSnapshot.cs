@@ -33,6 +33,14 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("author_user_id");
 
+                    b.Property<int>("BackgroundBlur")
+                        .HasColumnType("integer")
+                        .HasColumnName("background_blur");
+
+                    b.Property<string>("BackgroundColor")
+                        .HasColumnType("text")
+                        .HasColumnName("background_color");
+
                     b.Property<string>("BackgroundKey")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -226,9 +234,25 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("avatar_key");
 
+                    b.Property<int>("BackgroundBlur")
+                        .HasColumnType("integer")
+                        .HasColumnName("background_blur");
+
+                    b.Property<string>("BackgroundColor")
+                        .HasColumnType("text")
+                        .HasColumnName("background_color");
+
+                    b.Property<string>("BackgroundKey")
+                        .HasColumnType("text")
+                        .HasColumnName("background_key");
+
                     b.Property<Guid>("CommunityId")
                         .HasColumnType("uuid")
                         .HasColumnName("community_id");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -296,6 +320,14 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("attributes_enabled");
 
+                    b.Property<int>("BackgroundBlur")
+                        .HasColumnType("integer")
+                        .HasColumnName("background_blur");
+
+                    b.Property<string>("BackgroundKey")
+                        .HasColumnType("text")
+                        .HasColumnName("background_key");
+
                     b.Property<string>("ChapterApprovalMode")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -354,6 +386,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("inventory_enabled");
 
+                    b.Property<string>("InventoryLabel")
+                        .HasColumnType("text")
+                        .HasColumnName("inventory_label");
+
                     b.Property<string>("JoinPolicy")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -391,6 +427,17 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)")
                         .HasColumnName("template_mode");
+
+                    b.Property<string>("ThemeMode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("theme_mode");
+
+                    b.Property<string>("ThemeOverrides")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("theme_overrides");
 
                     b.HasKey("Id")
                         .HasName("pk_communities");
@@ -712,9 +759,25 @@ namespace Bookollab.Api.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<int>("BackgroundBlur")
+                        .HasColumnType("integer")
+                        .HasColumnName("background_blur");
+
+                    b.Property<string>("BackgroundColor")
+                        .HasColumnType("text")
+                        .HasColumnName("background_color");
+
+                    b.Property<string>("BackgroundKey")
+                        .HasColumnType("text")
+                        .HasColumnName("background_key");
+
                     b.Property<Guid>("CommunityId")
                         .HasColumnType("uuid")
                         .HasColumnName("community_id");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -841,6 +904,10 @@ namespace Bookollab.Api.Infrastructure.Migrations
                     b.Property<Guid>("GivenByUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("given_by_user_id");
+
+                    b.Property<Guid?>("LinkedSheetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("linked_sheet_id");
 
                     b.Property<string>("Name")
                         .IsRequired()

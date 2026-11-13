@@ -16,6 +16,7 @@ import { ContextMenu, MoreButton, useCopyLink, useMenu, type MenuItem } from '@/
 import { MusicPlayer } from '@/components/music-player';
 import { PostEditor, type PostDraft } from '@/components/post-editor';
 import { RichText } from '@/components/rich-text';
+import { BackgroundLayer } from '@/components/page-background';
 import { useDeclareCommunity } from '@/components/community-context';
 import { Button, Field, IconButton, Notice } from '@/components/ui';
 import { fileUrl } from '@/lib/files';
@@ -56,7 +57,7 @@ export default function ChapterScreen() {
     mutationFn: async () => {
       const { data, error } = await api.PUT('/chapters/{id}', {
         params: { path: { id } },
-        body: { title: draft.title, content: draft.content, coverKey: draft.coverKey, backgroundKey: draft.backgroundKey, musicUrl: draft.musicUrl.trim() || null },
+        body: { title: draft.title, content: draft.content, coverKey: draft.coverKey, backgroundKey: draft.backgroundKey, musicUrl: draft.musicUrl.trim() || null, backgroundColor: draft.backgroundColor ?? null, backgroundBlur: draft.backgroundBlur ?? 0 },
       });
       if (!data) throw Object.assign(new Error(problemMessage(error) ?? 'Não foi possível salvar.'), { problem: error });
       return data;
@@ -84,7 +85,7 @@ export default function ChapterScreen() {
   });
 
   const startEditing = (c: Chapter) => {
-    setDraft({ title: c.title, content: c.content, coverKey: c.coverKey ?? null, backgroundKey: c.backgroundKey ?? null, musicUrl: c.musicUrl ?? '' });
+    setDraft({ title: c.title, content: c.content, coverKey: c.coverKey ?? null, backgroundKey: c.backgroundKey ?? null, musicUrl: c.musicUrl ?? '', backgroundColor: c.backgroundColor ?? null, backgroundBlur: c.backgroundBlur ?? 0 });
     setProblem(undefined);
     setEditing(true);
   };
@@ -130,7 +131,7 @@ export default function ChapterScreen() {
         }
 
         const cover = fileUrl(c.coverKey);
-        const background = fileUrl(c.backgroundKey);
+        const background = !!c.backgroundKey || !!c.backgroundColor;
         const menu = chapterMenu(c);
         const author = c.kind === 'Blog'
           ? { label: c.characterName, href: { pathname: '/c/[slug]/membros/[userName]' as const, params: { slug: c.communitySlug, userName: c.authorUserName } } }
@@ -156,6 +157,7 @@ export default function ChapterScreen() {
           <Page
             title={c.title}
             back
+            maxWidth={1080}
             transparent={!!background}
             hero={hero}
             actions={
@@ -234,8 +236,8 @@ export default function ChapterScreen() {
 
         return background ? (
           <View style={styles.flex}>
-            <Image source={{ uri: background }} style={styles.fill} contentFit="cover" />
-            <View style={styles.backgroundShade} />
+            <BackgroundLayer value={{ imageKey: c.backgroundKey ?? null, color: c.backgroundColor ?? null, blur: c.backgroundBlur ?? 0 }} />
+            {c.backgroundKey ? <View style={styles.backgroundShade} /> : null}
             {page}
           </View>
         ) : (

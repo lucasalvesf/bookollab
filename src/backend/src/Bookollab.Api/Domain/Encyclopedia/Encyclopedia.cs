@@ -61,6 +61,12 @@ public sealed class EncyclopediaSheet
 
     /// <summary>The sheet's own fields (definition + value), copied from the template and possibly extended.</summary>
     public List<SheetEntryField> Fields { get; set; } = [];
+    // Page of the sheet (like a post): body text and the reading background.
+    public string? Content { get; set; }
+    public string? BackgroundKey { get; set; }
+    public string? BackgroundColor { get; set; }
+    public int BackgroundBlur { get; set; }
+
 
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? UpdatedAt { get; set; }

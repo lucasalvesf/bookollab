@@ -195,6 +195,40 @@ Pedido do usuário em `docs-aux/prompt aux/` (texto e as imagens I1 e I2).
   - privacidade da presença com duas opções (Todos/Ninguém), padrão Todos;
   - o menu lateral direito e a divisão da tela só existem no PC; no celular continuam as abas.
 
+### Decisões de 2026-11-13
+Pedido do usuário em `docs-aux/prompt aux/prompt/prompt melhorias13-11-26.md`.
+- **Cores da comunidade em dois modos**:
+  - **Só destaque**: muda só a cor de botões, pílulas e links, como antes;
+  - **Tema completo**: fundo, cartões, bordas e barra lateral ganham tons da cor primária, harmônicos nos temas claro e escuro. No escuro, a barra lateral fica um degrau mais escura que o fundo.
+- Ao escolher a primária, o sistema mostra as **cores secundárias** geradas, cada uma com uma bolinha e onde é usada. A moderação pode **trocar cada uma** ou voltar à automática.
+- **Fundo da comunidade**: imagem atrás de todas as telas, com um controle de **desfoque** (de nítido a bem desfocado).
+- **Recorte antes de enviar**: toda imagem enviada (foto de perfil, capas, ícone, anexo do chat, fundos) passa por uma etapa de ajuste. A moldura tem o formato do lugar que a imagem vai ocupar.
+- **Fundo de posts e fichas**: cor sólida ou imagem (com recorte e desfoque), para capítulos, blogs, fichas e personagens.
+- **Ficha nova**:
+  - imagem principal centralizada sobre um cabeçalho que passa as imagens da ficha a cada 8 segundos;
+  - os dados aparecem como um "recibo" e, abaixo, um **texto como o de um post** (a história, a descrição);
+  - o nome da comunidade vai para o rodapé.
+- **Inventário**:
+  - o nome é configurável (Mochila, Baú…);
+  - fica fechado num "baú" com animação e abre ao clicar;
+  - os itens podem **apontar para fichas** da enciclopédia.
+- Na enciclopédia, sem a pasta "Sem pasta"; as ações de moderação ficam no menu "⋯".
+- **Leitura mais larga**: fichas, capítulos e blogs ocupam mais da tela. A página inicial continua como está.
+- O painel lateral da tela dividida **acompanha a rolagem**. O título do painel ("Chats ›") abre a seção grande, com o fundo desfocado.
+- Nos chats, as configurações da moderação ficam escondidas atrás de **"Configurar chat"**.
+- **Autocompletar no chat**: "@" sugere o que marcar e "/" sugere os comandos, navegando pelas setas e completando com Enter.
+- **Botão de criar novo**:
+  - um d20 com "+" que rola ao passar o mouse e cai num número aleatório;
+  - dele surgem dados coloridos, um por tipo de criação, com cores fixas que não seguem a da comunidade: post (d4), chat (d6), personagem (d8), ficha (d10);
+  - cada dado abre suas opções em pílulas ON/OFF.
+- **Símbolo de ON**: uma máscara nas mensagens de personagem.
+- **Nova seção "Acontecimentos"**: lista rápida do que aconteceu na comunidade (criou o chat, criou o personagem, publicou o blog, entrou…), sem miniaturas.
+- Comentários, reações e curtidas continuam no **Marco 4**, já previsto.
+- *Decisões de implementação, a confirmar pelo usuário:*
+  - os Acontecimentos são montados a partir do que já existe (não há registro separado de eventos);
+  - as cores secundárias que dá para trocar são destaque, destaque suave, texto sobre destaque suave, fundo, superfície, superfície alternativa, barra lateral, bordas e texto secundário;
+  - no celular, o recorte usa o do próprio sistema.
+
 ## Personalização da comunidade
 Tudo disponível desde o lançamento:
 - **Visual:** capa, ícone, cores/tema, fonte.
