@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, type Href } from 'expo-router';
-import { Check, ExternalLink, FolderPlus, Link2, Pencil, PencilLine, Plus, RotateCcw, Share2, Trash2, Users, X } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { ChevronLeft, Check, ExternalLink, FolderPlus, Link2, Pencil, PencilLine, Plus, RotateCcw, Share2, Trash2, Users, X } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
 import { Linking, Platform, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { Easing, FadeIn, FadeOut, SlideInRight, SlideOutRight } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeOut, SlideInRight, SlideOutRight, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { api } from '@/api/client';
 import { unwrap } from '@/api/hooks';
@@ -41,7 +41,9 @@ export function useOpenSection(slug: string) {
   return (key: string) =>
     key === 'encyclopedia'
       ? router.push({ pathname: '/c/[slug]/enciclopedia', params: { slug } })
-      : router.push({ pathname: '/c/[slug]', params: { slug, tab: key } });
+      : key === 'overview'
+        ? router.push({ pathname: '/c/[slug]', params: { slug, tab: key } })
+        : router.push({ pathname: '/c/[slug]', params: { slug, tab: key, big: String(Date.now()) } }); // large view, not the split panel
 }
 
 /**
@@ -50,6 +52,7 @@ export function useOpenSection(slug: string) {
  */
 export function CommunityDrawer({ community: c }: { community: Community }) {
   const styles = useStyles();
+  const { colors } = useTheme();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [dialog, setDialog] = useState(false);
@@ -64,12 +67,20 @@ export function CommunityDrawer({ community: c }: { community: Community }) {
     if (!stay) timer.current = setTimeout(() => setOpen(false), 260);
   };
   const hover = Platform.OS === 'web' ? { onHoverIn: show, onHoverOut: hide } : {};
+  // The arrow nudges left now and then: there is something hidden here.
+  const nudgeX = useSharedValue(0);
+  useEffect(() => {
+    nudgeX.set(withRepeat(withSequence(withTiming(-4, { duration: 700, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 700, easing: Easing.inOut(Easing.quad) }), withDelay(1600, withTiming(0, { duration: 1 }))), -1));
+  }, [nudgeX]);
+  const nudge = useAnimatedStyle(() => ({ transform: [{ translateX: nudgeX.get() }] }));
   // Over the open drawer use DOM mouseenter/leave: Pressable hover breaks over the buttons inside it.
   const mouse = Platform.OS === 'web' ? ({ onMouseEnter: show, onMouseLeave: hide } as object) : {};
   return (
     <>
       <Pressable {...hover} onPress={show} accessibilityRole="button" accessibilityLabel={`Menu de ${c.name}`} style={styles.edge}>
-        <View style={styles.edgeGrip} />
+        <Animated.View style={[styles.edgeGrip, nudge]}>
+          <ChevronLeft size={20} color={colors.brandText} strokeWidth={3} />
+        </Animated.View>
       </Pressable>
       {open ? (
         <>
@@ -266,8 +277,8 @@ function DrawerContent({ community: c, editing, setEditing, onDialog, onClose }:
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   fill: { flex: 1 },
-  edge: { position: 'absolute', top: 0, bottom: 0, right: 0, width: 14, alignItems: 'center', justifyContent: 'center', zIndex: 40 },
-  edgeGrip: { width: 4, height: 72, borderRadius: 2, backgroundColor: colors.brand, opacity: 0.35, ...(Platform.OS === 'web' ? ({ transition: 'opacity 200ms ease, height 200ms ease' } as object) : null) },
+  edge: { position: 'absolute', top: 0, bottom: 0, right: 0, width: 30, alignItems: 'center', justifyContent: 'center', zIndex: 40 },
+  edgeGrip: { width: 26, height: 84, borderTopLeftRadius: 14, borderBottomLeftRadius: 14, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center', ...shadow(colors, 2), ...(Platform.OS === 'web' ? ({ transition: 'opacity 200ms ease, height 200ms ease' } as object) : null) },
   scrim: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.overlay, zIndex: 66 },
   drawer: { position: 'absolute', top: 0, bottom: 0, right: 0, width: 340, backgroundColor: colors.surface, borderLeftWidth: 1, borderLeftColor: colors.border, zIndex: 70, ...shadow(colors, 3) },
   content: { paddingBottom: 40 },

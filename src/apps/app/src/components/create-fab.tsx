@@ -182,7 +182,7 @@ export function CreateFab() {
 }
 
 const useStyles = makeStyles((colors) => ({
-  anchor: { position: 'absolute', right: 30, bottom: 30, alignItems: 'flex-end', zIndex: 60, paddingTop: 8, paddingLeft: 8 },
+  anchor: { position: 'absolute', right: 120, bottom: 30, alignItems: 'flex-end', zIndex: 60, paddingTop: 8, paddingLeft: 8 },
   fab: { width: 104, height: 104, alignItems: 'center', justifyContent: 'center', borderRadius: 52 },
   halo: { position: 'absolute', width: 96, height: 96, borderRadius: 48 },
   stack: { alignItems: 'flex-end', gap: 12, marginBottom: 6, marginRight: 18 },

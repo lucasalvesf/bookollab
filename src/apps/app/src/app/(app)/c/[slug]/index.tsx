@@ -87,7 +87,7 @@ function usePinMenu(slug: string, pins: Pinned[], canPin: boolean) {
 export default function CommunityScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
-  const { slug, tab: tabParam } = useLocalSearchParams<{ slug: string; tab?: string }>();
+  const { slug, tab: tabParam, big: bigParam } = useLocalSearchParams<{ slug: string; tab?: string; big?: string }>();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const queryClient = useQueryClient();
@@ -101,6 +101,17 @@ export default function CommunityScreen() {
   const [tab, setTab] = useState<SectionKey | undefined>(() => validTab(tabParam));
   const [scrolled, setScrolled] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  // Opened from the side menu: the section shows large (blurred page), not in the split panel.
+  const [viaMenu, setViaMenu] = useState(false);
+  const [seenBig, setSeenBig] = useState(bigParam);
+  if (bigParam !== seenBig) {
+    setSeenBig(bigParam);
+    if (bigParam && validTab(tabParam)) {
+      setTab(validTab(tabParam));
+      setExpanded(true);
+      setViaMenu(true);
+    }
+  }
   // A link to a section (?tab=members, e.g. from the side menu) opens it, also when already on this screen.
   const [seenParam, setSeenParam] = useState(tabParam);
   if (tabParam !== seenParam) {
@@ -172,8 +183,16 @@ export default function CommunityScreen() {
             overlay={
               <>
                 {scrolled ? <StickyHeader community={c} order={c.me ? order : []} current={current} onTab={choose} isStaff={isStaff} pins={pinned} /> : null}
-                {expanded && panelOpen ? (
-                  <ExpandedSection title={sectionTitle(c, current)} onClose={() => setExpanded(false)}>
+                {expanded && current !== 'overview' && current !== 'encyclopedia' ? (
+                  <ExpandedSection
+                    title={sectionTitle(c, current)}
+                    onClose={() => {
+                      setExpanded(false);
+                      if (viaMenu) {
+                        setViaMenu(false);
+                        setTab('overview');
+                      }
+                    }}>
                     <SectionList section={current as Exclude<SectionKey, 'overview' | 'encyclopedia'>} community={c} perms={perms} pins={pinned} />
                   </ExpandedSection>
                 ) : null}
